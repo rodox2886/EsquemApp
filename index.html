@@ -288,14 +288,57 @@
 	</div>
 	
 	<div id="copy-image-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+		<div class="bg-white p-6 rounded-lg shadow-xl max-w-5xl w-full">
 			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-lg font-bold">Copiar Imagen del Diagrama</h3>
+				<h3 class="text-lg font-bold">Exportar Imagen del Diagrama</h3>
 				<button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 			</div>
-			<p class="text-sm text-gray-600 mb-4">Haz clic derecho sobre la imagen y selecciona "Copiar imagen" para pegarla en otro programa.</p>
-			<div class="border rounded-md p-2 bg-gray-100 max-h-[60vh] overflow-auto">
-				<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto">
+			<p class="text-sm text-gray-600 mb-4">Elige formato, resolución y fondo antes de copiar o descargar la vista actual.</p>
+			<div class="grid md:grid-cols-3 gap-4">
+				<div class="md:col-span-2 space-y-3">
+					<div class="relative border rounded-md p-2 bg-gray-50 max-h-[60vh] overflow-auto flex items-center justify-center">
+						<div id="export-preview-loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-md hidden">
+							<div class="loader"></div>
+						</div>
+						<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100">
+					</div>
+					<div class="flex items-center justify-between text-xs sm:text-sm text-gray-600">
+						<span id="export-dimensions-label">Dimensiones: --</span>
+						<span id="export-size-label" class="font-semibold text-gray-800">Tamaño: --</span>
+					</div>
+					<p id="clipboard-notice" class="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-3 py-2 hidden">El navegador puede bloquear el acceso al portapapeles. Si ocurre, usa "Descargar" como alternativa.</p>
+				</div>
+				<div class="space-y-4">
+					<div>
+						<label for="export-format" class="block text-sm font-semibold text-gray-700 mb-1">Formato</label>
+						<select id="export-format" class="w-full border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+							<option value="png">PNG</option>
+							<option value="svg">SVG</option>
+						</select>
+					</div>
+					<div>
+						<label for="export-resolution" class="block text-sm font-semibold text-gray-700 mb-1">Resolución</label>
+						<select id="export-resolution" class="w-full border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+							<option value="1">1x (predeterminada)</option>
+							<option value="1.5">1.5x</option>
+							<option value="2">2x</option>
+							<option value="4">4x</option>
+						</select>
+						<p class="text-xs text-gray-500 mt-1">Escala relativa al tamaño visible del lienzo.</p>
+					</div>
+					<div>
+						<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
+						<div class="flex items-center gap-3">
+							<input id="export-bg-color" type="color" value="#f0f0f0" class="h-10 w-16 border rounded cursor-pointer">
+							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
+						</div>
+					</div>
+					<div class="flex flex-col sm:flex-row gap-2 pt-1">
+						<button id="copy-to-clipboard-btn" class="flex-1 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Copiar al portapapeles</button>
+						<button id="download-image-btn" class="flex-1 px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors text-sm font-semibold">Descargar</button>
+					</div>
+					<p class="text-xs text-gray-500">Si el portapapeles no está disponible, usa el botón “Descargar”.</p>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -769,7 +812,15 @@
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
 		const imageToCopy = document.getElementById('image-to-copy');
-		const loadingIndicator = document.getElementById('loading-indicator');
+		const exportFormatSelect = document.getElementById('export-format');
+		const exportResolutionSelect = document.getElementById('export-resolution');
+		const exportBgColorInput = document.getElementById('export-bg-color');
+		const exportPreviewLoading = document.getElementById('export-preview-loading');
+		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
+		const exportSizeLabel = document.getElementById('export-size-label');
+		const clipboardNotice = document.getElementById('clipboard-notice');
+		const downloadImageBtn = document.getElementById('download-image-btn');
+		const copyToClipboardBtn = document.getElementById('copy-to-clipboard-btn');
 		const searchInput = document.getElementById('search-input');
         const searchSuggestions = document.getElementById('search-suggestions');
 		const manualModeToggle = document.getElementById('manual-mode-toggle');
@@ -833,6 +884,9 @@
         let snapLine = null; // To store the perpendicular connection line info
 		let activeMundoInternoIconType = 'half-f-circle';
 		let activeSeccionadorIconType = 'standard';
+		let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
+		let currentExportDataUrl = '';
+		let currentExportBlob = null;
 
 
 		// --- Undo/Redo State ---
@@ -1489,34 +1543,185 @@
             container.appendChild(confirmBox);
         }
 
-		function createDiagramImage() {
+		function formatBytes(bytes) {
+			if (!bytes || isNaN(bytes)) return '—';
+			const units = ['B', 'KB', 'MB', 'GB'];
+			let size = bytes;
+			let unitIndex = 0;
+			while (size >= 1024 && unitIndex < units.length - 1) {
+				size /= 1024;
+				unitIndex++;
+			}
+			return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+		}
+
+		function getSelectedExportOptions() {
+			const scaleValue = parseFloat((exportResolutionSelect && exportResolutionSelect.value) || exportOptions.scale || 1);
+			const sanitizedScale = isNaN(scaleValue) || scaleValue <= 0 ? 1 : scaleValue;
+			return {
+				format: (exportFormatSelect && exportFormatSelect.value) || exportOptions.format || 'png',
+				scale: sanitizedScale,
+				backgroundColor: (exportBgColorInput && exportBgColorInput.value) || exportOptions.backgroundColor || '#f0f0f0'
+			};
+		}
+
+		function updateExportMeta(width, height, blobSize) {
+			if (exportDimensionsLabel) {
+				exportDimensionsLabel.textContent = `Dimensiones: ${Math.round(width)} x ${Math.round(height)} px · ${exportOptions.format.toUpperCase()} · ${exportOptions.scale}x`;
+			}
+			if (exportSizeLabel) {
+				exportSizeLabel.textContent = `Tamaño estimado: ${formatBytes(blobSize)}`;
+			}
+		}
+
+		function toggleExportLoading(isLoading) {
+			if (exportPreviewLoading) {
+				exportPreviewLoading.classList.toggle('hidden', !isLoading);
+			}
+			if (copyToClipboardBtn) copyToClipboardBtn.disabled = isLoading;
+			if (downloadImageBtn) downloadImageBtn.disabled = isLoading;
+		}
+
+		async function createDiagramImage(options = {}) {
+			const { format = 'png', scale = 1, backgroundColor = '#f0f0f0' } = options;
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
 
-			// El lienzo de origen ya se renderiza en alta resolución (DPI) a través de devicePixelRatio.
 			const sourceCanvas = dxfCanvas;
-			
-			// Coincidir el tamaño del lienzo temporal con el tamaño del búfer del lienzo de origen.
-			tempCanvas.width = sourceCanvas.width;
-			tempCanvas.height = sourceCanvas.height;
+			const outputWidth = Math.max(1, Math.round(sourceCanvas.width * scale));
+			const outputHeight = Math.max(1, Math.round(sourceCanvas.height * scale));
+
+			tempCanvas.width = outputWidth;
+			tempCanvas.height = outputHeight;
 
             // Primero, rellenar el lienzo temporal con el mismo color de fondo que el lienzo principal.
             // Esto asegura que el fondo sea correcto incluso si el origen tiene áreas transparentes.
-            tempCtx.fillStyle = '#f0f0f0';
+            tempCtx.fillStyle = backgroundColor || '#f0f0f0';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 			// Dibujar el lienzo principal sobre el temporal. Esta es una copia de píxeles 1:1.
-			tempCtx.drawImage(sourceCanvas, 0, 0);
+			tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
 
-			// Devolver el contenido del lienzo temporal.
-			return tempCanvas.toDataURL('image/png');
+			if (format === 'svg') {
+				const pngDataUrl = tempCanvas.toDataURL('image/png');
+				const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}"><rect width="100%" height="100%" fill="${backgroundColor}"/><image href="${pngDataUrl}" width="${outputWidth}" height="${outputHeight}" preserveAspectRatio="xMidYMid meet"/></svg>`;
+				const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
+				const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
+				return { dataUrl: svgDataUrl, blob: svgBlob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
+			}
+
+			const dataUrl = tempCanvas.toDataURL('image/png');
+			const blob = await (await fetch(dataUrl)).blob();
+
+			return { dataUrl, blob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
 		}
 
-		function showCopyImageModal(dataUrl) {
-			imageToCopy.src = dataUrl;
+		function showCopyImageModal(exportData) {
+			if (!exportData) return;
+			currentExportDataUrl = exportData.dataUrl;
+			currentExportBlob = exportData.blob;
+			exportOptions = { ...exportOptions, ...exportData.options, width: exportData.width, height: exportData.height };
+
+			imageToCopy.src = exportData.dataUrl;
+			updateExportMeta(exportData.width, exportData.height, exportData.blob ? exportData.blob.size : 0);
+
 			copyImageModal.classList.remove('hidden');
 			copyImageModal.classList.add('flex');
-			loadingIndicator.classList.add('hidden');
+		}
+
+		function setClipboardNotice(message, tone = 'warning') {
+			if (!clipboardNotice) return;
+			const toneClasses = {
+				success: ['bg-green-50', 'text-green-700', 'border-green-200'],
+				error: ['bg-red-50', 'text-red-700', 'border-red-200'],
+				warning: ['bg-yellow-50', 'text-yellow-700', 'border-yellow-200']
+			};
+			clipboardNotice.textContent = message;
+			clipboardNotice.classList.remove('hidden', 'bg-yellow-50', 'text-yellow-700', 'border-yellow-200', 'bg-green-50', 'text-green-700', 'border-green-200', 'bg-red-50', 'text-red-700', 'border-red-200');
+			clipboardNotice.classList.add(...(toneClasses[tone] || toneClasses.warning));
+		}
+
+		function clearClipboardNotice() {
+			if (!clipboardNotice) return;
+			clipboardNotice.classList.add('hidden');
+		}
+
+		async function refreshExportPreview(openModal = false) {
+			const shouldShow = openModal || !copyImageModal.classList.contains('hidden');
+			if (!shouldShow) return;
+
+			exportOptions = { ...exportOptions, ...getSelectedExportOptions() };
+
+			if (openModal) {
+				copyImageModal.classList.remove('hidden');
+				copyImageModal.classList.add('flex');
+			}
+
+			toggleExportLoading(true);
+
+			try {
+				const exportData = await createDiagramImage(exportOptions);
+				if (openModal || !copyImageModal.classList.contains('hidden')) {
+					showCopyImageModal(exportData);
+					clearClipboardNotice();
+				}
+			} catch (error) {
+				console.error('Error generando la imagen de exportación', error);
+				setClipboardNotice('No se pudo generar la vista previa. Intenta nuevamente.', 'error');
+			} finally {
+				toggleExportLoading(false);
+			}
+		}
+
+		async function copyImageToClipboard() {
+			if (!currentExportDataUrl) {
+				setClipboardNotice('Genera primero la vista previa para copiarla.', 'warning');
+				return;
+			}
+
+			if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+				setClipboardNotice('El navegador no permite copiar al portapapeles. Se iniciará una descarga como alternativa.', 'warning');
+				downloadCurrentImage();
+				return;
+			}
+
+			try {
+				const mimeType = exportOptions.format === 'svg' ? 'image/svg+xml' : 'image/png';
+				const blob = currentExportBlob || await (await fetch(currentExportDataUrl)).blob();
+				await navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })]);
+				setClipboardNotice('Imagen copiada al portapapeles.', 'success');
+			} catch (error) {
+				console.error('No fue posible copiar al portapapeles', error);
+				setClipboardNotice('El navegador bloqueó el portapapeles. Se iniciará una descarga como alternativa.', 'error');
+				downloadCurrentImage();
+			}
+		}
+
+		function downloadCurrentImage() {
+			if (!currentExportDataUrl) {
+				setClipboardNotice('Genera la vista previa antes de descargar.', 'warning');
+				return;
+			}
+
+			const extension = (exportOptions.format || 'png').toLowerCase() === 'svg' ? 'svg' : 'png';
+			const filename = `esquemapp.${extension}`;
+			const link = document.createElement('a');
+
+			if (currentExportBlob && URL.createObjectURL) {
+				const blobUrl = URL.createObjectURL(currentExportBlob);
+				link.href = blobUrl;
+				link.download = filename;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(blobUrl);
+			} else {
+				link.href = currentExportDataUrl;
+				link.download = filename;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
 		}
 
 		function modelToScreen(modelX, modelY) {
@@ -3757,14 +3962,40 @@
         });
 
 		copyImageBtn.addEventListener('click', () => {
-			loadingIndicator.classList.remove('hidden');
-			const dataUrl = createDiagramImage();
-			showCopyImageModal(dataUrl);
+			if (exportFormatSelect) {
+				exportFormatSelect.value = exportOptions.format || 'png';
+			}
+			if (exportResolutionSelect) {
+				exportResolutionSelect.value = (exportOptions.scale || 1).toString();
+			}
+			if (exportBgColorInput) {
+				exportBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
+			}
+			refreshExportPreview(true);
 		});
+
+		if (downloadImageBtn) {
+			downloadImageBtn.addEventListener('click', downloadCurrentImage);
+		}
+
+		if (copyToClipboardBtn) {
+			copyToClipboardBtn.addEventListener('click', copyImageToClipboard);
+		}
+
+		[exportFormatSelect, exportResolutionSelect].forEach(el => {
+			if (!el) return;
+			el.addEventListener('change', () => refreshExportPreview(false));
+		});
+
+		if (exportBgColorInput) {
+			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
+		}
 
 		closeModalBtn.addEventListener('click', () => {
 			copyImageModal.classList.add('hidden');
 			copyImageModal.classList.remove('flex');
+			toggleExportLoading(false);
+			clearClipboardNotice();
 		});
 
 		clearDrawingsBtn.addEventListener('click', () => {
@@ -5490,16 +5721,6 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
 
