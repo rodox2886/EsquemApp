@@ -242,44 +242,6 @@
 			stroke-width: 1px;
 			stroke-dasharray: 4 2;
 		}
-		#minimap-container {
-			position: absolute;
-			right: 1rem;
-			bottom: 1rem;
-			width: 220px;
-			height: 160px;
-			background: rgba(255, 255, 255, 0.9);
-			border: 1px solid #e5e7eb;
-			border-radius: 12px;
-			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-			padding: 8px;
-			z-index: 25;
-		}
-		#minimap-header {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			font-size: 12px;
-			color: #4b5563;
-			font-weight: 600;
-			margin-bottom: 4px;
-		}
-		#minimap-canvas {
-			width: 100%;
-			height: 100%;
-			border: 1px solid #e5e7eb;
-			border-radius: 8px;
-			cursor: grab;
-			background: #f8fafc;
-		}
-		#minimap-canvas:active {
-			cursor: grabbing;
-		}
-		.minimap-viewport {
-			stroke: #2563eb;
-			fill: rgba(37, 99, 235, 0.12);
-			stroke-width: 1.2px;
-		}
 		#dxf-canvas {
 			cursor: grab;
 		}
@@ -797,28 +759,21 @@
 				</header>
 
 <main id="visualization-container" class="bg-white shadow-sm rounded-xl p-2 sm:p-4 overflow-auto flex-grow border border-gray-300 relative" style="min-height: 70vh;">
-						<div id="initial-message" class="flex flex-col items-center justify-center h-full text-center text-gray-500" style="min-height: 65vh;">
-							<svg class="w-16 h-16 mb-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-							</svg>
-							<h2 class="text-xl font-semibold">Bienvenido a EsquemApp</h2>
+					<div id="initial-message" class="flex flex-col items-center justify-center h-full text-center text-gray-500" style="min-height: 65vh;">
+						<svg class="w-16 h-16 mb-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+						</svg>
+						<h2 class="text-xl font-semibold">Bienvenido a EsquemApp</h2>
 						<p class="mt-2 max-w-md">Use las herramientas para dibujar o cargue un archivo de croquis (JSON o DXF) para comenzar.</p>
 					</div>
 					<div id="loading-indicator" class="hidden flex flex-col items-center justify-center h-full" style="min-height: 65vh;">
 						<div class="loader"></div>
-							<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
-						</div>
-	                      <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-	                      <div id="minimap-container" class="hidden">
-							<div id="minimap-header">
-								<span>Minimapa</span>
-								<span class="text-[10px] font-semibold text-gray-400">Arrastra para mover</span>
-							</div>
-							<canvas id="minimap-canvas" width="220" height="140"></canvas>
-						  </div>
-					</main>
-				</div>
+						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
+					</div>
+                      <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
+				</main>
 			</div>
+		</div>
 		
 		<div id="info-panel" class="relative w-80 bg-white shadow-lg p-6 transform translate-x-full transition-transform duration-300 ease-in-out z-30">
 			<button id="close-info-panel-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 z-10">
@@ -846,11 +801,6 @@
         const infoContent = document.getElementById('info-content');
         const closeInfoPanelBtn = document.getElementById('close-info-panel-btn');
 		const resetViewBtn = document.getElementById('reset-view-btn');
-		const minimapContainer = document.getElementById('minimap-container');
-		const minimapCanvas = document.getElementById('minimap-canvas');
-		const minimapCtx = minimapCanvas.getContext('2d');
-		const contextMenu = document.getElementById('context-menu');
-		const contextMenuList = contextMenu.querySelector('ul');
 		const toolBtns = document.querySelectorAll('.tool-btn');
 		const undoBtn = document.getElementById('undo-btn');
 		const redoBtn = document.getElementById('redo-btn');
@@ -937,9 +887,6 @@
 		let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 		let currentExportDataUrl = '';
 		let currentExportBlob = null;
-		let routeHighlight = null;
-		let contextMenuTarget = null;
-		let isDraggingMinimap = false;
 
 
 		// --- Undo/Redo State ---
@@ -1783,25 +1730,11 @@
             return { x: screenX, y: screenY };
         }
 
-			function screenToModel(sx, sy) {
-				const mx = ((sx - view.offsetX) / view.scale) + extents.minX;
-				const my = extents.maxY - ((sy - view.offsetY) / view.scale);
-				return { x: mx, y: my };
-	    	}
-
-			function distanceBetweenPoints(a, b) {
-				if (!a || !b) return Infinity;
-				const dx = a.x - b.x;
-				const dy = a.y - b.y;
-				return Math.sqrt(dx * dx + dy * dy);
-			}
-
-			function getAnchorPointForItem(item) {
-				if (!item) return null;
-				if (item.position) return item.position;
-				if (item.start) return item.start;
-				return null;
-			}
+		function screenToModel(sx, sy) {
+			const mx = ((sx - view.offsetX) / view.scale) + extents.minX;
+			const my = extents.maxY - ((sy - view.offsetY) / view.scale);
+			return { x: mx, y: my };
+    	}
 
 		function fitViewToExtents() {
 			const canvasContainer = document.getElementById('visualization-container');
@@ -2317,108 +2250,11 @@
             }
         }
 
-		function modelToMinimap(modelX, modelY, scale, margin, target) {
-			const x = ((modelX - extents.minX) * scale) + margin;
-			const y = ((extents.maxY - modelY) * scale) + margin;
-			return { x, y };
-		}
-
-		function minimapToModel(px, py, scale, margin) {
-			const modelX = ((px - margin) / scale) + extents.minX;
-			const modelY = extents.maxY - ((py - margin) / scale);
-			return { x: modelX, y: modelY };
-		}
-
-		function drawMinimap() {
-			if (!minimapContainer || !minimapCanvas || !minimapCtx) return;
-			const mainRect = dxfCanvas.getBoundingClientRect();
-			if (!mainRect.width || !mainRect.height) return;
-			minimapContainer.classList.remove('hidden');
-			const { margin, scale, width, height } = getMinimapTransform();
-			minimapCanvas.width = width;
-			minimapCanvas.height = height;
-
-			minimapCtx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
-
-			// Background
-			minimapCtx.fillStyle = '#f8fafc';
-			minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
-
-			// Draw DXF lines/polylines simplified
-			minimapCtx.strokeStyle = '#cbd5e1';
-			minimapCtx.lineWidth = 1;
-			linesAndPolylines.forEach(ent => {
-				if (ent.type === 'LINE' && ent.start && ent.end) {
-					const p1 = modelToMinimap(ent.start.x, ent.start.y, scale, margin);
-					const p2 = modelToMinimap(ent.end.x, ent.end.y, scale, margin);
-					minimapCtx.beginPath(); minimapCtx.moveTo(p1.x, p1.y); minimapCtx.lineTo(p2.x, p2.y); minimapCtx.stroke();
-				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
-					minimapCtx.beginPath();
-					const first = modelToMinimap(ent.vertices[0].x, ent.vertices[0].y, scale, margin);
-					minimapCtx.moveTo(first.x, first.y);
-					for (let i = 1; i < ent.vertices.length; i++) {
-						if (!ent.vertices[i]) continue;
-						const v = modelToMinimap(ent.vertices[i].x, ent.vertices[i].y, scale, margin);
-						minimapCtx.lineTo(v.x, v.y);
-					}
-					if (ent.closed) minimapCtx.closePath();
-					minimapCtx.stroke();
-				}
-			});
-
-			// Draw highlight edges if present
-			if (routeHighlight && routeHighlight.edges.length > 0) {
-				minimapCtx.strokeStyle = 'rgba(37, 99, 235, 0.8)';
-				minimapCtx.lineWidth = 2;
-				routeHighlight.edges.forEach(edge => {
-					const p1 = modelToMinimap(edge.from.x, edge.from.y, scale, margin);
-					const p2 = modelToMinimap(edge.to.x, edge.to.y, scale, margin);
-					minimapCtx.beginPath();
-					minimapCtx.moveTo(p1.x, p1.y);
-					minimapCtx.lineTo(p2.x, p2.y);
-					minimapCtx.stroke();
-				});
-			}
-
-			// Viewport rectangle
-			const topLeft = screenToModel(0, 0);
-			const bottomRight = screenToModel(mainRect.width, mainRect.height);
-			const tlMini = modelToMinimap(topLeft.x, topLeft.y, scale, margin);
-			const brMini = modelToMinimap(bottomRight.x, bottomRight.y, scale, margin);
-			const width = Math.abs(brMini.x - tlMini.x);
-			const height = Math.abs(brMini.y - tlMini.y);
-
-			minimapCtx.strokeStyle = '#2563eb';
-			minimapCtx.fillStyle = 'rgba(37, 99, 235, 0.12)';
-			minimapCtx.lineWidth = 1.2;
-			minimapCtx.beginPath();
-			minimapCtx.rect(Math.min(tlMini.x, brMini.x), Math.min(tlMini.y, brMini.y), width, height);
-			minimapCtx.fill();
-			minimapCtx.stroke();
-		}
-
-		function handleMinimapInteraction(event) {
-			if (!minimapCanvas) return;
-			const { margin, scale } = getMinimapTransform();
-			const rect = minimapCanvas.getBoundingClientRect();
-			const px = event.clientX - rect.left;
-			const py = event.clientY - rect.top;
-			const targetModel = minimapToModel(px, py, scale, margin);
-			centerViewOn(targetModel);
-			draw();
-		}
-
-		function centerViewOn(modelPoint) {
-			const rect = dxfCanvas.getBoundingClientRect();
-			view.offsetX = (rect.width / 2) - ((modelPoint.x - extents.minX) * view.scale);
-			view.offsetY = (rect.height / 2) - ((extents.maxY - modelPoint.y) * view.scale);
-		}
-
         function draw() {
-				const rect = dxfCanvas.getBoundingClientRect();
-				dxfCtx.save(); // Save the clean, untransformed state
-				dxfCtx.fillStyle = '#f0f0f0';
-				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+			const rect = dxfCanvas.getBoundingClientRect();
+			dxfCtx.save(); // Save the clean, untransformed state
+			dxfCtx.fillStyle = '#f0f0f0';
+			dxfCtx.fillRect(0, 0, rect.width, rect.height);
 			
 			// --- Draw DXF content (potentially clipped) ---
 			dxfCtx.save(); // Save state before clipping for DXF content
@@ -2781,11 +2617,11 @@
 						dxfCtx.restore();
 						break;
 				}
-				
-					d.labelBBox = null; // Reset bbox
-					if (d.label && (d.symbolType === 'ct' || d.symbolType === 'seccionador')) {
-						// Si es un seccionador, verificar si es una salida de un CT existente
-						if (d.symbolType === 'seccionador') {
+
+				d.labelBBox = null; // Reset bbox
+				if (d.label && (d.symbolType === 'ct' || d.symbolType === 'seccionador')) {
+					// Si es un seccionador, verificar si es una salida de un CT existente
+					if (d.symbolType === 'seccionador') {
 						const parts = d.label.split('-');
 						if (parts.length > 1) {
 							const ctLabelCandidate = parts[0];
@@ -2829,43 +2665,17 @@
 						dxfCtx.textAlign = 'left';
 						dxfCtx.textBaseline = 'middle';
 						dxfCtx.fillStyle = isCt ? '#800000' : '#1f2937';
-							dxfCtx.fillText(displayLabel, labelPos.x, labelPos.y);
-						}
+						dxfCtx.fillText(displayLabel, labelPos.x, labelPos.y);
 					}
-					
-					dxfCtx.restore();
-				});
-
-				// --- Route highlight overlay ---
-				if (routeHighlight && routeHighlight.edges && routeHighlight.edges.length > 0) {
-					dxfCtx.save();
-					dxfCtx.strokeStyle = 'rgba(37, 99, 235, 0.85)';
-					dxfCtx.lineWidth = 3;
-					routeHighlight.edges.forEach(edge => {
-						const p1 = modelToScreen(edge.from.x, edge.from.y);
-						const p2 = modelToScreen(edge.to.x, edge.to.y);
-						dxfCtx.beginPath();
-						dxfCtx.moveTo(p1.x, p1.y);
-						dxfCtx.lineTo(p2.x, p2.y);
-						dxfCtx.stroke();
-					});
-
-					if (routeHighlight.nodes && routeHighlight.nodes.length > 0) {
-						dxfCtx.fillStyle = 'rgba(37, 99, 235, 0.9)';
-						routeHighlight.nodes.forEach(node => {
-							const p = modelToScreen(node.point.x, node.point.y);
-							dxfCtx.beginPath();
-							dxfCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
-							dxfCtx.fill();
-						});
-					}
-					dxfCtx.restore();
 				}
 				
-				// --- Draw selection highlights and handles on top ---
-				const allSelectedItems = [];
-				if (multiSelection.length > 0) {
-					allSelectedItems.push(...multiSelection);
+				dxfCtx.restore();
+			});
+			
+			// --- Draw selection highlights and handles on top ---
+			const allSelectedItems = [];
+			if (multiSelection.length > 0) {
+				allSelectedItems.push(...multiSelection);
 			} else if (selectedDrawingId) {
 				const selected = userDrawings.find(d => d.id === selectedDrawingId);
 				if (selected) allSelectedItems.push(selected);
@@ -2940,13 +2750,12 @@
 				dxfCtx.strokeRect(marqueeRect.x, marqueeRect.y, marqueeRect.width, marqueeRect.height);
 				dxfCtx.fillRect(marqueeRect.x, marqueeRect.y, marqueeRect.width, marqueeRect.height);
 				dxfCtx.restore();
-			        	}
-				
-				dxfCtx.restore(); // Restore the clean, initial state
-				drawMinimap();
-	        }
+        	}
 			
-			function renderGroundSymbol(d) {
+			dxfCtx.restore(); // Restore the clean, initial state
+        }
+		
+		function renderGroundSymbol(d) {
 			const size = (d.size || 0.5) * view.scale;
 			const pos = modelToScreen(d.start.x, d.start.y);
 			dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
@@ -3241,11 +3050,11 @@
             return null;
         }
 
-			function getDrawingAtScreenPos(screenX, screenY) {
-				for (let i = userDrawings.length - 1; i >= 0; i--) {
-					const d = userDrawings[i];
-					const bbox = getEntityBBox(d, false); // Screen coords
-					if (!bbox) continue;
+		function getDrawingAtScreenPos(screenX, screenY) {
+			for (let i = userDrawings.length - 1; i >= 0; i--) {
+				const d = userDrawings[i];
+				const bbox = getEntityBBox(d, false); // Screen coords
+				if (!bbox) continue;
 				const inflate = 5; // Make selection easier
 				
 				if(d.type.includes('line')) {
@@ -3262,209 +3071,15 @@
 					screenY >= bbox.y - inflate && screenY <= bbox.y + bbox.height + inflate) {
 					return d;
 				}
-				}
-				return null;
 			}
+			return null;
+		}
+		
+		function getHandleAtScreenPos(screenX, screenY) {
+			if (!selectedDrawingId) return null;
+			const selected = userDrawings.find(d => d.id === selectedDrawingId);
+			if (!selected) return null;
 			
-			function getMinimapTransform() {
-				const mmRect = minimapCanvas.getBoundingClientRect();
-				const fallbackWidth = mmRect.width || 220;
-				const fallbackHeight = mmRect.height || 160;
-				const boundsWidth = Math.max(extents.maxX - extents.minX, 1e-6);
-				const boundsHeight = Math.max(extents.maxY - extents.minY, 1e-6);
-				const margin = 8;
-				const scale = Math.min(
-					(fallbackWidth - margin * 2) / boundsWidth,
-					(fallbackHeight - margin * 2) / boundsHeight
-				);
-				return { margin, scale, width: fallbackWidth, height: fallbackHeight };
-			}
-
-			function buildConnectivityGraph() {
-				const nodes = [];
-				const edges = [];
-				const adjacency = new Map();
-				const edgesById = new Map();
-				const nodesById = new Map();
-				const diag = Math.hypot(extents.maxX - extents.minX, extents.maxY - extents.minY);
-				const tolerance = Math.max(diag * 0.005, 0.5);
-
-				function getOrCreateNode(point, entity) {
-					let existing = nodes.find(n => distanceBetweenPoints(n.point, point) <= tolerance);
-					if (existing) {
-						if (entity) existing.entities.add(entity);
-						return existing;
-					}
-					const node = { id: `n-${nodes.length}`, point: { x: point.x, y: point.y }, entities: new Set(entity ? [entity] : []) };
-					nodes.push(node);
-					adjacency.set(node.id, []);
-					nodesById.set(node.id, node);
-					return node;
-				}
-
-				function addEdge(nodeA, nodeB, meta = {}) {
-					if (!nodeA || !nodeB || nodeA.id === nodeB.id) return;
-					const edgeId = meta.id || `e-${edges.length}`;
-					if (edgesById.has(edgeId)) return; // Avoid duplicates
-					const edge = {
-						id: edgeId,
-						fromId: nodeA.id,
-						toId: nodeB.id,
-						from: nodeA.point,
-						to: nodeB.point,
-						source: meta.source || 'unknown'
-					};
-					edges.push(edge);
-					adjacency.get(nodeA.id).push(edge);
-					adjacency.get(nodeB.id).push(edge);
-					edgesById.set(edgeId, edge);
-				}
-
-				// Register DXF lines and polylines
-				linesAndPolylines.forEach((ent, idx) => {
-					if (ent.type === 'LINE' && ent.start && ent.end) {
-						const n1 = getOrCreateNode(ent.start, ent);
-						const n2 = getOrCreateNode(ent.end, ent);
-						addEdge(n1, n2, { id: ent.id || `line-${idx}`, source: 'dxf-line' });
-					} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
-						for (let i = 0; i < ent.vertices.length - 1; i++) {
-							if (!ent.vertices[i] || !ent.vertices[i + 1]) continue;
-							const n1 = getOrCreateNode(ent.vertices[i], ent);
-							const n2 = getOrCreateNode(ent.vertices[i + 1], ent);
-							addEdge(n1, n2, { id: `${ent.id || `poly-${idx}`}-seg-${i}`, source: 'dxf-polyline' });
-						}
-						if (ent.closed && ent.vertices[0] && ent.vertices[ent.vertices.length - 1]) {
-							const nFirst = getOrCreateNode(ent.vertices[0], ent);
-							const nLast = getOrCreateNode(ent.vertices[ent.vertices.length - 1], ent);
-							addEdge(nLast, nFirst, { id: `${ent.id || `poly-${idx}`}-seg-close`, source: 'dxf-polyline' });
-						}
-					}
-				});
-
-				// Register user-drawn lines
-				userDrawings.forEach((d, idx) => {
-					if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
-						if (d.start && d.end) {
-							const n1 = getOrCreateNode(d.start, d);
-							const n2 = getOrCreateNode(d.end, d);
-							addEdge(n1, n2, { id: d.id || `udl-${idx}`, source: 'user-line' });
-						}
-					}
-				});
-
-				// Attach anchorable symbols/drawings to the nearest graph node
-				const anchorCandidates = [
-					...symbols,
-					...userDrawings.filter(d => ['draw-ct', 'draw-seccionador', 'draw-ground', 'draw-mundo-interno'].includes(d.type))
-				];
-
-				anchorCandidates.forEach((ent, idx) => {
-					const anchor = getAnchorPointForItem(ent);
-					if (!anchor) return;
-					const node = getOrCreateNode(anchor, ent);
-					let closest = { node: null, distance: Infinity };
-					nodes.forEach(n => {
-						if (n.id === node.id) return;
-						const dist = distanceBetweenPoints(n.point, anchor);
-						if (dist < closest.distance) {
-							closest = { node: n, distance: dist };
-						}
-					});
-					if (closest.node && closest.distance <= tolerance * 1.5) {
-						addEdge(node, closest.node, { id: `anchor-${idx}-${closest.node.id}`, source: 'anchor' });
-					}
-				});
-
-				return { nodes, edges, adjacency, edgesById, nodesById, tolerance };
-			}
-
-			function computeRouteFromPoint(modelPoint) {
-				const graph = buildConnectivityGraph();
-				if (!graph.nodes.length) return null;
-
-				let closest = { node: null, distance: Infinity };
-				graph.nodes.forEach(n => {
-					const dist = distanceBetweenPoints(n.point, modelPoint);
-					if (dist < closest.distance) closest = { node: n, distance: dist };
-				});
-				if (!closest.node || closest.distance > graph.tolerance * 1.5) return null;
-
-				const visitedNodes = new Set([closest.node.id]);
-				const visitedEdges = new Set();
-				const queue = [closest.node.id];
-
-				while (queue.length > 0) {
-					const current = queue.shift();
-					const edges = graph.adjacency.get(current) || [];
-					edges.forEach(edge => {
-						visitedEdges.add(edge.id);
-						const nextId = edge.fromId === current ? edge.toId : edge.fromId;
-						if (!visitedNodes.has(nextId)) {
-							visitedNodes.add(nextId);
-							queue.push(nextId);
-						}
-					});
-				}
-
-				return {
-					nodes: [...visitedNodes].map(id => graph.nodesById.get(id)).filter(Boolean),
-					edges: [...visitedEdges].map(id => graph.edgesById.get(id)).filter(Boolean)
-				};
-			}
-
-			function highlightRouteFromAnchor(anchorPoint, directionLabel) {
-				if (!anchorPoint) return;
-				const computed = computeRouteFromPoint(anchorPoint);
-				if (!computed) return;
-				routeHighlight = { ...computed, direction: directionLabel };
-				draw();
-			}
-
-			function clearRouteHighlight() {
-				if (routeHighlight) {
-					routeHighlight = null;
-					draw();
-				}
-			}
-
-			function closeContextMenu() {
-				contextMenu.classList.add('hidden');
-				contextMenuTarget = null;
-				contextMenuList.innerHTML = '';
-			}
-
-			function openContextMenu(event, targetItem) {
-				if (!targetItem) return;
-				contextMenuTarget = targetItem;
-				contextMenuList.innerHTML = '';
-
-				const addOption = (label, handler) => {
-					const li = document.createElement('li');
-					li.className = 'px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 cursor-pointer';
-					li.textContent = label;
-					li.addEventListener('click', () => {
-						handler();
-						closeContextMenu();
-					});
-					contextMenuList.appendChild(li);
-				};
-
-				addOption('Resaltar ruta (aguas arriba)', () => highlightRouteFromAnchor(getAnchorPointForItem(contextMenuTarget), 'upstream'));
-				addOption('Resaltar ruta (aguas abajo)', () => highlightRouteFromAnchor(getAnchorPointForItem(contextMenuTarget), 'downstream'));
-				if (routeHighlight) {
-					addOption('Limpiar resaltado de ruta', clearRouteHighlight);
-				}
-
-				contextMenu.style.left = `${event.clientX}px`;
-				contextMenu.style.top = `${event.clientY}px`;
-				contextMenu.classList.remove('hidden');
-			}
-			
-			function getHandleAtScreenPos(screenX, screenY) {
-				if (!selectedDrawingId) return null;
-				const selected = userDrawings.find(d => d.id === selectedDrawingId);
-				if (!selected) return null;
-				
 			const bbox = getEntityBBox(selected, false); // Screen coords
 			if (!bbox) return null;
 			
@@ -5176,52 +4791,18 @@
 		});
 
 		
-	        dxfCanvas.addEventListener('wheel', e => {
-				e.preventDefault();
-				const rect = dxfCanvas.getBoundingClientRect(), mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top, oldScale = view.scale, factor = e.deltaY < 0 ? 1.1 : 0.9;
-				view.scale *= factor;
-				view.offsetX = mouseX - ((mouseX - view.offsetX) / oldScale) * view.scale;
-				view.offsetY = mouseY - ((mouseY - view.offsetY) / oldScale) * view.scale;
-				draw();
-			});
-
-			dxfCanvas.addEventListener('contextmenu', e => {
-				e.preventDefault();
-				const rect = dxfCanvas.getBoundingClientRect();
-				const screenX = e.clientX - rect.left;
-				const screenY = e.clientY - rect.top;
-				const drawing = getDrawingAtScreenPos(screenX, screenY);
-				const entity = drawing ? null : getEntityAtScreenPos(screenX, screenY);
-				const target = drawing || entity;
-				if (target && getAnchorPointForItem(target)) {
-					openContextMenu(e, target);
-				} else {
-					closeContextMenu();
-				}
-			});
-
-			document.addEventListener('click', (e) => {
-				if (!contextMenu.contains(e.target)) {
-					closeContextMenu();
-				}
-			});
-
-			minimapCanvas.addEventListener('mousedown', (e) => {
-				isDraggingMinimap = true;
-				handleMinimapInteraction(e);
-			});
-			window.addEventListener('mousemove', (e) => {
-				if (isDraggingMinimap) {
-					handleMinimapInteraction(e);
-				}
-			});
-			window.addEventListener('mouseup', () => {
-				isDraggingMinimap = false;
-			});
-			
-	        closeInfoPanelBtn.addEventListener('click', () => {
-	            infoPanel.classList.add('translate-x-full');
-	            selectedEntity = null;
+        dxfCanvas.addEventListener('wheel', e => {
+			e.preventDefault();
+			const rect = dxfCanvas.getBoundingClientRect(), mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top, oldScale = view.scale, factor = e.deltaY < 0 ? 1.1 : 0.9;
+			view.scale *= factor;
+			view.offsetX = mouseX - ((mouseX - view.offsetX) / oldScale) * view.scale;
+			view.offsetY = mouseY - ((mouseY - view.offsetY) / oldScale) * view.scale;
+			draw();
+		});
+        
+        closeInfoPanelBtn.addEventListener('click', () => {
+            infoPanel.classList.add('translate-x-full');
+            selectedEntity = null;
 			selectedDrawingId = null;
 			selectedGroupId = null;
 			multiSelection = [];
@@ -5668,13 +5249,12 @@
             // Si el lienzo está visible, vamos a la pantalla de inicio
             if (!dxfCanvas.classList.contains('hidden')) {
                 // Limpiar todo el estado
-	                linesAndPolylines = []; symbols = []; userDrawings = [];
-	                selectedEntity = null; originalExtents = null; selectedDrawingId = null;
-	                deleteBtn.disabled = true;
-	                routeHighlight = null;
-	                updateInfoPanel(null);
-	                setActiveTool(null);
-	                view = { offsetX: 0, offsetY: 0, scale: 1 };
+                linesAndPolylines = []; symbols = []; userDrawings = [];
+                selectedEntity = null; originalExtents = null; selectedDrawingId = null;
+                deleteBtn.disabled = true;
+                updateInfoPanel(null);
+                setActiveTool(null);
+                view = { offsetX: 0, offsetY: 0, scale: 1 };
                 document.getElementById('dxf-upload-label-span').textContent = 'DXF';
                 selectedGroupId = null;
                 undoStack = [];
@@ -6143,5 +5723,4 @@
 </html>
 
 
-<!-- redeploy -->
-<!-- Reapplying changes after deployment error -->
+
