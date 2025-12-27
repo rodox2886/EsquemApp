@@ -1303,6 +1303,26 @@
 				const dist = new Array(graph.nodes.length).fill(Infinity);
 				const prev = new Array(graph.nodes.length).fill(null);
 				dist[startIdx] = 0;
+			return { nodes, edges };
+		}
+
+		function findClosestNode(point, graph) {
+			let bestIdx = -1;
+			let bestDist = Infinity;
+			graph.nodes.forEach((n, idx) => {
+				const d = Math.hypot(point.x - n.x, point.y - n.y);
+				if (d < bestDist) {
+					bestDist = d;
+					bestIdx = idx;
+				}
+			});
+			return bestIdx;
+		}
+
+		function shortestPath(graph, startIdx, endIdx) {
+			const dist = new Array(graph.nodes.length).fill(Infinity);
+			const prev = new Array(graph.nodes.length).fill(null);
+			dist[startIdx] = 0;
 
 			const visited = new Set();
 			while (visited.size < graph.nodes.length) {
@@ -1377,6 +1397,43 @@
 
 				return idx;
 			}
+			pathNodes.push(startIdx);
+			pathNodes.reverse();
+			pathEdges.reverse();
+			return { nodes: pathNodes, edges: pathEdges };
+		}
+
+		function buildDirectionalPath(entity, segmentIndex, projectionPoint, direction) {
+			const segments = getEntitySegments(entity);
+			if (segments.length === 0 || segmentIndex >= segments.length) return [];
+
+			const path = [];
+			const isUpstream = direction === 'upstream';
+
+			if (entity.type === 'LINE' || (entity.type && entity.type.startsWith('draw-'))) {
+				const seg = segments[segmentIndex];
+				if (isUpstream) {
+					path.push({ start: seg.start, end: projectionPoint });
+				} else {
+					path.push({ start: projectionPoint, end: seg.end });
+				}
+				return path;
+			}
+
+			// Polyline path
+			if (isUpstream) {
+				path.push({ start: segments[segmentIndex].start, end: projectionPoint });
+				for (let i = segmentIndex - 1; i >= 0; i--) {
+					path.push({ start: segments[i].start, end: segments[i].end });
+				}
+			} else {
+				path.push({ start: projectionPoint, end: segments[segmentIndex].end });
+				for (let i = segmentIndex + 1; i < segments.length; i++) {
+					path.push({ start: segments[i].start, end: segments[i].end });
+				}
+			}
+			return path;
+		}
 
 		function highlightRouteBetween(anchorA, anchorB) {
 			const start = anchorA.position || anchorA.start;
@@ -1397,6 +1454,13 @@
 				notifyIsolationWarning('No fue posible encontrar un camino entre los dos elementos.');
 				return;
 			}
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(start, graph);
+			const endIdx = findClosestNode(end, graph);
+			if (startIdx === -1 || endIdx === -1) return;
+
+			const path = shortestPath(graph, startIdx, endIdx);
+			if (!path) return;
 
 			const highlightedEntities = new Set();
 			const highlightedDrawings = new Set();
@@ -1434,6 +1498,77 @@
 				draw();
 			}
 
+			};
+
+			activePathIsolation = {
+				entities: highlightedEntities,
+				drawings: highlightedDrawings
+			};
+			clearIsolationBtn.classList.remove('hidden');
+			draw();
+		}
+
+		function highlightRouteToLeaf(target, direction = 'upstream') {
+			const anchor = target.position || target.start;
+			if (!anchor) return;
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(anchor, graph);
+			if (startIdx === -1) return;
+
+			const leaves = graph.nodes
+				.map((n, idx) => ({ idx, degree: (graph.edges[idx] || []).length }))
+				.filter(n => n.degree <= 1);
+
+			let bestPath = null;
+			let bestDistance = direction === 'upstream' ? -Infinity : Infinity;
+
+			leaves.forEach(leaf => {
+				const path = shortestPath(graph, startIdx, leaf.idx);
+				if (!path) return;
+				const totalLength = path.edges.reduce((sum, e) => sum + e.length, 0);
+				if (direction === 'upstream') {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				} else {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				}
+			});
+
+			if (!bestPath) return;
+
+			const highlightedEntities = new Set();
+			const highlightedDrawings = new Set();
+			const segments = [];
+			bestPath.edges.forEach(edge => {
+				segments.push({ start: edge.start, end: edge.end });
+				if (edge.entity.type && edge.entity.type.startsWith('draw-')) {
+					highlightedDrawings.add(edge.entity);
+				} else {
+					highlightedEntities.add(edge.entity);
+				}
+			});
+
+			if (target.symbolType || target.type === 'draw-ct' || target.type === 'draw-seccionador') {
+				highlightedEntities.add(target);
+				highlightedDrawings.add(target);
+			}
+
+			activeRouteHighlight = {
+				direction,
+				segments,
+				highlightedEntities,
+				highlightedDrawings,
+				anchor
+			};
+			draw();
+		}
+
 		function drawRouteOverlay() {
 			if (!activeRouteHighlight || !activeRouteHighlight.segments) return;
 			dxfCtx.save();
@@ -1462,6 +1597,10 @@
 			contextMenuList.innerHTML = '';
 			const options = [
 				{ label: 'Marcar inicio de ruta', action: () => { pendingIsolationAnchor = target; pendingRouteAnchor = target; } }
+				{ label: 'Mostrar ruta aguas arriba', action: () => highlightRouteToLeaf(target, 'upstream') },
+				{ label: 'Mostrar ruta aguas abajo', action: () => highlightRouteToLeaf(target, 'downstream') },
+				{ label: 'Marcar como origen de ruta', action: () => { pendingRouteAnchor = target; } },
+				{ label: 'Marcar como origen (aislar camino)', action: () => { pendingIsolationAnchor = target; } }
 			];
 
 			if (pendingRouteAnchor && pendingRouteAnchor !== target) {
