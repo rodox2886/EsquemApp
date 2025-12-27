@@ -943,6 +943,8 @@
 		let pendingRouteAnchor = null;
 		let pendingIsolationAnchor = null;
 		let activePathIsolation = null;
+		let graphSegments = [];
+		let lastIsolationWarningTimeout = null;
 
 
 		// --- Undo/Redo State ---
@@ -1209,6 +1211,30 @@
 			draw();
 		}
 
+		function notifyIsolationWarning(message) {
+			const container = document.getElementById('message-box-container');
+			container.innerHTML = '';
+
+			const box = document.createElement('div');
+			box.className = 'message-box';
+
+			const msg = document.createElement('p');
+			msg.textContent = message;
+			msg.className = 'mb-2 text-sm';
+			box.appendChild(msg);
+
+			const btn = document.createElement('button');
+			btn.textContent = 'Entendido';
+			btn.className = 'btn-confirm';
+			btn.onclick = () => container.innerHTML = '';
+			box.appendChild(btn);
+
+			container.appendChild(box);
+
+			if (lastIsolationWarningTimeout) clearTimeout(lastIsolationWarningTimeout);
+			lastIsolationWarningTimeout = setTimeout(() => { container.innerHTML = ''; }, 2800);
+		}
+
 		function getEntitySegments(entity) {
 			if (!entity) return [];
 			if (entity.type === 'LINE' && entity.start && entity.end) {
@@ -1236,6 +1262,7 @@
 			const mergeTolerance = 0.75;
 			const nodes = [];
 			const edges = [];
+			const segments = [];
 
 			const addNode = (pt) => {
 				for (let i = 0; i < nodes.length; i++) {
@@ -1260,6 +1287,7 @@
 					const a = addNode(seg.start);
 					const b = addNode(seg.end);
 					const length = Math.hypot(seg.end.x - seg.start.x, seg.end.y - seg.start.y);
+					segments.push({ a, b, start: seg.start, end: seg.end, entity: ent });
 					if (!edges[a]) edges[a] = [];
 					if (!edges[b]) edges[b] = [];
 					edges[a].push({ to: b, length, entity: ent, start: seg.start, end: seg.end });
@@ -1267,6 +1295,14 @@
 				});
 			});
 
+			graphSegments = segments;
+			return { nodes, edges, segments };
+		}
+
+			function shortestPath(graph, startIdx, endIdx) {
+				const dist = new Array(graph.nodes.length).fill(Infinity);
+				const prev = new Array(graph.nodes.length).fill(null);
+				dist[startIdx] = 0;
 			return { nodes, edges };
 		}
 
@@ -1322,6 +1358,45 @@
 				pathEdges.push(p.edge);
 				current = p.node;
 			}
+				pathNodes.push(startIdx);
+				pathNodes.reverse();
+				pathEdges.reverse();
+				return { nodes: pathNodes, edges: pathEdges };
+			}
+
+			function connectPointToGraph(graph, point) {
+				let best = null;
+				graph.segments.forEach(seg => {
+					const { point: proj, distance } = findClosestPointOnSegment(point, seg.start, seg.end);
+					if (!best || distance < best.distance) {
+						best = { proj, distance, seg };
+					}
+				});
+
+				if (!best) return -1;
+
+				const { proj, seg } = best;
+				const distA = Math.hypot(proj.x - seg.start.x, proj.y - seg.start.y);
+				const distB = Math.hypot(proj.x - seg.end.x, proj.y - seg.end.y);
+				if (distA <= SNAP_DISTANCE) return seg.a;
+				if (distB <= SNAP_DISTANCE) return seg.b;
+
+				const idx = graph.nodes.length;
+				graph.nodes.push({ x: proj.x, y: proj.y });
+				if (!graph.edges[idx]) graph.edges[idx] = [];
+				if (!graph.edges[seg.a]) graph.edges[seg.a] = [];
+				if (!graph.edges[seg.b]) graph.edges[seg.b] = [];
+
+				const lenA = Math.hypot(seg.start.x - proj.x, seg.start.y - proj.y);
+				const lenB = Math.hypot(seg.end.x - proj.x, seg.end.y - proj.y);
+
+				graph.edges[idx].push({ to: seg.a, length: lenA, entity: seg.entity, start: proj, end: seg.start });
+				graph.edges[idx].push({ to: seg.b, length: lenB, entity: seg.entity, start: proj, end: seg.end });
+				graph.edges[seg.a].push({ to: idx, length: lenA, entity: seg.entity, start: seg.start, end: proj });
+				graph.edges[seg.b].push({ to: idx, length: lenB, entity: seg.entity, start: seg.end, end: proj });
+
+				return idx;
+			}
 			pathNodes.push(startIdx);
 			pathNodes.reverse();
 			pathEdges.reverse();
@@ -1366,6 +1441,19 @@
 			if (!start || !end) return;
 
 			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0 || graph.segments.length === 0) {
+				notifyIsolationWarning('No se encontraron segmentos de red para trazar la ruta.');
+				return;
+			}
+			const startIdx = connectPointToGraph(graph, start);
+			const endIdx = connectPointToGraph(graph, end);
+			if (startIdx === -1 || endIdx === -1) return;
+
+			const path = shortestPath(graph, startIdx, endIdx);
+			if (!path) {
+				notifyIsolationWarning('No fue posible encontrar un camino entre los dos elementos.');
+				return;
+			}
 			if (graph.nodes.length === 0) return;
 			const startIdx = findClosestNode(start, graph);
 			const endIdx = findClosestNode(end, graph);
@@ -1400,6 +1488,16 @@
 				highlightedEntities,
 				highlightedDrawings,
 				anchor: start
+				};
+
+				activePathIsolation = {
+					entities: highlightedEntities,
+					drawings: highlightedDrawings
+				};
+				clearIsolationBtn.classList.remove('hidden');
+				draw();
+			}
+
 			};
 
 			activePathIsolation = {
@@ -1498,6 +1596,7 @@
 		function openContextMenu(x, y, target) {
 			contextMenuList.innerHTML = '';
 			const options = [
+				{ label: 'Marcar inicio de ruta', action: () => { pendingIsolationAnchor = target; pendingRouteAnchor = target; } }
 				{ label: 'Mostrar ruta aguas arriba', action: () => highlightRouteToLeaf(target, 'upstream') },
 				{ label: 'Mostrar ruta aguas abajo', action: () => highlightRouteToLeaf(target, 'downstream') },
 				{ label: 'Marcar como origen de ruta', action: () => { pendingRouteAnchor = target; } },
@@ -1591,6 +1690,7 @@
 			minimapTransform = transform;
 			if (!transform) return;
 			const bounds = transform.bounds;
+			const isIsolating = !!activePathIsolation;
 
 			minimapCtx.save();
 			minimapCtx.fillStyle = '#f9fafb';
@@ -1600,6 +1700,7 @@
 			const dimmedAlpha = 0.12;
 
 			linesAndPolylines.forEach(ent => {
+				if (isIsolating && !activePathIsolation.entities.has(ent)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(ent);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				const segments = getEntitySegments(ent);
@@ -1621,6 +1722,7 @@
 			});
 
 			userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line').forEach(d => {
+				if (isIsolating && !activePathIsolation.drawings.has(d)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (Math.max(d.start.x, d.end.x) < bounds.minX || Math.min(d.start.x, d.end.x) > bounds.maxX ||
@@ -1636,6 +1738,7 @@
 			});
 
 			symbols.forEach(sym => {
+				if (isIsolating && !activePathIsolation.entities.has(sym)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(sym);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (!sym.position) return;
@@ -1648,6 +1751,7 @@
 			});
 
 			userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador').forEach(d => {
+				if (isIsolating && !activePathIsolation.drawings.has(d)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (d.start.x < bounds.minX || d.start.x > bounds.maxX || d.start.y < bounds.minY || d.start.y > bounds.maxY) return;
@@ -5475,6 +5579,9 @@
 
 			clearRouteBtn.addEventListener('click', () => {
 				clearRouteHighlight();
+				clearPathIsolation();
+				pendingRouteAnchor = null;
+				pendingIsolationAnchor = null;
 				contextMenu.classList.add('hidden');
 			});
 
