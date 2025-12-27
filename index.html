@@ -245,6 +245,36 @@
 		#dxf-canvas {
 			cursor: grab;
 		}
+		#minimap-container {
+			position: absolute;
+			bottom: 12px;
+			right: 12px;
+			width: 220px;
+			height: 160px;
+			background: rgba(255, 255, 255, 0.95);
+			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+			border: 1px solid #e5e7eb;
+			border-radius: 10px;
+			overflow: hidden;
+			z-index: 10;
+		}
+		#minimap-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 6px 10px;
+			background: #f8fafc;
+			border-bottom: 1px solid #e5e7eb;
+			font-size: 11px;
+			font-weight: 600;
+			color: #1f2937;
+		}
+		#minimap-canvas {
+			width: 100%;
+			height: calc(100% - 32px);
+			display: block;
+			cursor: crosshair;
+		}
 		#help-content details > summary {
 			list-style: none;
 			cursor: pointer;
@@ -771,6 +801,13 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
+					  <div id="minimap-container" class="hidden">
+						<div id="minimap-header">
+							<span>Minimapa</span>
+							<button id="clear-route-btn" class="text-xs text-gray-500 hover:text-gray-800 font-semibold">Limpiar ruta</button>
+						</div>
+						<canvas id="minimap-canvas"></canvas>
+					  </div>
 				</main>
 			</div>
 		</div>
@@ -797,6 +834,12 @@
         const homeBtn = document.getElementById('home-btn');
         const dxfCanvas = document.getElementById('dxf-canvas');
         const dxfCtx = dxfCanvas.getContext('2d');
+		const minimapContainer = document.getElementById('minimap-container');
+		const minimapCanvas = document.getElementById('minimap-canvas');
+		const minimapCtx = minimapCanvas.getContext('2d');
+		const clearRouteBtn = document.getElementById('clear-route-btn');
+		const contextMenu = document.getElementById('context-menu');
+		const contextMenuList = contextMenu.querySelector('ul');
         const infoPanel = document.getElementById('info-panel');
         const infoContent = document.getElementById('info-content');
         const closeInfoPanelBtn = document.getElementById('close-info-panel-btn');
@@ -887,6 +930,10 @@
 		let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 		let currentExportDataUrl = '';
 		let currentExportBlob = null;
+		let activeRouteHighlight = null;
+		let isDraggingMinimap = false;
+		let minimapTransform = null;
+		let pendingRouteAnchor = null;
 
 
 		// --- Undo/Redo State ---
@@ -1110,6 +1157,523 @@
 			draw();
 		}
 
+		function centerViewOn(modelPoint) {
+			const canvasContainer = document.getElementById('visualization-container');
+			const centerX = canvasContainer.clientWidth / 2;
+			const centerY = canvasContainer.clientHeight / 2;
+
+			view.offsetX = centerX - (modelPoint.x - extents.minX) * view.scale;
+			view.offsetY = centerY - (extents.maxY - modelPoint.y) * view.scale;
+			draw();
+		}
+
+		function getViewCenterModel() {
+			const canvasContainer = document.getElementById('visualization-container');
+			return screenToModel(canvasContainer.clientWidth / 2, canvasContainer.clientHeight / 2);
+		}
+
+		function getExpandedViewBounds(factor = 3) {
+			const canvasContainer = document.getElementById('visualization-container');
+			const topLeft = screenToModel(0, 0);
+			const bottomRight = screenToModel(canvasContainer.clientWidth, canvasContainer.clientHeight);
+			const center = {
+				x: (topLeft.x + bottomRight.x) / 2,
+				y: (topLeft.y + bottomRight.y) / 2
+			};
+			const width = (bottomRight.x - topLeft.x) * factor;
+			const height = (topLeft.y - bottomRight.y) * factor;
+			const minX = Math.max(extents.minX, center.x - width / 2);
+			const maxX = Math.min(extents.maxX, center.x + width / 2);
+			const minY = Math.max(extents.minY, center.y - height / 2);
+			const maxY = Math.min(extents.maxY, center.y + height / 2);
+			return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+		}
+
+		function clearRouteHighlight() {
+			activeRouteHighlight = null;
+			draw();
+		}
+
+		function getEntitySegments(entity) {
+			if (!entity) return [];
+			if (entity.type === 'LINE' && entity.start && entity.end) {
+				return [{ start: entity.start, end: entity.end }];
+			}
+			if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && entity.vertices && entity.vertices.length > 1) {
+				const segments = [];
+				for (let i = 0; i < entity.vertices.length - 1; i++) {
+					if (entity.vertices[i] && entity.vertices[i + 1]) {
+						segments.push({ start: entity.vertices[i], end: entity.vertices[i + 1] });
+					}
+				}
+				if (entity.closed && entity.vertices[0] && entity.vertices[entity.vertices.length - 1]) {
+					segments.push({ start: entity.vertices[entity.vertices.length - 1], end: entity.vertices[0] });
+				}
+				return segments;
+			}
+			if (entity.type && entity.type.startsWith('draw-') && entity.start && entity.end) {
+				return [{ start: entity.start, end: entity.end }];
+			}
+			return [];
+		}
+
+		function buildNetworkGraph() {
+			const mergeTolerance = 0.75;
+			const nodes = [];
+			const edges = [];
+
+			const addNode = (pt) => {
+				for (let i = 0; i < nodes.length; i++) {
+					const n = nodes[i];
+					const dx = n.x - pt.x;
+					const dy = n.y - pt.y;
+					if (Math.hypot(dx, dy) <= mergeTolerance) return i;
+				}
+				nodes.push({ x: pt.x, y: pt.y });
+				return nodes.length - 1;
+			};
+
+			const allEntities = [
+				...linesAndPolylines,
+				...userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line')
+			];
+
+			allEntities.forEach(ent => {
+				const segments = getEntitySegments(ent);
+				segments.forEach(seg => {
+					if (!seg.start || !seg.end) return;
+					const a = addNode(seg.start);
+					const b = addNode(seg.end);
+					const length = Math.hypot(seg.end.x - seg.start.x, seg.end.y - seg.start.y);
+					if (!edges[a]) edges[a] = [];
+					if (!edges[b]) edges[b] = [];
+					edges[a].push({ to: b, length, entity: ent, start: seg.start, end: seg.end });
+					edges[b].push({ to: a, length, entity: ent, start: seg.end, end: seg.start });
+				});
+			});
+
+			return { nodes, edges };
+		}
+
+		function findClosestNode(point, graph) {
+			let bestIdx = -1;
+			let bestDist = Infinity;
+			graph.nodes.forEach((n, idx) => {
+				const d = Math.hypot(point.x - n.x, point.y - n.y);
+				if (d < bestDist) {
+					bestDist = d;
+					bestIdx = idx;
+				}
+			});
+			return bestIdx;
+		}
+
+		function shortestPath(graph, startIdx, endIdx) {
+			const dist = new Array(graph.nodes.length).fill(Infinity);
+			const prev = new Array(graph.nodes.length).fill(null);
+			dist[startIdx] = 0;
+
+			const visited = new Set();
+			while (visited.size < graph.nodes.length) {
+				let u = -1;
+				let min = Infinity;
+				for (let i = 0; i < dist.length; i++) {
+					if (!visited.has(i) && dist[i] < min) {
+						min = dist[i];
+						u = i;
+					}
+				}
+				if (u === -1 || u === endIdx) break;
+				visited.add(u);
+
+				(graph.edges[u] || []).forEach(edge => {
+					const alt = dist[u] + edge.length;
+					if (alt < dist[edge.to]) {
+						dist[edge.to] = alt;
+						prev[edge.to] = { node: u, edge };
+					}
+				});
+			}
+
+			if (dist[endIdx] === Infinity) return null;
+
+			const pathNodes = [];
+			const pathEdges = [];
+			let current = endIdx;
+			while (current !== null && current !== startIdx) {
+				const p = prev[current];
+				if (!p) break;
+				pathNodes.push(current);
+				pathEdges.push(p.edge);
+				current = p.node;
+			}
+			pathNodes.push(startIdx);
+			pathNodes.reverse();
+			pathEdges.reverse();
+			return { nodes: pathNodes, edges: pathEdges };
+		}
+
+		function buildDirectionalPath(entity, segmentIndex, projectionPoint, direction) {
+			const segments = getEntitySegments(entity);
+			if (segments.length === 0 || segmentIndex >= segments.length) return [];
+
+			const path = [];
+			const isUpstream = direction === 'upstream';
+
+			if (entity.type === 'LINE' || (entity.type && entity.type.startsWith('draw-'))) {
+				const seg = segments[segmentIndex];
+				if (isUpstream) {
+					path.push({ start: seg.start, end: projectionPoint });
+				} else {
+					path.push({ start: projectionPoint, end: seg.end });
+				}
+				return path;
+			}
+
+			// Polyline path
+			if (isUpstream) {
+				path.push({ start: segments[segmentIndex].start, end: projectionPoint });
+				for (let i = segmentIndex - 1; i >= 0; i--) {
+					path.push({ start: segments[i].start, end: segments[i].end });
+				}
+			} else {
+				path.push({ start: projectionPoint, end: segments[segmentIndex].end });
+				for (let i = segmentIndex + 1; i < segments.length; i++) {
+					path.push({ start: segments[i].start, end: segments[i].end });
+				}
+			}
+			return path;
+		}
+
+		function highlightRouteBetween(anchorA, anchorB) {
+			const start = anchorA.position || anchorA.start;
+			const end = anchorB.position || anchorB.start;
+			if (!start || !end) return;
+
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(start, graph);
+			const endIdx = findClosestNode(end, graph);
+			if (startIdx === -1 || endIdx === -1) return;
+
+			const path = shortestPath(graph, startIdx, endIdx);
+			if (!path) return;
+
+			const highlightedEntities = new Set();
+			const highlightedDrawings = new Set();
+			const segments = [];
+
+			path.edges.forEach(edge => {
+				segments.push({ start: edge.start, end: edge.end });
+				if (edge.entity.type && edge.entity.type.startsWith('draw-')) {
+					highlightedDrawings.add(edge.entity);
+				} else {
+					highlightedEntities.add(edge.entity);
+				}
+			});
+
+			[anchorA, anchorB].forEach(t => {
+				if (t.symbolType || t.type === 'draw-ct' || t.type === 'draw-seccionador') {
+					highlightedEntities.add(t);
+					highlightedDrawings.add(t);
+				}
+			});
+
+			activeRouteHighlight = {
+				direction: 'between',
+				segments,
+				highlightedEntities,
+				highlightedDrawings,
+				anchor: start
+			};
+			draw();
+		}
+
+		function highlightRouteToLeaf(target, direction = 'upstream') {
+			const anchor = target.position || target.start;
+			if (!anchor) return;
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(anchor, graph);
+			if (startIdx === -1) return;
+
+			const leaves = graph.nodes
+				.map((n, idx) => ({ idx, degree: (graph.edges[idx] || []).length }))
+				.filter(n => n.degree <= 1);
+
+			let bestPath = null;
+			let bestDistance = direction === 'upstream' ? -Infinity : Infinity;
+
+			leaves.forEach(leaf => {
+				const path = shortestPath(graph, startIdx, leaf.idx);
+				if (!path) return;
+				const totalLength = path.edges.reduce((sum, e) => sum + e.length, 0);
+				if (direction === 'upstream') {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				} else {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				}
+			});
+
+			if (!bestPath) return;
+
+			const highlightedEntities = new Set();
+			const highlightedDrawings = new Set();
+			const segments = [];
+			bestPath.edges.forEach(edge => {
+				segments.push({ start: edge.start, end: edge.end });
+				if (edge.entity.type && edge.entity.type.startsWith('draw-')) {
+					highlightedDrawings.add(edge.entity);
+				} else {
+					highlightedEntities.add(edge.entity);
+				}
+			});
+
+			if (target.symbolType || target.type === 'draw-ct' || target.type === 'draw-seccionador') {
+				highlightedEntities.add(target);
+				highlightedDrawings.add(target);
+			}
+
+			activeRouteHighlight = {
+				direction,
+				segments,
+				highlightedEntities,
+				highlightedDrawings,
+				anchor
+			};
+			draw();
+		}
+
+		function drawRouteOverlay() {
+			if (!activeRouteHighlight || !activeRouteHighlight.segments) return;
+			dxfCtx.save();
+			dxfCtx.strokeStyle = '#2563eb';
+			dxfCtx.lineWidth = 2;
+			activeRouteHighlight.segments.forEach(seg => {
+				const p1 = modelToScreen(seg.start.x, seg.start.y);
+				const p2 = modelToScreen(seg.end.x, seg.end.y);
+				dxfCtx.beginPath();
+				dxfCtx.moveTo(p1.x, p1.y);
+				dxfCtx.lineTo(p2.x, p2.y);
+				dxfCtx.stroke();
+			});
+
+			if (activeRouteHighlight.anchor) {
+				const anchorPos = modelToScreen(activeRouteHighlight.anchor.x, activeRouteHighlight.anchor.y);
+				dxfCtx.fillStyle = '#1d4ed8';
+				dxfCtx.beginPath();
+				dxfCtx.arc(anchorPos.x, anchorPos.y, 6, 0, 2 * Math.PI);
+				dxfCtx.fill();
+			}
+			dxfCtx.restore();
+		}
+
+		function openContextMenu(x, y, target) {
+			contextMenuList.innerHTML = '';
+			const options = [
+				{ label: 'Mostrar ruta aguas arriba', action: () => highlightRouteToLeaf(target, 'upstream') },
+				{ label: 'Mostrar ruta aguas abajo', action: () => highlightRouteToLeaf(target, 'downstream') },
+				{ label: 'Marcar como origen de ruta', action: () => { pendingRouteAnchor = target; } }
+			];
+
+			if (pendingRouteAnchor && pendingRouteAnchor !== target) {
+				options.push({ label: 'Resaltar ruta hasta aquí', action: () => { highlightRouteBetween(pendingRouteAnchor, target); pendingRouteAnchor = null; } });
+			}
+
+			if (activeRouteHighlight) {
+				options.push({ label: 'Limpiar resaltado de ruta', action: () => clearRouteHighlight() });
+			}
+
+			options.forEach(opt => {
+				const li = document.createElement('li');
+				li.className = 'px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer';
+				li.textContent = opt.label;
+				li.addEventListener('click', () => {
+					opt.action();
+					contextMenu.classList.add('hidden');
+				});
+				contextMenuList.appendChild(li);
+			});
+
+			contextMenu.style.left = `${x}px`;
+			contextMenu.style.top = `${y}px`;
+			contextMenu.classList.remove('hidden');
+		}
+
+		function resizeMinimapCanvas() {
+			if (!minimapCanvas) return;
+			const rect = minimapCanvas.getBoundingClientRect();
+			const dpr = window.devicePixelRatio || 1;
+			minimapCanvas.width = rect.width * dpr;
+			minimapCanvas.height = rect.height * dpr;
+			minimapCtx.setTransform(1, 0, 0, 1, 0, 0);
+			minimapCtx.scale(dpr, dpr);
+		}
+
+		function getMinimapTransform() {
+			const rect = minimapCanvas.getBoundingClientRect();
+			const padding = 8;
+			const viewBounds = getExpandedViewBounds(3.5);
+			const worldWidth = viewBounds.width;
+			const worldHeight = viewBounds.height;
+			if (worldWidth <= 0 || worldHeight <= 0) return null;
+
+			const scale = Math.min(
+				(rect.width - padding * 2) / worldWidth,
+				(rect.height - padding * 2) / worldHeight
+			);
+
+			const offsetX = padding - viewBounds.minX * scale;
+			const offsetY = padding + viewBounds.maxY * scale;
+
+			return { scale, offsetX, offsetY, padding, bounds: viewBounds };
+		}
+
+		function modelToMinimap(x, y, transform) {
+			return {
+				x: x * transform.scale + transform.offsetX,
+				y: -y * transform.scale + transform.offsetY
+			};
+		}
+
+		function minimapToModel(x, y, transform) {
+			return {
+				x: (x - transform.offsetX) / transform.scale,
+				y: (transform.offsetY - y) / transform.scale
+			};
+		}
+
+		function drawMinimap() {
+			if (!minimapCanvas || !minimapCtx) return;
+			const hasData = !dxfCanvas.classList.contains('hidden') && (extents.maxX - extents.minX) > 0 && (extents.maxY - extents.minY) > 0;
+			minimapContainer.classList.toggle('hidden', !hasData);
+			if (!hasData) return;
+
+			resizeMinimapCanvas();
+			const rect = minimapCanvas.getBoundingClientRect();
+			minimapCtx.clearRect(0, 0, rect.width, rect.height);
+
+			const transform = getMinimapTransform();
+			minimapTransform = transform;
+			if (!transform) return;
+			const bounds = transform.bounds;
+
+			minimapCtx.save();
+			minimapCtx.fillStyle = '#f9fafb';
+			minimapCtx.fillRect(0, 0, rect.width, rect.height);
+
+			const routeActive = !!activeRouteHighlight;
+			const dimmedAlpha = 0.12;
+
+			linesAndPolylines.forEach(ent => {
+				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(ent);
+				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				const segments = getEntitySegments(ent);
+				minimapCtx.beginPath();
+				segments.forEach((seg, idx) => {
+					if (!seg.start || !seg.end) return;
+					if (Math.max(seg.start.x, seg.end.x) < bounds.minX || Math.min(seg.start.x, seg.end.x) > bounds.maxX ||
+						Math.max(seg.start.y, seg.end.y) < bounds.minY || Math.min(seg.start.y, seg.end.y) > bounds.maxY) return;
+					const p1 = modelToMinimap(seg.start.x, seg.start.y, transform);
+					const p2 = modelToMinimap(seg.end.x, seg.end.y, transform);
+					if (idx === 0) {
+						minimapCtx.moveTo(p1.x, p1.y);
+					}
+					minimapCtx.lineTo(p2.x, p2.y);
+				});
+				minimapCtx.strokeStyle = '#9ca3af';
+				minimapCtx.lineWidth = 1;
+				minimapCtx.stroke();
+			});
+
+			userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line').forEach(d => {
+				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
+				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				if (Math.max(d.start.x, d.end.x) < bounds.minX || Math.min(d.start.x, d.end.x) > bounds.maxX ||
+					Math.max(d.start.y, d.end.y) < bounds.minY || Math.min(d.start.y, d.end.y) > bounds.maxY) return;
+				const p1 = modelToMinimap(d.start.x, d.start.y, transform);
+				const p2 = modelToMinimap(d.end.x, d.end.y, transform);
+				minimapCtx.beginPath();
+				minimapCtx.moveTo(p1.x, p1.y);
+				minimapCtx.lineTo(p2.x, p2.y);
+				minimapCtx.strokeStyle = '#94a3b8';
+				minimapCtx.lineWidth = 1;
+				minimapCtx.stroke();
+			});
+
+			symbols.forEach(sym => {
+				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(sym);
+				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				if (!sym.position) return;
+				if (sym.position.x < bounds.minX || sym.position.x > bounds.maxX || sym.position.y < bounds.minY || sym.position.y > bounds.maxY) return;
+				const pos = modelToMinimap(sym.position.x, sym.position.y, transform);
+				minimapCtx.fillStyle = '#334155';
+				minimapCtx.beginPath();
+				minimapCtx.arc(pos.x, pos.y, 3, 0, 2 * Math.PI);
+				minimapCtx.fill();
+			});
+
+			userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador').forEach(d => {
+				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
+				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				if (d.start.x < bounds.minX || d.start.x > bounds.maxX || d.start.y < bounds.minY || d.start.y > bounds.maxY) return;
+				const pos = modelToMinimap(d.start.x, d.start.y, transform);
+				minimapCtx.fillStyle = '#0f172a';
+				minimapCtx.beginPath();
+				minimapCtx.arc(pos.x, pos.y, 3, 0, 2 * Math.PI);
+				minimapCtx.fill();
+			});
+
+			if (activeRouteHighlight?.segments?.length) {
+				minimapCtx.globalAlpha = 1;
+				minimapCtx.strokeStyle = '#2563eb';
+				minimapCtx.lineWidth = 2;
+				activeRouteHighlight.segments.forEach(seg => {
+					const p1 = modelToMinimap(seg.start.x, seg.start.y, transform);
+					const p2 = modelToMinimap(seg.end.x, seg.end.y, transform);
+					minimapCtx.beginPath();
+					minimapCtx.moveTo(p1.x, p1.y);
+					minimapCtx.lineTo(p2.x, p2.y);
+					minimapCtx.stroke();
+				});
+			}
+
+			const canvasRect = dxfCanvas.getBoundingClientRect();
+			const topLeftModel = screenToModel(0, 0);
+			const bottomRightModel = screenToModel(canvasRect.width, canvasRect.height);
+
+			const topLeft = modelToMinimap(topLeftModel.x, topLeftModel.y, transform);
+			const bottomRight = modelToMinimap(bottomRightModel.x, bottomRightModel.y, transform);
+
+			minimapCtx.globalAlpha = 1;
+			minimapCtx.strokeStyle = '#10b981';
+			minimapCtx.lineWidth = 1.5;
+			minimapCtx.setLineDash([4, 2]);
+			minimapCtx.strokeRect(
+				Math.min(topLeft.x, bottomRight.x),
+				Math.min(topLeft.y, bottomRight.y),
+				Math.abs(bottomRight.x - topLeft.x),
+				Math.abs(bottomRight.y - topLeft.y)
+			);
+			minimapCtx.setLineDash([]);
+
+			minimapCtx.restore();
+		}
+
+		function handleMinimapMove(clientX, clientY) {
+			if (!minimapTransform) return;
+			const rect = minimapCanvas.getBoundingClientRect();
+			const localX = clientX - rect.left;
+			const localY = clientY - rect.top;
+			const modelPoint = minimapToModel(localX, localY, minimapTransform);
+			centerViewOn(modelPoint);
+		}
 
 		function updateHistoryButtons() {
 			undoBtn.disabled = undoStack.length <= 1;
@@ -2250,28 +2814,34 @@
             }
         }
 
-        function draw() {
-			const rect = dxfCanvas.getBoundingClientRect();
-			dxfCtx.save(); // Save the clean, untransformed state
-			dxfCtx.fillStyle = '#f0f0f0';
-			dxfCtx.fillRect(0, 0, rect.width, rect.height);
-			
-			// --- Draw DXF content (potentially clipped) ---
-			dxfCtx.save(); // Save state before clipping for DXF content
-			if (originalExtents) {
-				const clipStart = modelToScreen(extents.minX, extents.maxY);
+	        function draw() {
+				const rect = dxfCanvas.getBoundingClientRect();
+				dxfCtx.save(); // Save the clean, untransformed state
+				dxfCtx.fillStyle = '#f0f0f0';
+				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+				const routeActive = !!activeRouteHighlight;
+				const highlightedEntities = activeRouteHighlight?.highlightedEntities || new Set();
+				const highlightedDrawings = activeRouteHighlight?.highlightedDrawings || new Set();
+				const dimmedAlpha = 0.12;
+				
+				// --- Draw DXF content (potentially clipped) ---
+				dxfCtx.save(); // Save state before clipping for DXF content
+				if (originalExtents) {
+					const clipStart = modelToScreen(extents.minX, extents.maxY);
 				const clipEnd = modelToScreen(extents.maxX, extents.minY);
 				dxfCtx.beginPath();
 				dxfCtx.rect(clipStart.x, clipStart.y, clipEnd.x - clipStart.x, clipEnd.y - clipStart.y);
 				dxfCtx.clip();
 			}
 
-			dxfCtx.lineWidth = 1.5;
-			linesAndPolylines.forEach(ent => {
-				dxfCtx.strokeStyle = LINE_COLOR;
-				
-				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
-				const dashPattern = getDashPatternForLinetype(ent.linetype);
+				dxfCtx.lineWidth = 1.5;
+				linesAndPolylines.forEach(ent => {
+					const isHighlighted = highlightedEntities.has(ent);
+					dxfCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+					dxfCtx.strokeStyle = LINE_COLOR;
+					
+					const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
+					const dashPattern = getDashPatternForLinetype(ent.linetype);
 
                 if (isSubterraneo) {
                     dxfCtx.setLineDash([5, 5]); // Patrón de línea punteada para tramo subterráneo
@@ -2303,26 +2873,39 @@
                     }
 				}
 
-                if (isSubterraneo || dashPattern) {
-                    dxfCtx.setLineDash([]);
-                }
-			});
+	                if (isSubterraneo || dashPattern) {
+	                    dxfCtx.setLineDash([]);
+	                }
+					dxfCtx.globalAlpha = 1;
+				});
 
-			const ctSymbols = symbols.filter(s => s.symbolType === 'ct');
-			const otherSymbols = symbols.filter(s => s.symbolType !== 'ct');
-			otherSymbols.forEach(drawSymbol);
-			ctSymbols.forEach(drawSymbol);
-			
-			dxfCtx.restore(); // Restore from the clipped state
-			// --- End of DXF content drawing ---
+				const ctSymbols = symbols.filter(s => s.symbolType === 'ct');
+				const otherSymbols = symbols.filter(s => s.symbolType !== 'ct');
+				otherSymbols.forEach(sym => {
+					const isHighlighted = highlightedEntities.has(sym);
+					dxfCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+					drawSymbol(sym);
+					dxfCtx.globalAlpha = 1;
+				});
+				ctSymbols.forEach(sym => {
+					const isHighlighted = highlightedEntities.has(sym);
+					dxfCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+					drawSymbol(sym);
+					dxfCtx.globalAlpha = 1;
+				});
+				
+				dxfCtx.restore(); // Restore from the clipped state
+				// --- End of DXF content drawing ---
 
 
-			// --- Draw User Annotations (never clipped) ---
-			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
-				dxfCtx.save();
-				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
-				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
-				dxfCtx.lineWidth = d.strokeWidth || 1.5;
+				// --- Draw User Annotations (never clipped) ---
+				[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
+					const isHighlighted = highlightedDrawings.has(d);
+					dxfCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+					dxfCtx.save();
+					dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
+					dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
+					dxfCtx.lineWidth = d.strokeWidth || 1.5;
 
 				if (d.type === 'draw-dashed-line') {
 					dxfCtx.setLineDash([5, 5]);
@@ -2668,13 +3251,16 @@
 						dxfCtx.fillText(displayLabel, labelPos.x, labelPos.y);
 					}
 				}
+					
+					dxfCtx.restore();
+					dxfCtx.globalAlpha = 1;
+				});
 				
-				dxfCtx.restore();
-			});
-			
-			// --- Draw selection highlights and handles on top ---
-			const allSelectedItems = [];
-			if (multiSelection.length > 0) {
+				drawRouteOverlay();
+
+				// --- Draw selection highlights and handles on top ---
+				const allSelectedItems = [];
+				if (multiSelection.length > 0) {
 				allSelectedItems.push(...multiSelection);
 			} else if (selectedDrawingId) {
 				const selected = userDrawings.find(d => d.id === selectedDrawingId);
@@ -2748,12 +3334,13 @@
 					width: Math.abs(marqueeStart.x - marqueeEnd.x), height: Math.abs(marqueeStart.y - marqueeEnd.y)
 				};
 				dxfCtx.strokeRect(marqueeRect.x, marqueeRect.y, marqueeRect.width, marqueeRect.height);
-				dxfCtx.fillRect(marqueeRect.x, marqueeRect.y, marqueeRect.width, marqueeRect.height);
-				dxfCtx.restore();
-        	}
-			
-			dxfCtx.restore(); // Restore the clean, initial state
-        }
+					dxfCtx.fillRect(marqueeRect.x, marqueeRect.y, marqueeRect.width, marqueeRect.height);
+					dxfCtx.restore();
+	        	}
+				
+				dxfCtx.restore(); // Restore the clean, initial state
+				drawMinimap();
+	        }
 		
 		function renderGroundSymbol(d) {
 			const size = (d.size || 0.5) * view.scale;
@@ -3902,11 +4489,14 @@
 			compressMenu.classList.toggle('hidden');
 		});
 
-		document.addEventListener('click', (e) => {
-			if (!compressMenu.classList.contains('hidden') && !compressMenu.contains(e.target) && !compressMenuBtn.contains(e.target)) {
-				compressMenu.classList.add('hidden');
-			}
-		});
+			document.addEventListener('click', (e) => {
+				if (!compressMenu.classList.contains('hidden') && !compressMenu.contains(e.target) && !compressMenuBtn.contains(e.target)) {
+					compressMenu.classList.add('hidden');
+				}
+				if (!contextMenu.classList.contains('hidden') && !contextMenu.contains(e.target)) {
+					contextMenu.classList.add('hidden');
+				}
+			});
 
 		document.getElementById('compress-all-btn').addEventListener('click', (e) => {
 			e.preventDefault();
@@ -4650,6 +5240,22 @@
 			window.removeEventListener('mouseup', mouseUpHandler);
 		};
 
+		dxfCanvas.addEventListener('contextmenu', e => {
+			e.preventDefault();
+			const rect = dxfCanvas.getBoundingClientRect();
+			const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+			const drawing = getDrawingAtScreenPos(pos.x, pos.y);
+			const entity = drawing || getEntityAtScreenPos(pos.x, pos.y);
+			const target = drawing || (entity && (entity.symbolType === 'ct' || entity.symbolType === 'seccionador') ? entity : null);
+
+			if (!target) {
+				contextMenu.classList.add('hidden');
+				return;
+			}
+
+			openContextMenu(e.clientX, e.clientY, target);
+		});
+
 		dxfCanvas.addEventListener('mousedown', e => {
 			if (e.button !== 0) return;
 
@@ -4791,33 +5397,54 @@
 		});
 
 		
-        dxfCanvas.addEventListener('wheel', e => {
-			e.preventDefault();
-			const rect = dxfCanvas.getBoundingClientRect(), mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top, oldScale = view.scale, factor = e.deltaY < 0 ? 1.1 : 0.9;
-			view.scale *= factor;
-			view.offsetX = mouseX - ((mouseX - view.offsetX) / oldScale) * view.scale;
-			view.offsetY = mouseY - ((mouseY - view.offsetY) / oldScale) * view.scale;
-			draw();
-		});
-        
-        closeInfoPanelBtn.addEventListener('click', () => {
-            infoPanel.classList.add('translate-x-full');
-            selectedEntity = null;
-			selectedDrawingId = null;
+	        dxfCanvas.addEventListener('wheel', e => {
+				e.preventDefault();
+				const rect = dxfCanvas.getBoundingClientRect(), mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top, oldScale = view.scale, factor = e.deltaY < 0 ? 1.1 : 0.9;
+				view.scale *= factor;
+				view.offsetX = mouseX - ((mouseX - view.offsetX) / oldScale) * view.scale;
+				view.offsetY = mouseY - ((mouseY - view.offsetY) / oldScale) * view.scale;
+				draw();
+			});
+
+			minimapCanvas.addEventListener('mousedown', e => {
+				e.preventDefault();
+				e.stopPropagation();
+				isDraggingMinimap = true;
+				handleMinimapMove(e.clientX, e.clientY);
+			});
+
+			window.addEventListener('mousemove', e => {
+				if (!isDraggingMinimap) return;
+				handleMinimapMove(e.clientX, e.clientY);
+			});
+
+			window.addEventListener('mouseup', () => {
+				isDraggingMinimap = false;
+			});
+	        
+	        closeInfoPanelBtn.addEventListener('click', () => {
+	            infoPanel.classList.add('translate-x-full');
+	            selectedEntity = null;
+				selectedDrawingId = null;
 			selectedGroupId = null;
 			multiSelection = [];
 			draw();
         });
 
-		manualModeToggle.addEventListener('change', (e) => {
-			isManualModeEnabled = e.target.checked;
-			updateManualModeTitle();
-		});
+			manualModeToggle.addEventListener('change', (e) => {
+				isManualModeEnabled = e.target.checked;
+				updateManualModeTitle();
+			});
 
-		resetViewBtn.addEventListener('click', () => {
-			if (originalExtents) {
-				saveHistoryState();
-				extents = { ...originalExtents };
+			clearRouteBtn.addEventListener('click', () => {
+				clearRouteHighlight();
+				contextMenu.classList.add('hidden');
+			});
+
+			resetViewBtn.addEventListener('click', () => {
+				if (originalExtents) {
+					saveHistoryState();
+					extents = { ...originalExtents };
 				originalExtents = null;
 				fitViewToExtents();
 				resetViewBtn.classList.add('hidden');
@@ -5721,6 +6348,3 @@
     </script>
 </body>
 </html>
-
-
-
