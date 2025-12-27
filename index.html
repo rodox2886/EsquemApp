@@ -933,6 +933,7 @@
 		let activeRouteHighlight = null;
 		let isDraggingMinimap = false;
 		let minimapTransform = null;
+		let pendingRouteAnchor = null;
 
 
 		// --- Undo/Redo State ---
@@ -1171,6 +1172,23 @@
 			return screenToModel(canvasContainer.clientWidth / 2, canvasContainer.clientHeight / 2);
 		}
 
+		function getExpandedViewBounds(factor = 3) {
+			const canvasContainer = document.getElementById('visualization-container');
+			const topLeft = screenToModel(0, 0);
+			const bottomRight = screenToModel(canvasContainer.clientWidth, canvasContainer.clientHeight);
+			const center = {
+				x: (topLeft.x + bottomRight.x) / 2,
+				y: (topLeft.y + bottomRight.y) / 2
+			};
+			const width = (bottomRight.x - topLeft.x) * factor;
+			const height = (topLeft.y - bottomRight.y) * factor;
+			const minX = Math.max(extents.minX, center.x - width / 2);
+			const maxX = Math.min(extents.maxX, center.x + width / 2);
+			const minY = Math.max(extents.minY, center.y - height / 2);
+			const maxY = Math.min(extents.maxY, center.y + height / 2);
+			return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+		}
+
 		function clearRouteHighlight() {
 			activeRouteHighlight = null;
 			draw();
@@ -1197,6 +1215,102 @@
 				return [{ start: entity.start, end: entity.end }];
 			}
 			return [];
+		}
+
+		function buildNetworkGraph() {
+			const mergeTolerance = 0.75;
+			const nodes = [];
+			const edges = [];
+
+			const addNode = (pt) => {
+				for (let i = 0; i < nodes.length; i++) {
+					const n = nodes[i];
+					const dx = n.x - pt.x;
+					const dy = n.y - pt.y;
+					if (Math.hypot(dx, dy) <= mergeTolerance) return i;
+				}
+				nodes.push({ x: pt.x, y: pt.y });
+				return nodes.length - 1;
+			};
+
+			const allEntities = [
+				...linesAndPolylines,
+				...userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line')
+			];
+
+			allEntities.forEach(ent => {
+				const segments = getEntitySegments(ent);
+				segments.forEach(seg => {
+					if (!seg.start || !seg.end) return;
+					const a = addNode(seg.start);
+					const b = addNode(seg.end);
+					const length = Math.hypot(seg.end.x - seg.start.x, seg.end.y - seg.start.y);
+					if (!edges[a]) edges[a] = [];
+					if (!edges[b]) edges[b] = [];
+					edges[a].push({ to: b, length, entity: ent, start: seg.start, end: seg.end });
+					edges[b].push({ to: a, length, entity: ent, start: seg.end, end: seg.start });
+				});
+			});
+
+			return { nodes, edges };
+		}
+
+		function findClosestNode(point, graph) {
+			let bestIdx = -1;
+			let bestDist = Infinity;
+			graph.nodes.forEach((n, idx) => {
+				const d = Math.hypot(point.x - n.x, point.y - n.y);
+				if (d < bestDist) {
+					bestDist = d;
+					bestIdx = idx;
+				}
+			});
+			return bestIdx;
+		}
+
+		function shortestPath(graph, startIdx, endIdx) {
+			const dist = new Array(graph.nodes.length).fill(Infinity);
+			const prev = new Array(graph.nodes.length).fill(null);
+			dist[startIdx] = 0;
+
+			const visited = new Set();
+			while (visited.size < graph.nodes.length) {
+				let u = -1;
+				let min = Infinity;
+				for (let i = 0; i < dist.length; i++) {
+					if (!visited.has(i) && dist[i] < min) {
+						min = dist[i];
+						u = i;
+					}
+				}
+				if (u === -1 || u === endIdx) break;
+				visited.add(u);
+
+				(graph.edges[u] || []).forEach(edge => {
+					const alt = dist[u] + edge.length;
+					if (alt < dist[edge.to]) {
+						dist[edge.to] = alt;
+						prev[edge.to] = { node: u, edge };
+					}
+				});
+			}
+
+			if (dist[endIdx] === Infinity) return null;
+
+			const pathNodes = [];
+			const pathEdges = [];
+			let current = endIdx;
+			while (current !== null && current !== startIdx) {
+				const p = prev[current];
+				if (!p) break;
+				pathNodes.push(current);
+				pathEdges.push(p.edge);
+				current = p.node;
+			}
+			pathNodes.push(startIdx);
+			pathNodes.reverse();
+			pathEdges.reverse();
+			return { nodes: pathNodes, edges: pathEdges };
 		}
 
 		function buildDirectionalPath(entity, segmentIndex, projectionPoint, direction) {
@@ -1231,39 +1345,95 @@
 			return path;
 		}
 
-		function highlightRouteFrom(target, direction) {
-			const anchor = target.position || target.start;
-			if (!anchor) return;
+		function highlightRouteBetween(anchorA, anchorB) {
+			const start = anchorA.position || anchorA.start;
+			const end = anchorB.position || anchorB.start;
+			if (!start || !end) return;
 
-			const candidateLines = [
-				...linesAndPolylines,
-				...userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line')
-			];
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(start, graph);
+			const endIdx = findClosestNode(end, graph);
+			if (startIdx === -1 || endIdx === -1) return;
 
-			let best = null;
+			const path = shortestPath(graph, startIdx, endIdx);
+			if (!path) return;
 
-			candidateLines.forEach(line => {
-				const segments = getEntitySegments(line);
-				segments.forEach((seg, idx) => {
-					if (!seg.start || !seg.end) return;
-					const { point, distance } = findClosestPointOnSegment(anchor, seg.start, seg.end);
-					if (distance < SNAP_DISTANCE && (!best || distance < best.distance)) {
-						best = { entity: line, point, distance, segmentIndex: idx };
-					}
-				});
+			const highlightedEntities = new Set();
+			const highlightedDrawings = new Set();
+			const segments = [];
+
+			path.edges.forEach(edge => {
+				segments.push({ start: edge.start, end: edge.end });
+				if (edge.entity.type && edge.entity.type.startsWith('draw-')) {
+					highlightedDrawings.add(edge.entity);
+				} else {
+					highlightedEntities.add(edge.entity);
+				}
 			});
 
-			if (!best) return;
+			[anchorA, anchorB].forEach(t => {
+				if (t.symbolType || t.type === 'draw-ct' || t.type === 'draw-seccionador') {
+					highlightedEntities.add(t);
+					highlightedDrawings.add(t);
+				}
+			});
 
-			const pathSegments = buildDirectionalPath(best.entity, best.segmentIndex, best.point, direction);
-			const highlightedEntities = new Set([best.entity]);
+			activeRouteHighlight = {
+				direction: 'between',
+				segments,
+				highlightedEntities,
+				highlightedDrawings,
+				anchor: start
+			};
+			draw();
+		}
+
+		function highlightRouteToLeaf(target, direction = 'upstream') {
+			const anchor = target.position || target.start;
+			if (!anchor) return;
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0) return;
+			const startIdx = findClosestNode(anchor, graph);
+			if (startIdx === -1) return;
+
+			const leaves = graph.nodes
+				.map((n, idx) => ({ idx, degree: (graph.edges[idx] || []).length }))
+				.filter(n => n.degree <= 1);
+
+			let bestPath = null;
+			let bestDistance = direction === 'upstream' ? -Infinity : Infinity;
+
+			leaves.forEach(leaf => {
+				const path = shortestPath(graph, startIdx, leaf.idx);
+				if (!path) return;
+				const totalLength = path.edges.reduce((sum, e) => sum + e.length, 0);
+				if (direction === 'upstream') {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				} else {
+					if (totalLength > bestDistance) {
+						bestDistance = totalLength;
+						bestPath = path;
+					}
+				}
+			});
+
+			if (!bestPath) return;
+
+			const highlightedEntities = new Set();
 			const highlightedDrawings = new Set();
-
-			if (best.entity.type && best.entity.type.startsWith('draw-')) {
-				highlightedDrawings.add(best.entity);
-			} else {
-				highlightedEntities.add(best.entity);
-			}
+			const segments = [];
+			bestPath.edges.forEach(edge => {
+				segments.push({ start: edge.start, end: edge.end });
+				if (edge.entity.type && edge.entity.type.startsWith('draw-')) {
+					highlightedDrawings.add(edge.entity);
+				} else {
+					highlightedEntities.add(edge.entity);
+				}
+			});
 
 			if (target.symbolType || target.type === 'draw-ct' || target.type === 'draw-seccionador') {
 				highlightedEntities.add(target);
@@ -1272,7 +1442,7 @@
 
 			activeRouteHighlight = {
 				direction,
-				segments: pathSegments,
+				segments,
 				highlightedEntities,
 				highlightedDrawings,
 				anchor
@@ -1307,9 +1477,14 @@
 		function openContextMenu(x, y, target) {
 			contextMenuList.innerHTML = '';
 			const options = [
-				{ label: 'Mostrar ruta aguas arriba', action: () => highlightRouteFrom(target, 'upstream') },
-				{ label: 'Mostrar ruta aguas abajo', action: () => highlightRouteFrom(target, 'downstream') }
+				{ label: 'Mostrar ruta aguas arriba', action: () => highlightRouteToLeaf(target, 'upstream') },
+				{ label: 'Mostrar ruta aguas abajo', action: () => highlightRouteToLeaf(target, 'downstream') },
+				{ label: 'Marcar como origen de ruta', action: () => { pendingRouteAnchor = target; } }
 			];
+
+			if (pendingRouteAnchor && pendingRouteAnchor !== target) {
+				options.push({ label: 'Resaltar ruta hasta aquí', action: () => { highlightRouteBetween(pendingRouteAnchor, target); pendingRouteAnchor = null; } });
+			}
 
 			if (activeRouteHighlight) {
 				options.push({ label: 'Limpiar resaltado de ruta', action: () => clearRouteHighlight() });
@@ -1344,8 +1519,9 @@
 		function getMinimapTransform() {
 			const rect = minimapCanvas.getBoundingClientRect();
 			const padding = 8;
-			const worldWidth = extents.maxX - extents.minX;
-			const worldHeight = extents.maxY - extents.minY;
+			const viewBounds = getExpandedViewBounds(3.5);
+			const worldWidth = viewBounds.width;
+			const worldHeight = viewBounds.height;
 			if (worldWidth <= 0 || worldHeight <= 0) return null;
 
 			const scale = Math.min(
@@ -1353,10 +1529,10 @@
 				(rect.height - padding * 2) / worldHeight
 			);
 
-			const offsetX = padding - extents.minX * scale;
-			const offsetY = padding + extents.maxY * scale;
+			const offsetX = padding - viewBounds.minX * scale;
+			const offsetY = padding + viewBounds.maxY * scale;
 
-			return { scale, offsetX, offsetY, padding };
+			return { scale, offsetX, offsetY, padding, bounds: viewBounds };
 		}
 
 		function modelToMinimap(x, y, transform) {
@@ -1386,6 +1562,7 @@
 			const transform = getMinimapTransform();
 			minimapTransform = transform;
 			if (!transform) return;
+			const bounds = transform.bounds;
 
 			minimapCtx.save();
 			minimapCtx.fillStyle = '#f9fafb';
@@ -1401,6 +1578,8 @@
 				minimapCtx.beginPath();
 				segments.forEach((seg, idx) => {
 					if (!seg.start || !seg.end) return;
+					if (Math.max(seg.start.x, seg.end.x) < bounds.minX || Math.min(seg.start.x, seg.end.x) > bounds.maxX ||
+						Math.max(seg.start.y, seg.end.y) < bounds.minY || Math.min(seg.start.y, seg.end.y) > bounds.maxY) return;
 					const p1 = modelToMinimap(seg.start.x, seg.start.y, transform);
 					const p2 = modelToMinimap(seg.end.x, seg.end.y, transform);
 					if (idx === 0) {
@@ -1416,6 +1595,8 @@
 			userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line').forEach(d => {
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				if (Math.max(d.start.x, d.end.x) < bounds.minX || Math.min(d.start.x, d.end.x) > bounds.maxX ||
+					Math.max(d.start.y, d.end.y) < bounds.minY || Math.min(d.start.y, d.end.y) > bounds.maxY) return;
 				const p1 = modelToMinimap(d.start.x, d.start.y, transform);
 				const p2 = modelToMinimap(d.end.x, d.end.y, transform);
 				minimapCtx.beginPath();
@@ -1430,6 +1611,7 @@
 				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(sym);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (!sym.position) return;
+				if (sym.position.x < bounds.minX || sym.position.x > bounds.maxX || sym.position.y < bounds.minY || sym.position.y > bounds.maxY) return;
 				const pos = modelToMinimap(sym.position.x, sym.position.y, transform);
 				minimapCtx.fillStyle = '#334155';
 				minimapCtx.beginPath();
@@ -1440,6 +1622,7 @@
 			userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador').forEach(d => {
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
+				if (d.start.x < bounds.minX || d.start.x > bounds.maxX || d.start.y < bounds.minY || d.start.y > bounds.maxY) return;
 				const pos = modelToMinimap(d.start.x, d.start.y, transform);
 				minimapCtx.fillStyle = '#0f172a';
 				minimapCtx.beginPath();
