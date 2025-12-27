@@ -944,6 +944,7 @@
 		let pendingIsolationAnchor = null;
 		let activePathIsolation = null;
 		let graphSegments = [];
+		let lastIsolationWarningTimeout = null;
 
 
 		// --- Undo/Redo State ---
@@ -1210,6 +1211,30 @@
 			draw();
 		}
 
+		function notifyIsolationWarning(message) {
+			const container = document.getElementById('message-box-container');
+			container.innerHTML = '';
+
+			const box = document.createElement('div');
+			box.className = 'message-box';
+
+			const msg = document.createElement('p');
+			msg.textContent = message;
+			msg.className = 'mb-2 text-sm';
+			box.appendChild(msg);
+
+			const btn = document.createElement('button');
+			btn.textContent = 'Entendido';
+			btn.className = 'btn-confirm';
+			btn.onclick = () => container.innerHTML = '';
+			box.appendChild(btn);
+
+			container.appendChild(box);
+
+			if (lastIsolationWarningTimeout) clearTimeout(lastIsolationWarningTimeout);
+			lastIsolationWarningTimeout = setTimeout(() => { container.innerHTML = ''; }, 2800);
+		}
+
 		function getEntitySegments(entity) {
 			if (!entity) return [];
 			if (entity.type === 'LINE' && entity.start && entity.end) {
@@ -1353,19 +1378,25 @@
 				return idx;
 			}
 
-			function highlightRouteBetween(anchorA, anchorB) {
-				const start = anchorA.position || anchorA.start;
-				const end = anchorB.position || anchorB.start;
-				if (!start || !end) return;
+		function highlightRouteBetween(anchorA, anchorB) {
+			const start = anchorA.position || anchorA.start;
+			const end = anchorB.position || anchorB.start;
+			if (!start || !end) return;
 
-				const graph = buildNetworkGraph();
-				if (graph.nodes.length === 0) return;
-				const startIdx = connectPointToGraph(graph, start);
-				const endIdx = connectPointToGraph(graph, end);
-				if (startIdx === -1 || endIdx === -1) return;
+			const graph = buildNetworkGraph();
+			if (graph.nodes.length === 0 || graph.segments.length === 0) {
+				notifyIsolationWarning('No se encontraron segmentos de red para trazar la ruta.');
+				return;
+			}
+			const startIdx = connectPointToGraph(graph, start);
+			const endIdx = connectPointToGraph(graph, end);
+			if (startIdx === -1 || endIdx === -1) return;
 
-				const path = shortestPath(graph, startIdx, endIdx);
-				if (!path) return;
+			const path = shortestPath(graph, startIdx, endIdx);
+			if (!path) {
+				notifyIsolationWarning('No fue posible encontrar un camino entre los dos elementos.');
+				return;
+			}
 
 			const highlightedEntities = new Set();
 			const highlightedDrawings = new Set();
@@ -1520,6 +1551,7 @@
 			minimapTransform = transform;
 			if (!transform) return;
 			const bounds = transform.bounds;
+			const isIsolating = !!activePathIsolation;
 
 			minimapCtx.save();
 			minimapCtx.fillStyle = '#f9fafb';
@@ -1529,6 +1561,7 @@
 			const dimmedAlpha = 0.12;
 
 			linesAndPolylines.forEach(ent => {
+				if (isIsolating && !activePathIsolation.entities.has(ent)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(ent);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				const segments = getEntitySegments(ent);
@@ -1550,6 +1583,7 @@
 			});
 
 			userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line').forEach(d => {
+				if (isIsolating && !activePathIsolation.drawings.has(d)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (Math.max(d.start.x, d.end.x) < bounds.minX || Math.min(d.start.x, d.end.x) > bounds.maxX ||
@@ -1565,6 +1599,7 @@
 			});
 
 			symbols.forEach(sym => {
+				if (isIsolating && !activePathIsolation.entities.has(sym)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedEntities?.has(sym);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (!sym.position) return;
@@ -1577,6 +1612,7 @@
 			});
 
 			userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador').forEach(d => {
+				if (isIsolating && !activePathIsolation.drawings.has(d)) return;
 				const isHighlighted = activeRouteHighlight?.highlightedDrawings?.has(d);
 				minimapCtx.globalAlpha = routeActive ? (isHighlighted ? 1 : dimmedAlpha) : 1;
 				if (d.start.x < bounds.minX || d.start.x > bounds.maxX || d.start.y < bounds.minY || d.start.y > bounds.maxY) return;
