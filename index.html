@@ -1142,12 +1142,40 @@
 			return ['LINE', 'LWPOLYLINE', 'POLYLINE', 'CIRCLE', 'ARC', 'TEXT', 'POINT'].includes(entity.type);
 		}
 
+		function isHiddenByCt(entity) {
+			if (!entity || entity.symbolType === 'ct') return false;
+			const cts = symbols.filter(s => s.symbolType === 'ct' && s.position);
+			if (cts.length === 0) return false;
+
+			const bbox = getEntityBBox(entity, true);
+			if (!bbox) return false;
+
+			const entityTopY = bbox.y + bbox.height; // max Y of the entity
+
+			const referencesCt = (ct) => {
+				if (!ct.label) return false;
+				const refRaw = entity.extendedAttributes && entity.extendedAttributes['1198'] ? String(entity.extendedAttributes['1198']) : '';
+				const refNum = (refRaw.match(/\d+/) || [null])[0];
+				const ctNum = (ct.label.match(/\d+/) || [ct.label])[0];
+				return refNum && ctNum && ctNum.endsWith(refNum);
+			};
+
+			for (const ct of cts) {
+				const sameGroup = entity.groupId && ct.groupId && entity.groupId === ct.groupId;
+				const refMatch = referencesCt(ct);
+				if (!sameGroup && !refMatch) continue;
+				// Model Y grows upward; items visually below the CT have lower Y (entityTopY <= ct.position.y)
+				if (entityTopY <= ct.position.y) return true;
+			}
+			return false;
+		}
+
 		function populateSearchSuggestions() {
 			searchSuggestions.innerHTML = '';
 			const visibleTexts = new Set();
 
 			symbols.forEach(s => {
-				if (isInternalCtComponent(s) || isInternalCtDetail(s)) return;
+				if (isInternalCtComponent(s) || isInternalCtDetail(s) || isHiddenByCt(s)) return;
 				const displayLabel = getDisplayLabel(s);
 				if (displayLabel) visibleTexts.add(displayLabel);
 			});
@@ -2059,7 +2087,7 @@
         
         function drawSymbolLabel(ent) {
             ent.labelBBox = null; 
-            if (isInternalCtComponent(ent) || isInternalCtDetail(ent)) return;
+            if (isInternalCtComponent(ent) || isInternalCtDetail(ent) || isHiddenByCt(ent)) return;
             if (!ent.label) return;
 
             // Si es un seccionador, verificar si es una salida de un CT existente
@@ -2174,7 +2202,7 @@
 		}
 
         function drawSymbol(ent) {
-            if (isInternalCtComponent(ent) || isInternalCtDetail(ent)) return;
+            if (isInternalCtComponent(ent) || isInternalCtDetail(ent) || isHiddenByCt(ent)) return;
             dxfCtx.save();
             dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
             dxfCtx.lineWidth = 1.5;
@@ -2423,8 +2451,8 @@
         }
         
         function computeExtents() {
-            const visibleSymbols = symbols.filter(s => !isInternalCtComponent(s) && !isInternalCtDetail(s));
-            const visibleLines = linesAndPolylines.filter(l => !isInternalCtDetail(l));
+            const visibleSymbols = symbols.filter(s => !isInternalCtComponent(s) && !isInternalCtDetail(s) && !isHiddenByCt(s));
+            const visibleLines = linesAndPolylines.filter(l => !isInternalCtDetail(l) && !isHiddenByCt(l));
             const allEntities = [...visibleLines, ...visibleSymbols, ...userDrawings];
             
             if (allEntities.length === 0) {
@@ -2479,7 +2507,7 @@
 
 			dxfCtx.lineWidth = 1.5;
 			linesAndPolylines.forEach(ent => {
-				if (isInternalCtDetail(ent)) return;
+				if (isInternalCtDetail(ent) || isHiddenByCt(ent)) return;
 				dxfCtx.strokeStyle = LINE_COLOR;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
@@ -2520,7 +2548,7 @@
                 }
 			});
 
-			const visibleSymbols = symbols.filter(s => !isInternalCtComponent(s) && !isInternalCtDetail(s));
+			const visibleSymbols = symbols.filter(s => !isInternalCtComponent(s) && !isInternalCtDetail(s) && !isHiddenByCt(s));
 			const ctSymbols = visibleSymbols.filter(s => s.symbolType === 'ct');
 			const otherSymbols = visibleSymbols.filter(s => s.symbolType !== 'ct');
 			otherSymbols.forEach(drawSymbol);
@@ -3224,11 +3252,11 @@
 			});
 		}
 
-        function getEntityAtScreenPos(screenX, screenY) {
+        
+function getEntityAtScreenPos(screenX, screenY) {
             for (let i = symbols.length - 1; i >= 0; i--) {
                 const ent = symbols[i];
-				if (isInternalCtComponent(ent)) continue;
-				if (isInternalCtDetail(ent)) continue;
+			if (isInternalCtComponent(ent) || isInternalCtDetail(ent) || isHiddenByCt(ent)) continue;
 				const bbox = getEntityBBox(ent, false);
                 if (bbox && screenX >= bbox.x && screenX <= bbox.x + bbox.width && screenY >= bbox.y && screenY <= bbox.y + bbox.height) {
                     return ent;
@@ -4815,12 +4843,13 @@
 						minY: Math.min(screenToModel(marqueeStart.x, marqueeStart.y).y, screenToModel(marqueeEnd.x, marqueeEnd.y).y),
 						maxY: Math.max(screenToModel(marqueeStart.x, marqueeStart.y).y, screenToModel(marqueeEnd.x, marqueeEnd.y).y)
 					};
-			const newlySelected = [];
-					[...userDrawings, ...symbols, ...linesAndPolylines].forEach(item => {
-						if (isInternalCtComponent(item)) return;
-						if (isInternalCtDetail(item)) return;
-						const bbox = getEntityBBox(item, true);
-						if (!bbox) return;
+				const newlySelected = [];
+				[...userDrawings, ...symbols, ...linesAndPolylines].forEach(item => {
+					if (isInternalCtComponent(item)) return;
+					if (isInternalCtDetail(item)) return;
+					if (isHiddenByCt(item)) return;
+					const bbox = getEntityBBox(item, true);
+					if (!bbox) return;
 
 						let isSelected = isIntersectingSelection ?
 							(bbox.x < rectModel.maxX && bbox.x + bbox.width > rectModel.minX && bbox.y < rectModel.maxY && bbox.y + bbox.height > rectModel.minY) :
