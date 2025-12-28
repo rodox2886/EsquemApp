@@ -1151,9 +1151,9 @@
             redoBtn.disabled = redoStack.length === 0;
         }
 		
-		function showInputPrompt(message, callback, defaultValue = '') {
-			const container = document.getElementById('message-box-container');
-			container.innerHTML = ''; // Clear previous messages
+			function showInputPrompt(message, callback, defaultValue = '') {
+				const container = document.getElementById('message-box-container');
+				container.innerHTML = ''; // Clear previous messages
 
 			const promptBox = document.createElement('div');
 			promptBox.className = 'message-box';
@@ -1202,9 +1202,145 @@
 			promptBox.appendChild(confirmBtn);
 			promptBox.appendChild(cancelBtn);
 
-			container.appendChild(promptBox);
-			inputBox.focus();
-		}
+				container.appendChild(promptBox);
+				inputBox.focus();
+			}
+
+			function showTextResizePrompt(defaultValue, onConfirm) {
+				const container = document.getElementById('message-box-container');
+				container.innerHTML = '';
+
+				const parsedDefault = !isNaN(parseFloat(defaultValue)) ? parseFloat(defaultValue) : 100;
+				const min = 50;
+				const max = 200;
+
+				const clampValue = (val) => Math.min(max, Math.max(min, val || parsedDefault));
+
+				const box = document.createElement('div');
+				box.className = 'message-box';
+
+				const messageP = document.createElement('p');
+				messageP.textContent = 'Introduzca el porcentaje de tamaño del texto (ej: 120 para 20% más grande, 80 para 20% más pequeño)';
+				messageP.className = 'mb-4 text-lg leading-relaxed';
+
+				const controlsWrapper = document.createElement('div');
+				controlsWrapper.className = 'space-y-3';
+
+				const slider = document.createElement('input');
+				slider.type = 'range';
+				slider.min = `${min}`;
+				slider.max = `${max}`;
+				slider.step = '5';
+				slider.value = `${clampValue(parsedDefault)}`;
+				slider.className = 'w-full accent-blue-600';
+
+				const numberInput = document.createElement('input');
+				numberInput.type = 'number';
+				numberInput.min = `${min}`;
+				numberInput.max = `${max}`;
+				numberInput.step = '1';
+				numberInput.value = `${clampValue(parsedDefault)}`;
+				numberInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+
+				const presetsContainer = document.createElement('div');
+				presetsContainer.className = 'flex flex-wrap gap-2';
+				const presetValues = [50, 75, 90, 100, 110, 125, 150, 200];
+				presetValues.forEach(val => {
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					btn.textContent = `${val}%`;
+					btn.className = 'px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors';
+					btn.addEventListener('click', () => setValue(val));
+					presetsContainer.appendChild(btn);
+				});
+
+				const adjustContainer = document.createElement('div');
+				adjustContainer.className = 'flex gap-2';
+				const minusBtn = document.createElement('button');
+				minusBtn.type = 'button';
+				minusBtn.textContent = '-10%';
+				minusBtn.className = 'flex-1 px-3 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold';
+				minusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) - 10)));
+
+				const plusBtn = document.createElement('button');
+				plusBtn.type = 'button';
+				plusBtn.textContent = '+10%';
+				plusBtn.className = 'flex-1 px-3 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold';
+				plusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) + 10)));
+
+				adjustContainer.appendChild(minusBtn);
+				adjustContainer.appendChild(plusBtn);
+
+				const errorText = document.createElement('p');
+				errorText.className = 'text-sm text-red-600 hidden';
+				errorText.textContent = `El porcentaje debe estar entre ${min}% y ${max}%`;
+
+				const actions = document.createElement('div');
+				actions.className = 'mt-4 flex justify-center gap-3';
+
+				const confirmBtn = document.createElement('button');
+				confirmBtn.textContent = 'Aceptar';
+				confirmBtn.className = 'btn-confirm';
+
+				const cancelBtn = document.createElement('button');
+				cancelBtn.textContent = 'Cancelar';
+				cancelBtn.className = 'btn-cancel';
+
+				const setValue = (val) => {
+					const clamped = clampValue(parseFloat(val));
+					slider.value = `${clamped}`;
+					numberInput.value = `${clamped}`;
+					errorText.classList.add('hidden');
+				};
+
+				slider.addEventListener('input', (e) => setValue(parseFloat(e.target.value)));
+				numberInput.addEventListener('input', (e) => {
+					const parsed = parseFloat(e.target.value);
+					if (isNaN(parsed)) return;
+					setValue(parsed);
+				});
+
+				const closePrompt = () => {
+					container.innerHTML = '';
+				};
+
+				const handleConfirm = () => {
+					const value = clampValue(parseFloat(numberInput.value));
+					if (isNaN(value)) {
+						errorText.classList.remove('hidden');
+						return;
+					}
+					onConfirm(value);
+					closePrompt();
+				};
+
+				confirmBtn.addEventListener('click', handleConfirm);
+				cancelBtn.addEventListener('click', closePrompt);
+
+				numberInput.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter') {
+						handleConfirm();
+					} else if (e.key === 'Escape') {
+						closePrompt();
+					}
+				});
+
+				controlsWrapper.appendChild(slider);
+				controlsWrapper.appendChild(numberInput);
+				controlsWrapper.appendChild(presetsContainer);
+				controlsWrapper.appendChild(adjustContainer);
+				controlsWrapper.appendChild(errorText);
+
+				actions.appendChild(confirmBtn);
+				actions.appendChild(cancelBtn);
+
+				box.appendChild(messageP);
+				box.appendChild(controlsWrapper);
+				box.appendChild(actions);
+
+				container.appendChild(box);
+				numberInput.focus();
+			}
 
 		function showConfirm(message, onConfirm, onCancel = () => {}) {
 			const container = document.getElementById('message-box-container');
@@ -3960,35 +4096,27 @@
 			compressMenu.classList.add('hidden');
 		});
 
-		resizeTextBtn.addEventListener('click', () => {
-			showInputPrompt("Introduzca el porcentaje de tamaño del texto (ej: 120 para 20% más grande, 80 para 20% más pequeño)", (value) => {
-				if (value === null) return;
-				const percentage = parseFloat(value);
-				if (isNaN(percentage) || percentage <= 0) {
-					showConfirm("Porcentaje inválido.", () => {});
-					return;
-				}
-				
-				saveHistoryState();
-				
-				const scaleFactor = percentage / 100;
-				
-				userDrawings.forEach(d => {
-					if (d.type === 'draw-text') {
-						d.modelHeight = (d.modelHeight || 0.5) * scaleFactor;
-					}
+			resizeTextBtn.addEventListener('click', () => {
+				showTextResizePrompt(100, (percentage) => {
+					saveHistoryState();
+
+					const scaleFactor = percentage / 100;
+
+					userDrawings.forEach(d => {
+						if (d.type === 'draw-text') {
+							d.modelHeight = (d.modelHeight || 0.5) * scaleFactor;
+						}
+					});
+
+					symbols.forEach(s => {
+						if (s.symbolType === 'ct' || s.symbolType === 'seccionador') {
+							s.labelScale = (s.labelScale || 1) * scaleFactor;
+						}
+					});
+
+					draw();
 				});
-				
-				symbols.forEach(s => {
-					if (s.symbolType === 'ct' || s.symbolType === 'seccionador') {
-						s.labelScale = (s.labelScale || 1) * scaleFactor;
-					}
-				});
-				
-				draw();
-				
-			}, "100");
-		});
+			});
 
 		bulkChangeCtSymbolBtn.addEventListener('click', () => {
             ctPickerModal.dataset.bulkChange = 'true'; // Set a flag
