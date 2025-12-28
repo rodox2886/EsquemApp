@@ -682,6 +682,13 @@
 									<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
 								</svg>
 							</button>
+							<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+								<div class="flex items-center gap-2">
+									<button id="segment-mode-btn" class="px-3 py-1 text-sm rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors font-semibold">Tramo A-B</button>
+									<button id="segment-clear-btn" class="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold">Limpiar</button>
+								</div>
+								<span id="segment-status" class="text-xs text-gray-500 hidden"></span>
+							</div>
 						</div>
 					</div>
 					<div class="flex flex-wrap items-center justify-between gap-2">
@@ -846,16 +853,19 @@
 		const closeCtPickerBtn = document.getElementById('close-ct-picker-btn');
 		const ctSymbolGrid = document.getElementById('ct-symbol-grid');
 		const drawSeccionadorBtn = document.getElementById('draw-seccionador-btn');
-		const drawMundoInternoBtn = document.getElementById('draw-mundo-interno-btn');
-		const mundoInternoPickerModal = document.getElementById('mundo-interno-picker-modal');
-		const closeMundoInternoPickerBtn = document.getElementById('close-mundo-interno-picker-btn');
-		const mundoInternoSymbolGrid = document.getElementById('mundo-interno-symbol-grid');
-		const seccionadorPickerModal = document.getElementById('seccionador-symbol-picker-modal');
-		const closeSeccionadorPickerBtn = document.getElementById('close-seccionador-picker-btn');
-		const seccionadorSymbolGrid = document.getElementById('seccionador-symbol-grid');
-		const helpBtn = document.getElementById('help-btn');
-		const helpModal = document.getElementById('help-modal');
-		const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+			const drawMundoInternoBtn = document.getElementById('draw-mundo-interno-btn');
+			const mundoInternoPickerModal = document.getElementById('mundo-interno-picker-modal');
+			const closeMundoInternoPickerBtn = document.getElementById('close-mundo-interno-picker-btn');
+			const mundoInternoSymbolGrid = document.getElementById('mundo-interno-symbol-grid');
+			const seccionadorPickerModal = document.getElementById('seccionador-symbol-picker-modal');
+			const closeSeccionadorPickerBtn = document.getElementById('close-seccionador-picker-btn');
+			const seccionadorSymbolGrid = document.getElementById('seccionador-symbol-grid');
+			const helpBtn = document.getElementById('help-btn');
+			const helpModal = document.getElementById('help-modal');
+			const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+			const segmentModeBtn = document.getElementById('segment-mode-btn');
+			const segmentClearBtn = document.getElementById('segment-clear-btn');
+			const segmentStatus = document.getElementById('segment-status');
 
 	        // --- CONSTANTS ---
 	        const SYMBOL_SIZE = 2.0;
@@ -885,20 +895,24 @@
 		let selectedDrawingId = null;
 		let activeResizeHandle = null;
 		let isDraggingDrawing = false;
-        let blockGeometries = {};
-        let selectedGroupId = null;
-	        let isDraggingGroup = false;
-	        let isManualModeEnabled = false;
-	        let multiSelection = [];
-	        let isDraggingMultiSelection = false;
-	        let isShiftPressed = false;
-        let activeCtIconType = 'plain'; // Default CT symbol is now just a square
-	        let snapLine = null; // To store the perpendicular connection line info
-			let activeMundoInternoIconType = 'half-f-circle';
-			let activeSeccionadorIconType = 'standard';
-			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
-			let currentExportDataUrl = '';
-			let currentExportBlob = null;
+	        let blockGeometries = {};
+	        let selectedGroupId = null;
+		        let isDraggingGroup = false;
+		        let isManualModeEnabled = false;
+		        let multiSelection = [];
+		        let isDraggingMultiSelection = false;
+		        let isShiftPressed = false;
+	        let activeCtIconType = 'plain'; // Default CT symbol is now just a square
+		        let snapLine = null; // To store the perpendicular connection line info
+				let activeMundoInternoIconType = 'half-f-circle';
+				let activeSeccionadorIconType = 'standard';
+				let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
+				let currentExportDataUrl = '';
+				let currentExportBlob = null;
+				const SEGMENT_CONNECT_RADIUS = 2.5;
+				let segmentModeActive = false;
+				let segmentSelection = [];
+				let segmentHighlight = null;
 
 
 			// --- Undo/Redo State ---
@@ -1110,14 +1124,252 @@
 
 	        }
 
-		function getDisplayLabel(entity) {
-			if (!entity || !entity.label) return '';
-			if (entity.symbolType === 'ct') {
-				const match = entity.label.match(/\d+/);
-				if (match) return match[0];
+			function getDisplayLabel(entity) {
+				if (!entity || !entity.label) return '';
+				if (entity.symbolType === 'ct') {
+					const match = entity.label.match(/\d+/);
+					if (match) return match[0];
+				}
+				return entity.label;
 			}
-			return entity.label;
-		}
+
+			function getEntityLabel(entity) {
+				return (entity && entity.label) ? entity.label : (entity && entity.symbolType === 'seccionador' ? 'Seccionador' : 'Elemento');
+			}
+
+			function isSeccionadorEntity(entity) {
+				return entity && entity.symbolType === 'seccionador';
+			}
+
+			function getEntityPositionForGraph(entity) {
+				if (!entity) return null;
+				if (entity.position) return { ...entity.position };
+				if (entity.start) return { ...entity.start };
+				return null;
+			}
+
+			function getStableEntityKey(entity) {
+				if (!entity) return null;
+				if (entity.id) return entity.id;
+				if (!entity.__uid) {
+					entity.__uid = crypto.randomUUID();
+				}
+				return entity.__uid;
+			}
+
+			function updateSegmentStatus(message = '') {
+				if (!segmentStatus) return;
+				if (message) {
+					segmentStatus.textContent = message;
+					segmentStatus.classList.remove('hidden');
+				} else {
+					segmentStatus.textContent = '';
+					segmentStatus.classList.add('hidden');
+				}
+			}
+
+			function updateSegmentModeUi() {
+				if (!segmentModeBtn) return;
+				if (segmentModeActive) {
+					segmentModeBtn.classList.add('bg-emerald-600', 'text-white');
+					segmentModeBtn.classList.remove('text-emerald-700', 'bg-emerald-100');
+				} else {
+					segmentModeBtn.classList.remove('bg-emerald-600', 'text-white');
+					segmentModeBtn.classList.add('text-emerald-700', 'bg-emerald-100');
+				}
+			}
+
+			function resetSegmentView(resetMode = false) {
+				segmentSelection = [];
+				segmentHighlight = null;
+				if (resetMode) {
+					segmentModeActive = false;
+				}
+				updateSegmentModeUi();
+				updateSegmentStatus(segmentModeActive ? 'Selecciona el seccionador A' : '');
+				draw();
+			}
+
+			function buildConnectivityGraph() {
+				const nodes = new Map(); // key -> { x, y }
+				const adjacency = new Map(); // key -> [{ to, entity }]
+				const nodeAttachments = new Map(); // key -> Set<entity>
+				const entityNodeMap = new Map();
+
+				const pointKey = (p) => `${p.x.toFixed(3)},${p.y.toFixed(3)}`;
+
+				const addNode = (point) => {
+					const key = pointKey(point);
+					if (!nodes.has(key)) {
+						nodes.set(key, { ...point });
+						adjacency.set(key, []);
+					}
+					return key;
+				};
+
+				const attachEntity = (key, entity) => {
+					if (!nodeAttachments.has(key)) nodeAttachments.set(key, new Set());
+					nodeAttachments.get(key).add(entity);
+				};
+
+				const addEdge = (aKey, bKey, entity = null) => {
+					if (!aKey || !bKey) return;
+					if (!adjacency.has(aKey) || !adjacency.has(bKey)) return;
+					adjacency.get(aKey).push({ to: bKey, entity });
+					adjacency.get(bKey).push({ to: aKey, entity });
+				};
+
+				const connectToNearbyNodes = (key, point) => {
+					if (!key) return;
+					nodes.forEach((p, existingKey) => {
+						if (existingKey === key) return;
+						const dx = p.x - point.x;
+						const dy = p.y - point.y;
+						const dist = Math.sqrt(dx * dx + dy * dy);
+						if (dist <= SEGMENT_CONNECT_RADIUS) {
+							addEdge(key, existingKey, null);
+						}
+					});
+				};
+
+				// --- 1. Base graph from DXF lines/polylines ---
+				linesAndPolylines.forEach(ent => {
+					if (ent.type === 'LINE' && ent.start && ent.end) {
+						const aKey = addNode(ent.start);
+						const bKey = addNode(ent.end);
+						addEdge(aKey, bKey, ent);
+					} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
+						for (let i = 0; i < ent.vertices.length - 1; i++) {
+							if (!ent.vertices[i] || !ent.vertices[i + 1]) continue;
+							const aKey = addNode(ent.vertices[i]);
+							const bKey = addNode(ent.vertices[i + 1]);
+							addEdge(aKey, bKey, ent);
+						}
+						if (ent.closed && ent.vertices[0] && ent.vertices[ent.vertices.length - 1]) {
+							const aKey = addNode(ent.vertices[0]);
+							const bKey = addNode(ent.vertices[ent.vertices.length - 1]);
+							addEdge(aKey, bKey, ent);
+						}
+					}
+				});
+
+				// --- 2. User-drawn network lines ---
+				userDrawings.forEach(d => {
+					if (d.start && d.end && (d.type === 'draw-line' || d.type === 'draw-dashed-line')) {
+						const aKey = addNode(d.start);
+						const bKey = addNode(d.end);
+						addEdge(aKey, bKey, d);
+					}
+				});
+
+				// --- 3. Symbols (seccionadores + CTs) ---
+				const importantSymbols = [
+					...symbols.filter(s => s.symbolType === 'seccionador' || s.symbolType === 'ct'),
+					...userDrawings.filter(d => d.symbolType === 'seccionador' || d.symbolType === 'ct')
+				];
+
+				const drawingNodeMap = new Map();
+
+				importantSymbols.forEach(ent => {
+					const pos = getEntityPositionForGraph(ent);
+					if (!pos) return;
+					const nodeKey = addNode(pos);
+					attachEntity(nodeKey, ent);
+					entityNodeMap.set(ent, nodeKey);
+					connectToNearbyNodes(nodeKey, pos);
+					drawingNodeMap.set(ent, nodeKey);
+				});
+
+				// --- 4. Manual CT ↔ Seccionador association ---
+				userDrawings.forEach(d => {
+					if (d.type === 'draw-ct' && d.associatedSeccionadorId) {
+						const ctKey = drawingNodeMap.get(d);
+						const secc = userDrawings.find(x => x.id === d.associatedSeccionadorId);
+						const seccKey = drawingNodeMap.get(secc);
+						if (ctKey && seccKey) addEdge(ctKey, seccKey, null);
+					}
+				});
+
+				return { adjacency, nodeAttachments, entityNodeMap };
+			}
+
+			function computeSegmentHighlight(startEntity, endEntity) {
+				const graph = buildConnectivityGraph();
+				const startKey = graph.entityNodeMap.get(startEntity);
+				const endKey = graph.entityNodeMap.get(endEntity);
+
+				if (!startKey || !endKey) {
+					updateSegmentStatus('No se pudo localizar alguno de los seccionadores.');
+					segmentHighlight = null;
+					draw();
+					return;
+				}
+
+				const visited = new Set([startKey]);
+				const queue = [startKey];
+				const usedEdges = new Set();
+
+				while (queue.length > 0) {
+					const current = queue.shift();
+					const neighbors = graph.adjacency.get(current) || [];
+					neighbors.forEach(({ to, entity }) => {
+						if (entity) usedEdges.add(entity);
+						if (!visited.has(to)) {
+							visited.add(to);
+							queue.push(to);
+						}
+					});
+				}
+
+				if (!visited.has(endKey)) {
+					segmentHighlight = { nodes: new Set([startEntity, endEntity]), edges: new Set() };
+					updateSegmentStatus('Los seccionadores no están conectados.');
+					draw();
+					return;
+				}
+
+				const highlightNodes = new Set();
+				visited.forEach(k => {
+					const attached = graph.nodeAttachments.get(k);
+					if (attached) attached.forEach(ent => highlightNodes.add(ent));
+				});
+
+				usedEdges.delete(null);
+				usedEdges.delete(undefined);
+
+				segmentHighlight = { nodes: highlightNodes, edges: usedEdges };
+				updateSegmentStatus(`Tramo A-B listo (${highlightNodes.size} elementos visibles).`);
+				draw();
+			}
+
+			function handleSegmentSelection(target) {
+				if (!segmentModeActive) return false;
+				if (!isSeccionadorEntity(target)) {
+					updateSegmentStatus('Selecciona un seccionador (A o B).');
+					return false;
+				}
+
+				if (segmentSelection.length >= 2) {
+					segmentSelection = [];
+				}
+
+				segmentSelection.push(target);
+
+				if (segmentSelection.length === 1) {
+					updateSegmentStatus(`Seccionador A: ${getEntityLabel(target)}. Selecciona B.`);
+					segmentHighlight = null;
+					draw();
+					return true;
+				}
+
+				if (segmentSelection.length === 2) {
+					updateSegmentStatus(`Calculando tramo entre ${getEntityLabel(segmentSelection[0])} y ${getEntityLabel(segmentSelection[1])}...`);
+					computeSegmentHighlight(segmentSelection[0], segmentSelection[1]);
+					return true;
+				}
+
+				return false;
+			}
 
 		function populateSearchSuggestions() {
 			searchSuggestions.innerHTML = '';
@@ -2439,6 +2691,11 @@
 				dxfCtx.fillStyle = '#f0f0f0';
 				dxfCtx.fillRect(0, 0, rect.width, rect.height);
 
+				const hasSegmentHighlight = segmentHighlight && ((segmentHighlight.nodes && segmentHighlight.nodes.size > 0) || (segmentHighlight.edges && segmentHighlight.edges.size > 0));
+				const highlightedNodes = hasSegmentHighlight && segmentHighlight.nodes ? segmentHighlight.nodes : new Set();
+				const highlightedEdges = hasSegmentHighlight && segmentHighlight.edges ? segmentHighlight.edges : new Set();
+				const dimAlpha = 0.15;
+
 					// --- Draw DXF content (potentially clipped) ---
 					dxfCtx.save(); // Save state before clipping for DXF content
 			if (originalExtents) {
@@ -2452,6 +2709,9 @@
 			dxfCtx.lineWidth = 1.5;
 			linesAndPolylines.forEach(ent => {
 				dxfCtx.strokeStyle = LINE_COLOR;
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = highlightedEdges.has(ent) ? 1 : dimAlpha;
+				}
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
 				const dashPattern = getDashPatternForLinetype(ent.linetype);
@@ -2489,12 +2749,31 @@
                 if (isSubterraneo || dashPattern) {
                     dxfCtx.setLineDash([]);
                 }
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = 1;
+				}
 			});
 
 			const ctSymbols = symbols.filter(s => s.symbolType === 'ct');
 			const otherSymbols = symbols.filter(s => s.symbolType !== 'ct');
-			otherSymbols.forEach(drawSymbol);
-			ctSymbols.forEach(drawSymbol);
+			otherSymbols.forEach(ent => {
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = highlightedNodes.has(ent) ? 1 : dimAlpha;
+				}
+				drawSymbol(ent);
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = 1;
+				}
+			});
+			ctSymbols.forEach(ent => {
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = highlightedNodes.has(ent) ? 1 : dimAlpha;
+				}
+				drawSymbol(ent);
+				if (hasSegmentHighlight) {
+					dxfCtx.globalAlpha = 1;
+				}
+			});
 			
 			dxfCtx.restore(); // Restore from the clipped state
 			// --- End of DXF content drawing ---
@@ -2503,6 +2782,11 @@
 			// --- Draw User Annotations (never clipped) ---
 			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
 				dxfCtx.save();
+				if (hasSegmentHighlight) {
+					const isHighlightedEdge = highlightedEdges.has(d);
+					const isHighlightedNode = highlightedNodes.has(d);
+					dxfCtx.globalAlpha = (isHighlightedEdge || isHighlightedNode) ? 1 : dimAlpha;
+				}
 				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
 				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
 				dxfCtx.lineWidth = d.strokeWidth || 1.5;
@@ -3754,6 +4038,26 @@
 			manualModeToggleContainer.title = isManualModeEnabled ? "Bloquear Movimiento" : "Habilitar Movimiento";
 		}
 
+		if (segmentModeBtn) {
+			segmentModeBtn.addEventListener('click', () => {
+				segmentModeActive = !segmentModeActive;
+				segmentSelection = [];
+				segmentHighlight = null;
+				updateSegmentModeUi();
+				updateSegmentStatus(segmentModeActive ? 'Selecciona el seccionador A' : '');
+				draw();
+			});
+		}
+
+		if (segmentClearBtn) {
+			segmentClearBtn.addEventListener('click', () => {
+				resetSegmentView(!segmentModeActive);
+			});
+		}
+
+		updateSegmentModeUi();
+		updateSegmentStatus('');
+
                 /**
                  * Compress the layout by moving symbols and scaling inter‑connecting lines.
                  *
@@ -4747,6 +5051,11 @@
 					const drawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
 					const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
 					const clickedItem = drawing || entity;
+
+					const handledSegment = handleSegmentSelection(clickedItem);
+					if (handledSegment) {
+						deleteBtn.disabled = multiSelection.length === 0 && !selectedDrawingId && !selectedEntity;
+					} else {
 					
 					if (isShiftPressed) {
 						if (clickedItem) {
@@ -4767,6 +5076,7 @@
 						}
 					}
 					deleteBtn.disabled = multiSelection.length === 0 && !selectedDrawingId && !selectedEntity;
+					} 
 				} 
 				else if (wasDragged && currentTool === 'marquee-select') {
 					const isIntersectingSelection = marqueeEnd.x < marqueeStart.x;
@@ -5149,6 +5459,7 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
+				resetSegmentView(true);
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5220,6 +5531,7 @@
 						symbols = [];
 						originalExtents = null;
 						userDrawings = [];
+						resetSegmentView(true);
 						resetViewBtn.classList.add('hidden');
 						setActiveTool(null);
 						selectedDrawingId = null;
@@ -5443,6 +5755,7 @@
                 undoStack = [];
                 redoStack = [];
 				multiSelection = [];
+				resetSegmentView(true);
                 updateHistoryButtons();
                 resetViewBtn.classList.add('hidden');
 
@@ -5455,6 +5768,7 @@
                 initialMessage.classList.add('hidden');
                 
                 // Reiniciar para un lienzo en blanco
+				resetSegmentView(true);
                 computeExtents();
                 fitViewToExtents();
                 resizeCanvas();
