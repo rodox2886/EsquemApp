@@ -860,12 +860,14 @@
 	        // --- CONSTANTS ---
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
-        const CT_COVER_FACTOR = 1.1;
-        const LINE_COLOR = '#1f2937';
-        const SYMBOL_STROKE_COLOR = '#1f2937';
+	        const CT_COVER_FACTOR = 1.1;
+	        const LINE_COLOR = '#1f2937';
+	        const SYMBOL_STROKE_COLOR = '#1f2937';
 	        const CT_FILL_COLOR = '#d4d4d8';
 	        const SECCIONADOR_FILL_COLOR = '#4ade80';
 			const DEFAULT_DRAW_COLOR = '#ef4444';
+			const SUBSTATION_FILL_COLOR = 'rgba(107, 114, 128, 0.35)'; // Gray with transparency
+			const SUBSTATION_BORDER_COLOR = 'rgba(55, 65, 81, 0.5)'; // Darker gray for outline
 			const HANDLE_HIT_RADIUS = 5; // Aumentar el área de detección de clics para los puntos de redimensión
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
 
@@ -899,6 +901,7 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let substationOverlay = null;
 
 
 			// --- Undo/Redo State ---
@@ -943,11 +946,70 @@
 			       bbox.y >= rect.minY && (bbox.y + bbox.height) <= rect.maxY;
 		}
 
-		function clipDiagramToExtents(clipRect) {
-			userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
-			symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
-			linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
-		}
+			function clipDiagramToExtents(clipRect) {
+				userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
+				symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
+				linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
+			}
+
+			function updateSubstationOverlay() {
+				substationOverlay = null;
+				if (!linesAndPolylines || linesAndPolylines.length === 0) return;
+
+				const widthSpan = extents.maxX - extents.minX;
+				const heightSpan = extents.maxY - extents.minY;
+				if (!isFinite(widthSpan) || !isFinite(heightSpan) || widthSpan <= 0 || heightSpan <= 0) return;
+
+				const segments = [];
+				const pushSegment = (a, b) => {
+					if (!a || !b) return;
+					segments.push({ start: a, end: b });
+				};
+
+				linesAndPolylines.forEach(ent => {
+					if (ent.type === 'LINE' && ent.start && ent.end) {
+						pushSegment(ent.start, ent.end);
+					} else if (ent.vertices && ent.vertices.length > 1) {
+						for (let i = 0; i < ent.vertices.length - 1; i++) {
+							pushSegment(ent.vertices[i], ent.vertices[i + 1]);
+						}
+					}
+				});
+
+				if (segments.length === 0) return;
+
+				const horizontalTolerance = 0.12; // ~7 degrees
+				const minLength = Math.max(widthSpan * 0.3, 5);
+				let best = null;
+
+				segments.forEach(seg => {
+					const dx = seg.end.x - seg.start.x;
+					const dy = seg.end.y - seg.start.y;
+					const length = Math.hypot(dx, dy);
+					if (length < minLength) return;
+					const angle = Math.abs(Math.atan2(dy, dx));
+					if (angle > horizontalTolerance) return;
+					const midY = (seg.start.y + seg.end.y) / 2;
+					if (!best || length > best.length) {
+						best = { length, midY };
+					}
+				});
+
+				if (!best) return;
+
+				const margin = widthSpan * 0.02;
+				const overlayWidth = widthSpan + margin * 2;
+				const overlayHeight = Math.max(Math.min(heightSpan * 0.12, 25), 6);
+				const overlayX = extents.minX - margin;
+				const overlayTopY = best.midY + overlayHeight * 0.5;
+
+				substationOverlay = {
+					x: overlayX,
+					yTop: overlayTopY,
+					width: overlayWidth,
+					height: overlayHeight
+				};
+			}
 
         function findClosestPointOnSegment(p, a, b) {
             const atob = { x: b.x - a.x, y: b.y - a.y };
@@ -2431,6 +2493,7 @@
             if (extents.minX === Infinity) { // Fallback if no valid bboxes were found
                 extents = { minX: 0, minY: 0, maxX: 100, maxY: 100 }; 
             }
+			updateSubstationOverlay();
         }
 
 	        function draw() {
@@ -2438,6 +2501,21 @@
 				dxfCtx.save(); // Save the clean, untransformed state
 				dxfCtx.fillStyle = '#f0f0f0';
 				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+
+				// --- Substation overlay (background band for feeders) ---
+				if (substationOverlay) {
+					const topLeft = modelToScreen(substationOverlay.x, substationOverlay.yTop);
+					const bottomRight = modelToScreen(substationOverlay.x + substationOverlay.width, substationOverlay.yTop - substationOverlay.height);
+					const rectWidth = bottomRight.x - topLeft.x;
+					const rectHeight = bottomRight.y - topLeft.y;
+					dxfCtx.save();
+					dxfCtx.fillStyle = SUBSTATION_FILL_COLOR;
+					dxfCtx.strokeStyle = SUBSTATION_BORDER_COLOR;
+					dxfCtx.lineWidth = 1.5;
+					dxfCtx.fillRect(topLeft.x, topLeft.y, rectWidth, rectHeight);
+					dxfCtx.strokeRect(topLeft.x, topLeft.y, rectWidth, rectHeight);
+					dxfCtx.restore();
+				}
 
 					// --- Draw DXF content (potentially clipped) ---
 					dxfCtx.save(); // Save state before clipping for DXF content
