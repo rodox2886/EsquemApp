@@ -720,6 +720,12 @@
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
+							<button id="detect-subgraph-btn" title="Subgrafo entre seccionadores abiertos" class="p-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-full transition-colors">
+								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 7a3 3 0 116 0 3 3 0 01-6 0zM14 7a3 3 0 116 0 3 3 0 01-6 0zM4 17a3 3 0 116 0 3 3 0 01-6 0zM14 17a3 3 0 116 0 3 3 0 01-6 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 17h10M7 7v10M17 7v10" />
+								</svg>
+							</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -835,6 +841,7 @@
 		const copyToClipboardBtn = document.getElementById('copy-to-clipboard-btn');
 		const searchInput = document.getElementById('search-input');
         const searchSuggestions = document.getElementById('search-suggestions');
+		const detectSubgraphBtn = document.getElementById('detect-subgraph-btn');
 		const manualModeToggle = document.getElementById('manual-mode-toggle');
 		const manualModeToggleContainer = document.getElementById('toggle-manual-mode-container');
 		const saveSketchBtn = document.getElementById('save-sketch-btn');
@@ -868,6 +875,8 @@
 			const DEFAULT_DRAW_COLOR = '#ef4444';
 			const HANDLE_HIT_RADIUS = 5; // Aumentar el área de detección de clics para los puntos de redimensión
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
+			const GRAPH_NODE_PRECISION = 3;
+			const SYMBOL_CONNECTION_THRESHOLD = 1.0;
 
 	        // --- STATE VARIABLES ---
 	        let linesAndPolylines = [];
@@ -892,13 +901,14 @@
 	        let multiSelection = [];
 	        let isDraggingMultiSelection = false;
 	        let isShiftPressed = false;
-        let activeCtIconType = 'plain'; // Default CT symbol is now just a square
+			let activeCtIconType = 'plain'; // Default CT symbol is now just a square
 	        let snapLine = null; // To store the perpendicular connection line info
 			let activeMundoInternoIconType = 'half-f-circle';
 			let activeSeccionadorIconType = 'standard';
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let subgraphAB = { nodes: [], segments: [], anchors: [] };
 
 
 			// --- Undo/Redo State ---
@@ -975,6 +985,186 @@
             
             return { point: closestPoint, distance: distance };
         }
+
+		function roundPointForGraph(p) {
+			return { x: parseFloat(p.x.toFixed(GRAPH_NODE_PRECISION)), y: parseFloat(p.y.toFixed(GRAPH_NODE_PRECISION)) };
+		}
+
+		function clearSubgraphHighlight() {
+			subgraphAB = { nodes: [], segments: [], anchors: [] };
+		}
+
+		function getSymbolPositionForGraph(entity) {
+			if (!entity) return null;
+			if (entity.position && isFinite(entity.position.x) && isFinite(entity.position.y)) {
+				return { ...entity.position };
+			}
+			if (entity.start && isFinite(entity.start.x) && isFinite(entity.start.y)) {
+				return { ...entity.start };
+			}
+			return null;
+		}
+
+		function buildConnectivityGraph() {
+			const nodes = new Map();
+			const adjacency = new Map();
+			const edges = [];
+			const baseSegments = [];
+
+			const addNode = (point) => {
+				if (!point || !isFinite(point.x) || !isFinite(point.y)) return null;
+				const rounded = roundPointForGraph(point);
+				const key = `${rounded.x},${rounded.y}`;
+				if (!nodes.has(key)) {
+					nodes.set(key, rounded);
+					adjacency.set(key, new Set());
+				}
+				return key;
+			};
+
+			const connectKeys = (k1, k2) => {
+				if (!k1 || !k2 || k1 === k2) return;
+				adjacency.get(k1)?.add(k2);
+				adjacency.get(k2)?.add(k1);
+				edges.push({ a: k1, b: k2 });
+			};
+
+			const addSegment = (start, end) => {
+				const k1 = addNode(start);
+				const k2 = addNode(end);
+				if (!k1 || !k2) return;
+				baseSegments.push({ start: nodes.get(k1), end: nodes.get(k2) });
+				connectKeys(k1, k2);
+			};
+
+			linesAndPolylines.forEach(ent => {
+				if (ent.type === 'LINE' && ent.start && ent.end) {
+					addSegment(ent.start, ent.end);
+				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
+					for (let i = 0; i < ent.vertices.length - 1; i++) {
+						const v1 = ent.vertices[i];
+						const v2 = ent.vertices[i + 1];
+						if (v1 && v2) addSegment(v1, v2);
+					}
+					if (ent.closed && ent.vertices.length > 2) {
+						const first = ent.vertices[0];
+						const last = ent.vertices[ent.vertices.length - 1];
+						if (first && last) addSegment(last, first);
+					}
+				}
+			});
+
+			userDrawings.forEach(d => {
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					addSegment(d.start, d.end);
+				}
+			});
+
+			const symbolEntities = [...symbols, ...userDrawings].filter(e => e.symbolType === 'ct' || e.symbolType === 'seccionador');
+			symbolEntities.forEach(ent => {
+				const symPoint = getSymbolPositionForGraph(ent);
+				const symKey = addNode(symPoint);
+				if (!symKey) return;
+
+				let bestProjection = null;
+				baseSegments.forEach(seg => {
+					const { point, distance } = findClosestPointOnSegment(symPoint, seg.start, seg.end);
+					if (distance <= SYMBOL_CONNECTION_THRESHOLD) {
+						if (!bestProjection || distance < bestProjection.distance) {
+							bestProjection = { point: roundPointForGraph(point), segment: seg, distance };
+						}
+					}
+				});
+
+				if (bestProjection) {
+					const projectionKey = addNode(bestProjection.point);
+					const startKey = addNode(bestProjection.segment.start);
+					const endKey = addNode(bestProjection.segment.end);
+					connectKeys(symKey, projectionKey);
+					connectKeys(projectionKey, startKey);
+					connectKeys(projectionKey, endKey);
+				}
+			});
+
+			return { nodes, adjacency, edges };
+		}
+
+		function bfsFrom(startKey, adjacency) {
+			const visited = new Set();
+			if (!startKey || !adjacency.has(startKey)) return visited;
+			const queue = [startKey];
+			visited.add(startKey);
+			while (queue.length > 0) {
+				const current = queue.shift();
+				(adjacency.get(current) || []).forEach(nei => {
+					if (!visited.has(nei)) {
+						visited.add(nei);
+						queue.push(nei);
+					}
+				});
+			}
+			return visited;
+		}
+
+		function detectSubgraphBetweenOpenSeccionadores() {
+			const openSeccionadores = [...symbols, ...userDrawings]
+				.filter(e => e.symbolType === 'seccionador' && e.isOpen)
+				.map(e => ({ label: e.label, position: getSymbolPositionForGraph(e) }))
+				.filter(e => e.position);
+
+			if (openSeccionadores.length !== 2) {
+				clearSubgraphHighlight();
+				showConfirm('Se necesitan exactamente 2 seccionadores abiertos para detectar el subgrafo A-B.', () => {});
+				draw();
+				return;
+			}
+
+			const graph = buildConnectivityGraph();
+			const getKeyForPoint = (point) => {
+				const rounded = roundPointForGraph(point);
+				const key = `${rounded.x},${rounded.y}`;
+				if (!graph.nodes.has(key)) {
+					graph.nodes.set(key, rounded);
+					graph.adjacency.set(key, new Set());
+				}
+				return key;
+			};
+
+			const startKey = getKeyForPoint(openSeccionadores[0].position);
+			const endKey = getKeyForPoint(openSeccionadores[1].position);
+
+			const reachableFromA = bfsFrom(startKey, graph.adjacency);
+			const reachableFromB = bfsFrom(endKey, graph.adjacency);
+
+			const intersection = new Set();
+			reachableFromA.forEach(k => {
+				if (reachableFromB.has(k)) intersection.add(k);
+			});
+
+			if (intersection.size === 0) {
+				clearSubgraphHighlight();
+				showConfirm('No se encontró conexión entre los seccionadores abiertos.', () => {});
+				draw();
+				return;
+			}
+
+			const highlightedEdges = graph.edges
+				.filter(edge => intersection.has(edge.a) && intersection.has(edge.b))
+				.map(edge => ({
+					start: graph.nodes.get(edge.a),
+					end: graph.nodes.get(edge.b)
+				}));
+
+			const highlightedNodes = [...intersection].map(k => graph.nodes.get(k)).filter(Boolean);
+
+			subgraphAB = {
+				nodes: highlightedNodes,
+				segments: highlightedEdges,
+				anchors: openSeccionadores.map(s => roundPointForGraph(s.position))
+			};
+
+			draw();
+		}
 
         function updateSnapLine(draggedItem) { // Can be a point or a drawing object
             // Evitar que el símbolo de flecha se conecte automáticamente
@@ -1587,6 +1777,7 @@
 			multiSelection = [];
 			updateInfoPanel(null);
 			updateInfoPanelForDrawing(null);
+			clearSubgraphHighlight();
 
 			draw();
 		}
@@ -2854,6 +3045,39 @@
 				
 				dxfCtx.restore();
 			});
+
+			// --- Highlight subgraph between open seccionadores ---
+			if (subgraphAB.segments.length > 0 || subgraphAB.nodes.length > 0) {
+				dxfCtx.save();
+				dxfCtx.strokeStyle = '#f59e0b';
+				dxfCtx.lineWidth = 3;
+				subgraphAB.segments.forEach(seg => {
+					if (!seg.start || !seg.end) return;
+					const s = modelToScreen(seg.start.x, seg.start.y);
+					const e = modelToScreen(seg.end.x, seg.end.y);
+					dxfCtx.beginPath();
+					dxfCtx.moveTo(s.x, s.y);
+					dxfCtx.lineTo(e.x, e.y);
+					dxfCtx.stroke();
+				});
+				dxfCtx.fillStyle = '#f97316';
+				subgraphAB.nodes.forEach(n => {
+					if (!n) return;
+					const p = modelToScreen(n.x, n.y);
+					dxfCtx.beginPath();
+					dxfCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+					dxfCtx.fill();
+				});
+				dxfCtx.fillStyle = '#b45309';
+				subgraphAB.anchors.forEach(n => {
+					if (!n) return;
+					const p = modelToScreen(n.x, n.y);
+					dxfCtx.beginPath();
+					dxfCtx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
+					dxfCtx.fill();
+				});
+				dxfCtx.restore();
+			}
 			
 			// --- Draw selection highlights and handles on top ---
 			const allSelectedItems = [];
@@ -3548,6 +3772,7 @@
 				seccionadorToggle.addEventListener('change', (e) => {
 					saveHistoryState();
 					drawing.isOpen = e.target.checked;
+					clearSubgraphHighlight();
 					if (statusText) {
 						statusText.textContent = drawing.isOpen ? 'Abierto' : 'Cerrado';
 					}
@@ -3738,6 +3963,7 @@
 							if (selectedEntity) {
 								saveHistoryState();
 								selectedEntity.isOpen = e.target.checked;
+								clearSubgraphHighlight();
 								statusText.textContent = selectedEntity.isOpen ? 'Abierto' : 'Cerrado';
 								draw();
 							}
@@ -4166,6 +4392,12 @@
 			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
 		}
 
+		if (detectSubgraphBtn) {
+			detectSubgraphBtn.addEventListener('click', () => {
+				detectSubgraphBetweenOpenSeccionadores();
+			});
+		}
+
 		closeModalBtn.addEventListener('click', () => {
 			copyImageModal.classList.add('hidden');
 			copyImageModal.classList.remove('flex');
@@ -4179,6 +4411,7 @@
 				userDrawings = [];
 				populateSearchSuggestions();
 				clearDrawingsBtn.disabled = true;
+				clearSubgraphHighlight();
 				draw();
 			}
 		});
@@ -4251,6 +4484,7 @@
                         deleteBtn.disabled = true;
                         updateInfoPanel(null);
                         updateInfoPanelForDrawing(null);
+                        clearSubgraphHighlight();
                         // Solo reajustar la vista si el lienzo queda vacío
                         if (symbols.length === 0 && linesAndPolylines.length === 0 && userDrawings.length === 0) {
                             computeExtents();
@@ -4307,6 +4541,7 @@
                     deleteBtn.disabled = true;
                     updateInfoPanel(null);
                     updateInfoPanelForDrawing(null);
+                    clearSubgraphHighlight();
                     // Adjust view if empty
                     if (symbols.length === 0 && linesAndPolylines.length === 0 && userDrawings.length === 0) {
                         computeExtents();
@@ -5091,6 +5326,7 @@
 				userDrawings = sketch.userDrawings || [];
 				extents = sketch.extents;
 				originalExtents = sketch.originalExtents || null;
+				clearSubgraphHighlight();
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5149,6 +5385,7 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
+				clearSubgraphHighlight();
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5224,8 +5461,10 @@
 						setActiveTool(null);
 						selectedDrawingId = null;
 						selectedGroupId = null;
+						clearSubgraphHighlight();
 					}
 
+					clearSubgraphHighlight();
 					processDxfBlocks(dxf);
 
 					const getSymbolType = (blockName, blockDesc, xdata) => {
@@ -5437,6 +5676,7 @@
                 deleteBtn.disabled = true;
                 updateInfoPanel(null);
                 setActiveTool(null);
+                clearSubgraphHighlight();
                 view = { offsetX: 0, offsetY: 0, scale: 1 };
                 document.getElementById('dxf-upload-label-span').textContent = 'DXF';
                 selectedGroupId = null;
@@ -5453,6 +5693,7 @@
                 // Si estamos en la pantalla de inicio, vamos a un lienzo en blanco
                 dxfCanvas.classList.remove('hidden');
                 initialMessage.classList.add('hidden');
+				clearSubgraphHighlight();
                 
                 // Reiniciar para un lienzo en blanco
                 computeExtents();
