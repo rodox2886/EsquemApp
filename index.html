@@ -1293,82 +1293,121 @@
 				return { adjacency, nodeAttachments, entityNodeMap };
 			}
 
-			function computeSegmentHighlight(startEntity, endEntity) {
-				const graph = buildConnectivityGraph();
-				const startKey = graph.entityNodeMap.get(startEntity);
-				const endKey = graph.entityNodeMap.get(endEntity);
+			function shortestPath(adjacency, startKey, endKey) {
+				if (!adjacency.has(startKey) || !adjacency.has(endKey)) return null;
+				const prev = new Map();
+				const queue = [startKey];
+				prev.set(startKey, { node: null, edge: null });
 
-				if (!startKey || !endKey) {
-					updateSegmentStatus('No se pudo localizar alguno de los seccionadores.');
+				while (queue.length > 0) {
+					const current = queue.shift();
+					if (current === endKey) break;
+					const neighbors = adjacency.get(current) || [];
+					for (const { to, entity } of neighbors) {
+						if (!prev.has(to)) {
+							prev.set(to, { node: current, edge: entity });
+							queue.push(to);
+						}
+					}
+				}
+
+				if (!prev.has(endKey)) return null;
+
+				const nodesPath = [];
+				const edgesPath = [];
+				let cursor = endKey;
+				while (cursor !== null) {
+					const step = prev.get(cursor);
+					nodesPath.push(cursor);
+					if (step && step.edge) edgesPath.push(step.edge);
+					if (!step || step.node === null) break;
+					cursor = step.node;
+				}
+				nodesPath.reverse();
+				edgesPath.reverse();
+				return { nodesPath, edgesPath };
+			}
+
+			function computeSegmentHighlight(selectedEntities) {
+				if (!selectedEntities || selectedEntities.length < 2) {
 					segmentHighlight = null;
 					draw();
 					return;
 				}
 
-				const visited = new Set([startKey]);
-				const queue = [startKey];
-				const usedEdges = new Set();
+				const graph = buildConnectivityGraph();
+				const anchor = selectedEntities[0];
+				const anchorKey = graph.entityNodeMap.get(anchor);
 
-				while (queue.length > 0) {
-					const current = queue.shift();
-					const neighbors = graph.adjacency.get(current) || [];
-					neighbors.forEach(({ to, entity }) => {
-						if (entity) usedEdges.add(entity);
-						if (!visited.has(to)) {
-							visited.add(to);
-							queue.push(to);
-						}
-					});
-				}
-
-				if (!visited.has(endKey)) {
-					segmentHighlight = { nodes: new Set([startEntity, endEntity]), edges: new Set() };
-					updateSegmentStatus('Los seccionadores no están conectados.');
+				if (!anchorKey) {
+					updateSegmentStatus('No se pudo localizar el seccionador inicial.');
+					segmentHighlight = null;
 					draw();
 					return;
 				}
 
 				const highlightNodes = new Set();
-				visited.forEach(k => {
-					const attached = graph.nodeAttachments.get(k);
-					if (attached) attached.forEach(ent => highlightNodes.add(ent));
-				});
+				const highlightEdges = new Set();
+				let lastError = null;
 
-				usedEdges.delete(null);
-				usedEdges.delete(undefined);
+				// Always include the explicitly selected seccionadores
+				selectedEntities.forEach(ent => highlightNodes.add(ent));
 
-				segmentHighlight = { nodes: highlightNodes, edges: usedEdges };
-				updateSegmentStatus(`Tramo A-B listo (${highlightNodes.size} elementos visibles).`);
+				for (let i = 1; i < selectedEntities.length; i++) {
+					const dest = selectedEntities[i];
+					const destKey = graph.entityNodeMap.get(dest);
+					if (!destKey) {
+						lastError = 'No se pudo localizar uno de los seccionadores.';
+						continue;
+					}
+					const path = shortestPath(graph.adjacency, anchorKey, destKey);
+					if (!path) {
+						lastError = 'Los seccionadores seleccionados no están conectados.';
+						continue;
+					}
+
+					path.nodesPath.forEach(nodeKey => {
+						const attached = graph.nodeAttachments.get(nodeKey);
+						if (attached) attached.forEach(ent => highlightNodes.add(ent));
+					});
+					path.edgesPath.forEach(edge => {
+						if (edge) highlightEdges.add(edge);
+					});
+				}
+
+				segmentHighlight = { nodes: highlightNodes, edges: highlightEdges };
+
+				const visibleCount = highlightNodes.size + highlightEdges.size;
+				if (lastError) {
+					updateSegmentStatus(lastError);
+				} else {
+					updateSegmentStatus(`Tramo A-B listo (${visibleCount} elementos visibles).`);
+				}
 				draw();
 			}
 
 			function handleSegmentSelection(target) {
 				if (!segmentModeActive) return false;
 				if (!isSeccionadorEntity(target)) {
-					updateSegmentStatus('Selecciona un seccionador (A o B).');
-					return false;
+					updateSegmentStatus('Selecciona un seccionador (A, B, ...).');
+					return true;
 				}
 
-				if (segmentSelection.length >= 2) {
-					segmentSelection = [];
+				const alreadySelected = segmentSelection.some(ent => ent === target);
+				if (!alreadySelected) {
+					segmentSelection.push(target);
 				}
-
-				segmentSelection.push(target);
 
 				if (segmentSelection.length === 1) {
-					updateSegmentStatus(`Seccionador A: ${getEntityLabel(target)}. Selecciona B.`);
+					updateSegmentStatus(`Seccionador A: ${getEntityLabel(target)}. Selecciona B (y más si quieres).`);
 					segmentHighlight = null;
 					draw();
 					return true;
 				}
 
-				if (segmentSelection.length === 2) {
-					updateSegmentStatus(`Calculando tramo entre ${getEntityLabel(segmentSelection[0])} y ${getEntityLabel(segmentSelection[1])}...`);
-					computeSegmentHighlight(segmentSelection[0], segmentSelection[1]);
-					return true;
-				}
-
-				return false;
+				updateSegmentStatus(`Calculando tramo desde ${getEntityLabel(segmentSelection[0])}...`);
+				computeSegmentHighlight(segmentSelection);
+				return true;
 			}
 
 		function populateSearchSuggestions() {
