@@ -693,6 +693,9 @@
 								<input type="text" id="search-input" list="search-suggestions" placeholder="Buscar elemento..." class="bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none ml-2 text-sm w-48">
 								<datalist id="search-suggestions"></datalist>
 							</div>
+							<button id="select-subgraph-btn" title="Seleccionar subgrafo entre seccionadores abiertos" class="px-3 py-1 text-sm rounded bg-green-100 text-green-700 hover:bg-green-200 transition-colors font-semibold">
+								Subgrafo A-B
+							</button>
 
 							<div class="relative inline-block text-left ml-2">
 								<div>
@@ -853,6 +856,7 @@
 		const seccionadorPickerModal = document.getElementById('seccionador-symbol-picker-modal');
 		const closeSeccionadorPickerBtn = document.getElementById('close-seccionador-picker-btn');
 		const seccionadorSymbolGrid = document.getElementById('seccionador-symbol-grid');
+		const selectSubgraphBtn = document.getElementById('select-subgraph-btn');
 		const helpBtn = document.getElementById('help-btn');
 		const helpModal = document.getElementById('help-modal');
 		const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
@@ -870,6 +874,7 @@
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
 			const GRAPH_KEY_PRECISION = 3;
 			const SYMBOL_GRAPH_ATTACH_DISTANCE = 2;
+			let openSeccionadorSequence = 0;
 
 	        // --- STATE VARIABLES ---
 	        let linesAndPolylines = [];
@@ -1123,6 +1128,12 @@
 			return nodes.get(key);
 		}
 
+		function ensureEntityUid(entity) {
+			if (!entity) return null;
+			if (!entity.__uid) entity.__uid = crypto.randomUUID();
+			return entity.__uid;
+		}
+
 		function addGraphEdge(nodes, adjacency, edges, p1, p2, source) {
 			if (!p1 || !p2) return;
 			const keyA = getGraphKey(p1);
@@ -1145,6 +1156,27 @@
 			if (symbol.position) return symbol.position;
 			if (symbol.start) return symbol.start;
 			return null;
+		}
+
+		function getOpenSeccionadoresSorted() {
+			const candidates = [...symbols, ...userDrawings].filter(ent => ent.symbolType === 'seccionador');
+			const openList = [];
+			candidates.forEach((ent, idx) => {
+				ensureEntityUid(ent);
+				if (ent.isOpen) {
+					if (!ent.__openSeq) {
+						openSeccionadorSequence += 1;
+						ent.__openSeq = openSeccionadorSequence;
+					}
+					openList.push({ ent, idx });
+				}
+			});
+			openList.sort((a, b) => {
+				const seqDiff = (b.ent.__openSeq || 0) - (a.ent.__openSeq || 0);
+				if (seqDiff !== 0) return seqDiff;
+				return a.idx - b.idx;
+			});
+			return openList.map(item => item.ent);
 		}
 
 		function collectGraphSegments() {
@@ -1227,16 +1259,22 @@
 			return visited;
 		}
 
-		function updateOpenSeccionadorSubgraphSelection() {
-			const openSeccionadores = [...symbols, ...userDrawings].filter(ent => ent.symbolType === 'seccionador' && ent.isOpen);
+		function updateOpenSeccionadorSubgraphSelection(options = {}) {
+			const { showWarnings = false } = options;
+			const openSeccionadores = getOpenSeccionadoresSorted();
 			if (openSeccionadores.length < 2) {
+				if (showWarnings) {
+					alert('Se necesitan al menos dos seccionadores abiertos para calcular el subgrafo A-B.');
+				}
 				multiSelection = [];
 				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
 				return;
 			}
 
 			const { nodes, adjacency, edges } = buildDiagramGraph();
-			const seccionadorKeys = openSeccionadores.map(ent => {
+			const pair = openSeccionadores.slice(0, 2);
+
+			const seccionadorKeys = pair.map(ent => {
 				const pos = getSymbolPosition(ent);
 				if (!pos) return null;
 				const key = getGraphKey(pos);
@@ -1245,18 +1283,23 @@
 			}).filter(Boolean);
 
 			if (seccionadorKeys.length < 2) {
+				if (showWarnings) {
+					alert('No se pudo localizar la posición de ambos seccionadores abiertos.');
+				}
 				multiSelection = [];
 				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
 				return;
 			}
 
-			const startKey = seccionadorKeys[0];
-			const targetKey = seccionadorKeys[1];
+			const [startKey, targetKey] = seccionadorKeys;
 			const reachableFromStart = bfsGraph(adjacency, startKey);
 			const reachableFromTarget = bfsGraph(adjacency, targetKey);
 
 			const intersection = new Set([...reachableFromStart].filter(k => reachableFromTarget.has(k)));
 			if (intersection.size === 0) {
+				if (showWarnings) {
+					alert('No se encontró conexión entre los dos seccionadores abiertos.');
+				}
 				multiSelection = [];
 				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
 				return;
@@ -3721,6 +3764,10 @@
 				seccionadorToggle.addEventListener('change', (e) => {
 					saveHistoryState();
 					drawing.isOpen = e.target.checked;
+					if (drawing.isOpen) {
+						openSeccionadorSequence += 1;
+						drawing.__openSeq = openSeccionadorSequence;
+					}
 					if (statusText) {
 						statusText.textContent = drawing.isOpen ? 'Abierto' : 'Cerrado';
 					}
@@ -3907,16 +3954,20 @@
 				if (entity.symbolType === 'seccionador') {
 					const toggle = document.getElementById('seccionador-toggle');
 					const statusText = document.getElementById('seccionador-status-text');
-					if (toggle && statusText) {
-						toggle.addEventListener('change', (e) => {
-							if (selectedEntity) {
-								saveHistoryState();
-								selectedEntity.isOpen = e.target.checked;
-								statusText.textContent = selectedEntity.isOpen ? 'Abierto' : 'Cerrado';
-								updateOpenSeccionadorSubgraphSelection();
-								draw();
-							}
-						});
+						if (toggle && statusText) {
+							toggle.addEventListener('change', (e) => {
+								if (selectedEntity) {
+									saveHistoryState();
+									selectedEntity.isOpen = e.target.checked;
+									if (selectedEntity.isOpen) {
+										openSeccionadorSequence += 1;
+										selectedEntity.__openSeq = openSeccionadorSequence;
+									}
+									statusText.textContent = selectedEntity.isOpen ? 'Abierto' : 'Cerrado';
+									updateOpenSeccionadorSubgraphSelection();
+									draw();
+								}
+							});
 					}
 				}
 
@@ -5331,13 +5382,14 @@
 					resetViewBtn.classList.add('hidden');
 				}
 				
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
+					document.getElementById('initial-message').classList.add('hidden');
+					dxfCanvas.classList.remove('hidden');
 
-                fitViewToExtents();
-                resizeCanvas();
-				saveHistoryState();
-            };
+	                fitViewToExtents();
+	                resizeCanvas();
+					updateOpenSeccionadorSubgraphSelection();
+					saveHistoryState();
+	            };
 			
 			const loadFileAction = () => {
                 reader.readAsText(file);
@@ -5586,13 +5638,14 @@
 					
 					document.getElementById('dxf-upload-label-span').textContent = 'Añadir DXF';
 
-					requestAnimationFrame(() => {
-						fitViewToExtents();
-						resizeCanvas();
-						updateHistoryButtons();
-						saveHistoryState();
-					});
-				};
+						requestAnimationFrame(() => {
+							fitViewToExtents();
+							resizeCanvas();
+							updateHistoryButtons();
+							updateOpenSeccionadorSubgraphSelection();
+							saveHistoryState();
+						});
+					};
 				reader.readAsText(file);
 				event.target.value = '';
 			};
@@ -6003,6 +6056,13 @@
 			seccionadorPickerModal.classList.remove('flex');
 		}
 	});
+
+	if (selectSubgraphBtn) {
+		selectSubgraphBtn.addEventListener('click', () => {
+			updateOpenSeccionadorSubgraphSelection({ showWarnings: true });
+			draw();
+		});
+	}
 
 	drawSeccionadorBtn.addEventListener('click', (e) => {
 		setActiveTool(e.currentTarget);
