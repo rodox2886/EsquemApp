@@ -1144,6 +1144,10 @@
 
 		function isHiddenByCt(entity) {
 			if (!entity || entity.symbolType === 'ct') return false;
+			// Solo ocultar si el elemento declara explícitamente la referencia al CT
+			const refRaw = entity.extendedAttributes && entity.extendedAttributes['1198'] ? String(entity.extendedAttributes['1198']) : '';
+			if (!refRaw) return false;
+
 			const cts = symbols.filter(s => s.symbolType === 'ct' && s.position);
 			if (cts.length === 0) return false;
 
@@ -1154,16 +1158,14 @@
 
 			const referencesCt = (ct) => {
 				if (!ct.label) return false;
-				const refRaw = entity.extendedAttributes && entity.extendedAttributes['1198'] ? String(entity.extendedAttributes['1198']) : '';
 				const refNum = (refRaw.match(/\d+/) || [null])[0];
 				const ctNum = (ct.label.match(/\d+/) || [ct.label])[0];
 				return refNum && ctNum && ctNum.endsWith(refNum);
 			};
 
 			for (const ct of cts) {
-				const sameGroup = entity.groupId && ct.groupId && entity.groupId === ct.groupId;
 				const refMatch = referencesCt(ct);
-				if (!sameGroup && !refMatch) continue;
+				if (!refMatch) continue;
 				// Model Y grows upward; items visually below the CT have lower Y (entityTopY <= ct.position.y)
 				if (entityTopY <= ct.position.y) return true;
 			}
@@ -2452,7 +2454,7 @@
         
         function computeExtents() {
             const visibleSymbols = symbols.filter(s => !isInternalCtComponent(s) && !isInternalCtDetail(s) && !isHiddenByCt(s));
-            const visibleLines = linesAndPolylines.filter(l => !isInternalCtDetail(l) && !isHiddenByCt(l));
+			const visibleLines = linesAndPolylines.filter(l => !isInternalCtDetail(l) && !isHiddenByCt(l));
             const allEntities = [...visibleLines, ...visibleSymbols, ...userDrawings];
             
             if (allEntities.length === 0) {
