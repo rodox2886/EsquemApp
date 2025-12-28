@@ -5052,10 +5052,10 @@
 					const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
 					const clickedItem = drawing || entity;
 
-					if (handleSegmentSelection(clickedItem)) {
+					const handledSegment = handleSegmentSelection(clickedItem);
+					if (handledSegment) {
 						deleteBtn.disabled = multiSelection.length === 0 && !selectedDrawingId && !selectedEntity;
-						return;
-					}
+					} else {
 					
 					if (isShiftPressed) {
 						if (clickedItem) {
@@ -5076,6 +5076,7 @@
 						}
 					}
 					deleteBtn.disabled = multiSelection.length === 0 && !selectedDrawingId && !selectedEntity;
+					} 
 				} 
 				else if (wasDragged && currentTool === 'marquee-select') {
 					const isIntersectingSelection = marqueeEnd.x < marqueeStart.x;
