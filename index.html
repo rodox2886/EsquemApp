@@ -648,9 +648,9 @@
 							<button id="redo-btn" title="Rehacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
 							</button>
-							<div class="relative inline-block text-left">
-								<button id="compress-menu-btn" title="Comprimir Diseño" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<div class="relative inline-block text-left">
+									<button id="compress-menu-btn" title="Comprimir Diseño" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+										<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 									  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
 									</svg>
 								</button>
@@ -873,14 +873,14 @@
 		let selectedDrawingId = null;
 		let activeResizeHandle = null;
 		let isDraggingDrawing = false;
-		let blockGeometries = {};
-		let selectedGroupId = null;
-		let isDraggingGroup = false;
-		let isManualModeEnabled = false;
-		let multiSelection = [];
-		let isDraggingMultiSelection = false;
-		let isShiftPressed = false;
-		let activeCtIconType = 'plain'; // Default CT symbol is now just a square
+        let blockGeometries = {};
+        let selectedGroupId = null;
+        let isDraggingGroup = false;
+        let isManualModeEnabled = false;
+        let multiSelection = [];
+        let isDraggingMultiSelection = false;
+        let isShiftPressed = false;
+        let activeCtIconType = 'plain'; // Default CT symbol is now just a square
         let snapLine = null; // To store the perpendicular connection line info
 		let activeMundoInternoIconType = 'half-f-circle';
 		let activeSeccionadorIconType = 'standard';
@@ -903,6 +903,18 @@
             dxfCtx.scale(dpr, dpr);
             draw();
         }
+
+		function isBBoxInsideRect(bbox, rect) {
+			if (!bbox) return false;
+			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
+			       bbox.y >= rect.minY && (bbox.y + bbox.height) <= rect.maxY;
+		}
+
+		function clipDiagramToExtents(clipRect) {
+			userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
+			symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
+			linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
+		}
 
         function findClosestPointOnSegment(p, a, b) {
             const atob = { x: b.x - a.x, y: b.y - a.y };
@@ -1059,9 +1071,9 @@
                     start: closestSnap.point,
                     end: snapEndPoint
                 };
-            } else {
-                snapLine = null;
-            }
+	            } else {
+	                snapLine = null;
+	            }
         }
 
 		function getDisplayLabel(entity) {
@@ -1097,24 +1109,24 @@
 		}
 
 		function panAndZoomToPoint(modelPoint) {
-			const targetScale = Math.max(view.scale, 10); // Aumentado de 4 a 10 para un zoom más cercano
-			view.scale = targetScale;
+            const targetScale = Math.max(view.scale, 10); // Aumentado de 4 a 10 para un zoom más cercano
+            view.scale = targetScale;
 
-			const canvasContainer = document.getElementById('visualization-container');
-			const centerX = canvasContainer.clientWidth / 2;
-			const centerY = canvasContainer.clientHeight / 2;
+            const canvasContainer = document.getElementById('visualization-container');
+            const centerX = canvasContainer.clientWidth / 2;
+            const centerY = canvasContainer.clientHeight / 2;
 
-			view.offsetX = centerX - (modelPoint.x - extents.minX) * view.scale;
-			view.offsetY = centerY - (extents.maxY - modelPoint.y) * view.scale;
+            view.offsetX = centerX - (modelPoint.x - extents.minX) * view.scale;
+            view.offsetY = centerY - (extents.maxY - modelPoint.y) * view.scale;
 
-			draw();
-		}
+            draw();
+        }
 
 
-		function updateHistoryButtons() {
-			undoBtn.disabled = undoStack.length <= 1;
-			redoBtn.disabled = redoStack.length === 0;
-		}
+        function updateHistoryButtons() {
+            undoBtn.disabled = undoStack.length <= 1;
+            redoBtn.disabled = redoStack.length === 0;
+        }
 		
 		function showInputPrompt(message, callback, defaultValue = '') {
 			const container = document.getElementById('message-box-container');
@@ -2250,14 +2262,14 @@
             }
         }
 
-        function draw() {
-			const rect = dxfCanvas.getBoundingClientRect();
-			dxfCtx.save(); // Save the clean, untransformed state
-			dxfCtx.fillStyle = '#f0f0f0';
-			dxfCtx.fillRect(0, 0, rect.width, rect.height);
-			
-			// --- Draw DXF content (potentially clipped) ---
-			dxfCtx.save(); // Save state before clipping for DXF content
+	        function draw() {
+				const rect = dxfCanvas.getBoundingClientRect();
+				dxfCtx.save(); // Save the clean, untransformed state
+				dxfCtx.fillStyle = '#f0f0f0';
+				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+
+				// --- Draw DXF content (potentially clipped) ---
+				dxfCtx.save(); // Save state before clipping for DXF content
 			if (originalExtents) {
 				const clipStart = modelToScreen(extents.minX, extents.maxY);
 				const clipEnd = modelToScreen(extents.maxX, extents.minY);
@@ -2712,25 +2724,25 @@
 				if(selected) drawSelectionHandles(selected);
 			}
 
-            // --- Draw Snap Line ---
-            if (snapLine) {
-                dxfCtx.save();
-                dxfCtx.strokeStyle = '#ef4444'; // Blue-500
-                dxfCtx.lineWidth = 1.5;
+	            // --- Draw Snap Line ---
+	            if (snapLine) {
+	                dxfCtx.save();
+	                dxfCtx.strokeStyle = '#ef4444'; // Blue-500
+	                dxfCtx.lineWidth = 1.5;
                 // dxfCtx.setLineDash([3, 3]); // Removed to make the line solid
                 const start = modelToScreen(snapLine.start.x, snapLine.start.y);
                 const end = modelToScreen(snapLine.end.x, snapLine.end.y);
-                dxfCtx.beginPath();
-                dxfCtx.moveTo(start.x, start.y);
-                dxfCtx.lineTo(end.x, end.y);
-                dxfCtx.stroke();
-                dxfCtx.restore();
-            }
+	                dxfCtx.beginPath();
+	                dxfCtx.moveTo(start.x, start.y);
+	                dxfCtx.lineTo(end.x, end.y);
+	                dxfCtx.stroke();
+	                dxfCtx.restore();
+		            }
 
-			// --- Draw UI elements like marquee on top of everything ---
-			if (marqueeStart && marqueeEnd && (currentTool === 'crop' || currentTool === 'marquee-select')) {
-				dxfCtx.save();
-				
+				// --- Draw UI elements like marquee on top of everything ---
+				if (marqueeStart && marqueeEnd && (currentTool === 'crop' || currentTool === 'marquee-select')) {
+					dxfCtx.save();
+					
 				if (currentTool === 'marquee-select' && marqueeEnd.x < marqueeStart.x) { // Right-to-left is INTERSECT
 					dxfCtx.strokeStyle = '#10b981'; // Green
 					dxfCtx.fillStyle = 'rgba(16, 185, 129, 0.1)';
@@ -4625,11 +4637,19 @@
 				}
 				else if (wasDragged && currentTool === 'crop') {
 					saveHistoryState();
-					if (!originalExtents) originalExtents = { ...extents };
 					const c1 = screenToModel(marqueeStart.x, marqueeStart.y), c2 = screenToModel(marqueeEnd.x, marqueeEnd.y);
 					const newExtents = { minX: Math.min(c1.x, c2.x), maxX: Math.max(c1.x, c2.x), minY: Math.min(c1.y, c2.y), maxY: Math.max(c1.y, c2.y) };
 					if (newExtents.maxX > newExtents.minX && newExtents.maxY > newExtents.minY) {
-						extents = newExtents; fitViewToExtents(); resetViewBtn.classList.remove('hidden');
+						extents = newExtents;
+						clipDiagramToExtents(newExtents);
+						computeExtents();
+						fitViewToExtents();
+						populateSearchSuggestions();
+						selectedEntity = null;
+						selectedDrawingId = null;
+						multiSelection = [];
+						resetViewBtn.classList.add('hidden');
+						originalExtents = null;
 					}
 					setActiveTool(null);
 				}
@@ -4809,16 +4829,16 @@
 			draw();
         });
 
-		manualModeToggle.addEventListener('change', (e) => {
-			isManualModeEnabled = e.target.checked;
-			updateManualModeTitle();
-		});
+			manualModeToggle.addEventListener('change', (e) => {
+				isManualModeEnabled = e.target.checked;
+				updateManualModeTitle();
+			});
 
-		resetViewBtn.addEventListener('click', () => {
-			if (originalExtents) {
-				saveHistoryState();
-				extents = { ...originalExtents };
-				originalExtents = null;
+			resetViewBtn.addEventListener('click', () => {
+				if (originalExtents) {
+					saveHistoryState();
+					extents = { ...originalExtents };
+					originalExtents = null;
 				fitViewToExtents();
 				resetViewBtn.classList.add('hidden');
 				draw();
@@ -5721,6 +5741,3 @@
     </script>
 </body>
 </html>
-
-
-
