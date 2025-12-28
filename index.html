@@ -133,6 +133,18 @@
 			cursor: pointer;
 			transition: background-color: 0.2s;
 		}
+		.message-box .preset-btn,
+		.message-box .adjust-btn {
+			color: #374151;
+			background-color: #f3f4f6;
+			border: 1px solid #e5e7eb;
+			font-weight: 600;
+			padding: 8px 12px;
+		}
+		.message-box .preset-btn:hover,
+		.message-box .adjust-btn:hover {
+			background-color: #e5e7eb;
+		}
 		 .message-box .btn-confirm { background-color: #2563eb; } /* Blue */
 		 .message-box .btn-confirm:hover { background-color: #1d4ed8; }
 		 .message-box .btn-danger { background-color: #ef4444; }
@@ -1244,29 +1256,29 @@
 
 				const presetsContainer = document.createElement('div');
 				presetsContainer.className = 'flex flex-wrap gap-2';
-				const presetValues = [50, 75, 90, 100, 110, 125, 150, 200];
-				presetValues.forEach(val => {
-					const btn = document.createElement('button');
-					btn.type = 'button';
-					btn.textContent = `${val}%`;
-					btn.className = 'px-3 py-1 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors';
-					btn.addEventListener('click', () => setValue(val));
-					presetsContainer.appendChild(btn);
-				});
+					const presetValues = [50, 75, 90, 100, 110, 125, 150, 200];
+					presetValues.forEach(val => {
+						const btn = document.createElement('button');
+						btn.type = 'button';
+						btn.textContent = `${val}%`;
+						btn.className = 'preset-btn text-sm rounded transition-colors';
+						btn.addEventListener('click', () => setValue(val));
+						presetsContainer.appendChild(btn);
+					});
 
-				const adjustContainer = document.createElement('div');
-				adjustContainer.className = 'flex gap-2';
-				const minusBtn = document.createElement('button');
-				minusBtn.type = 'button';
-				minusBtn.textContent = '-10%';
-				minusBtn.className = 'flex-1 px-3 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold';
-				minusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) - 10)));
+					const adjustContainer = document.createElement('div');
+					adjustContainer.className = 'flex gap-2';
+					const minusBtn = document.createElement('button');
+					minusBtn.type = 'button';
+					minusBtn.textContent = '-10%';
+					minusBtn.className = 'adjust-btn flex-1 rounded transition-colors';
+					minusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) - 10)));
 
-				const plusBtn = document.createElement('button');
-				plusBtn.type = 'button';
-				plusBtn.textContent = '+10%';
-				plusBtn.className = 'flex-1 px-3 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold';
-				plusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) + 10)));
+					const plusBtn = document.createElement('button');
+					plusBtn.type = 'button';
+					plusBtn.textContent = '+10%';
+					plusBtn.className = 'adjust-btn flex-1 rounded transition-colors';
+					plusBtn.addEventListener('click', () => setValue(clampValue(parseFloat(numberInput.value) + 10)));
 
 				adjustContainer.appendChild(minusBtn);
 				adjustContainer.appendChild(plusBtn);
