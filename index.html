@@ -952,6 +952,18 @@
 			return null;
 		}
 
+		function isBBoxInsideRect(bbox, rect) {
+			if (!bbox) return false;
+			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
+			       bbox.y >= rect.minY && (bbox.y + bbox.height) <= rect.maxY;
+		}
+
+		function clipDiagramToExtents(clipRect) {
+			userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
+			symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
+			linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
+		}
+
         function findClosestPointOnSegment(p, a, b) {
             const atob = { x: b.x - a.x, y: b.y - a.y };
             const atop = { x: p.x - a.x, y: p.y - a.y };
@@ -4836,11 +4848,19 @@
 				}
 				else if (wasDragged && currentTool === 'crop') {
 					saveHistoryState();
-					if (!originalExtents) originalExtents = { ...extents };
 					const c1 = screenToModel(marqueeStart.x, marqueeStart.y), c2 = screenToModel(marqueeEnd.x, marqueeEnd.y);
 					const newExtents = { minX: Math.min(c1.x, c2.x), maxX: Math.max(c1.x, c2.x), minY: Math.min(c1.y, c2.y), maxY: Math.max(c1.y, c2.y) };
 					if (newExtents.maxX > newExtents.minX && newExtents.maxY > newExtents.minY) {
-						extents = newExtents; fitViewToExtents(); resetViewBtn.classList.remove('hidden');
+						extents = newExtents;
+						clipDiagramToExtents(newExtents);
+						computeExtents();
+						fitViewToExtents();
+						populateSearchSuggestions();
+						selectedEntity = null;
+						selectedDrawingId = null;
+						multiSelection = [];
+						resetViewBtn.classList.add('hidden');
+						originalExtents = null;
 					}
 					setActiveTool(null);
 				}
