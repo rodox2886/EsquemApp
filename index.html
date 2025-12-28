@@ -898,6 +898,7 @@
 			let activeSeccionadorIconType = 'standard';
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
+			let substationOverlay = null;
 			let currentExportBlob = null;
 
 
@@ -2433,6 +2434,50 @@
             }
         }
 
+		function computeSubstationOverlay() {
+			substationOverlay = null;
+
+			const hasValidExtents = Number.isFinite(extents.minX) && Number.isFinite(extents.maxX) &&
+				Number.isFinite(extents.minY) && Number.isFinite(extents.maxY) &&
+				extents.maxX > extents.minX && extents.maxY > extents.minY;
+			if (!hasValidExtents) return;
+
+			const candidates = symbols.filter(s => (s.symbolType === 'ct' || s.symbolType === 'seccionador') && s.position);
+			if (candidates.length === 0) return;
+
+			let minX = Infinity, maxX = -Infinity, topY = -Infinity;
+			candidates.forEach(s => {
+				if (Number.isFinite(s.position.x) && Number.isFinite(s.position.y)) {
+					minX = Math.min(minX, s.position.x);
+					maxX = Math.max(maxX, s.position.x);
+					topY = Math.max(topY, s.position.y);
+				}
+			});
+
+			if (!Number.isFinite(minX) || !Number.isFinite(maxX) || !Number.isFinite(topY)) return;
+
+			const spanX = extents.maxX - extents.minX;
+			const spanY = extents.maxY - extents.minY;
+			const horizontalMargin = Math.max(spanX * 0.01, 1);
+			const baseHeight = Math.max(spanY * 0.035, 3);
+
+			const overlayMinX = Math.max(extents.minX, minX - horizontalMargin);
+			const overlayMaxX = Math.min(extents.maxX, maxX + horizontalMargin);
+			if (overlayMaxX - overlayMinX <= 0) return;
+
+			const topEdge = Math.min(extents.maxY, topY + baseHeight * 0.1);
+			const bottomEdge = Math.max(extents.minY, topEdge - baseHeight * 0.6);
+			const overlayHeight = topEdge - bottomEdge;
+			if (overlayHeight <= 0) return;
+
+			substationOverlay = {
+				x: overlayMinX,
+				y: topEdge,
+				width: overlayMaxX - overlayMinX,
+				height: overlayHeight
+			};
+		}
+
 	        function draw() {
 				const rect = dxfCanvas.getBoundingClientRect();
 				dxfCtx.save(); // Save the clean, untransformed state
@@ -2447,6 +2492,21 @@
 				dxfCtx.beginPath();
 				dxfCtx.rect(clipStart.x, clipStart.y, clipEnd.x - clipStart.x, clipEnd.y - clipStart.y);
 				dxfCtx.clip();
+			}
+
+			computeSubstationOverlay();
+			if (substationOverlay) {
+				const overlayStart = modelToScreen(substationOverlay.x, substationOverlay.y);
+				const overlayEnd = modelToScreen(substationOverlay.x + substationOverlay.width, substationOverlay.y - substationOverlay.height);
+				dxfCtx.save();
+				dxfCtx.fillStyle = 'rgba(107, 114, 128, 0.55)'; // Gray with transparency
+				dxfCtx.strokeStyle = 'rgba(107, 114, 128, 0.8)';
+				dxfCtx.lineWidth = 1;
+				dxfCtx.beginPath();
+				dxfCtx.rect(overlayStart.x, overlayStart.y, overlayEnd.x - overlayStart.x, overlayEnd.y - overlayStart.y);
+				dxfCtx.fill();
+				dxfCtx.stroke();
+				dxfCtx.restore();
 			}
 
 			dxfCtx.lineWidth = 1.5;
