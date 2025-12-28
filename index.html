@@ -979,7 +979,7 @@
 				if (segments.length === 0) return;
 
 				const horizontalTolerance = 0.12; // ~7 degrees
-				const minLength = Math.max(widthSpan * 0.3, 5);
+				const minLength = Math.max(widthSpan * 0.1, 2); // require some span but allow shorter buses
 				let best = null;
 
 				segments.forEach(seg => {
@@ -990,17 +990,19 @@
 					const angle = Math.abs(Math.atan2(dy, dx));
 					if (angle > horizontalTolerance) return;
 					const midY = (seg.start.y + seg.end.y) / 2;
-					if (!best || length > best.length) {
-						best = { length, midY };
+					const xMin = Math.min(seg.start.x, seg.end.x);
+					const xMax = Math.max(seg.start.x, seg.end.x);
+					if (!best || length > best.length || (Math.abs(midY - extents.maxY) < Math.abs((best.yTop ?? best.midY) - extents.maxY) && length > minLength)) {
+						best = { length, midY, xMin, xMax };
 					}
 				});
 
 				if (!best) return;
 
-				const margin = widthSpan * 0.02;
-				const overlayWidth = widthSpan + margin * 2;
-				const overlayHeight = Math.max(Math.min(heightSpan * 0.12, 25), 6);
-				const overlayX = extents.minX - margin;
+				const margin = Math.max(widthSpan * 0.01, 1);
+				const overlayWidth = (best.xMax - best.xMin) + margin * 2;
+				const overlayHeight = Math.max(Math.min(heightSpan * 0.12, 25), 8);
+				const overlayX = best.xMin - margin;
 				const overlayTopY = best.midY + overlayHeight * 0.5;
 
 				substationOverlay = {
