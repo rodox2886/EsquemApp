@@ -648,14 +648,9 @@
 							<button id="redo-btn" title="Rehacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
 							</button>
-							<button id="toggle-guides-btn" title="Mostrar/Ocultar guías de alineación" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16M12 5v14"/>
-								</svg>
-							</button>
-							<div class="relative inline-block text-left">
-								<button id="compress-menu-btn" title="Comprimir Diseño" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<div class="relative inline-block text-left">
+									<button id="compress-menu-btn" title="Comprimir Diseño" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+										<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 									  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
 									</svg>
 								</button>
@@ -931,27 +926,6 @@
             draw();
         }
 
-		function moveItemBy(item, dx, dy) {
-			if (!item) return;
-			if (item.start) { item.start.x += dx; item.start.y += dy; }
-			if (item.end) { item.end.x += dx; item.end.y += dy; }
-			if (item.vertices) {
-				item.vertices.forEach(v => { if (v) { v.x += dx; v.y += dy; } });
-			}
-			if (item.position) { item.position.x += dx; item.position.y += dy; }
-		}
-
-		function getItemCenter(item) {
-			if (!item) return null;
-			const bbox = getEntityBBox(item, true);
-			if (bbox) {
-				return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
-			}
-			if (item.start) return { ...item.start };
-			if (item.position) return { ...item.position };
-			return null;
-		}
-
 		function isBBoxInsideRect(bbox, rect) {
 			if (!bbox) return false;
 			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
@@ -1122,13 +1096,9 @@
                     start: closestSnap.point,
                     end: snapEndPoint
                 };
-            } else {
-                snapLine = null;
-            }
-
-			// Alignment & grid guides (non-blocking with existing snap line)
-			const movedItems = (multiSelection.length > 0) ? multiSelection : (draggedItem.id ? [draggedItem] : []);
-			applySmartGuides(draggedItemCenter, movedItems, draggedItem);
+	            } else {
+	                snapLine = null;
+	            }
         }
 
 		function getDisplayLabel(entity) {
@@ -1177,38 +1147,6 @@
             draw();
         }
 
-		function applySmartGuides(draggedCenter, movedItems, draggedItem) {
-			if ((!isAlignmentGuidesEnabled && !isGridSnapEnabled) || !draggedCenter) {
-				alignmentGuides = [];
-				gridGuide = null;
-				return;
-			}
-
-			let verticalGuide = null;
-			let horizontalGuide = null;
-
-			const candidates = [...userDrawings, ...symbols, ...linesAndPolylines].filter(item => {
-				if (!item) return false;
-				if (draggedItem && item === draggedItem) return false;
-				if (draggedItem && draggedItem.associatedSeccionadorId && item.id === draggedItem.associatedSeccionadorId) return false;
-				if (draggedItem && draggedItem.associatedCtId && item.id === draggedItem.associatedCtId) return false;
-				return true;
-			});
-
-			if (isAlignmentGuidesEnabled) {
-				candidates.forEach(item => {
-					const bbox = getEntityBBox(item, true);
-					if (!bbox) return;
-					const xValues = [bbox.x, bbox.x + bbox.width / 2, bbox.x + bbox.width];
-					const yValues = [bbox.y, bbox.y + bbox.height / 2, bbox.y + bbox.height];
-
-					xValues.forEach(xv => {
-						const dx = xv - draggedCenter.x;
-						if (Math.abs(dx) <= ALIGNMENT_SNAP_THRESHOLD && (verticalGuide === null || Math.abs(dx) < Math.abs(verticalGuide.offset))) {
-							verticalGuide = { x: xv, offset: dx };
-						}
-					});
-
 					yValues.forEach(yv => {
 						const dy = yv - draggedCenter.y;
 						if (Math.abs(dy) <= ALIGNMENT_SNAP_THRESHOLD && (horizontalGuide === null || Math.abs(dy) < Math.abs(horizontalGuide.offset))) {
@@ -1217,48 +1155,6 @@
 					});
 				});
 			}
-
-			let gridOffset = { x: 0, y: 0 };
-			if (isGridSnapEnabled) {
-				const snapX = Math.round(draggedCenter.x / gridSize) * gridSize;
-				const snapY = Math.round(draggedCenter.y / gridSize) * gridSize;
-				const dx = snapX - draggedCenter.x;
-				const dy = snapY - draggedCenter.y;
-				if (Math.hypot(dx, dy) <= GRID_SNAP_THRESHOLD) {
-					gridOffset = { x: dx, y: dy };
-					gridGuide = { x: snapX, y: snapY };
-				} else {
-					gridGuide = null;
-				}
-			}
-
-			let finalDx = gridOffset.x;
-			let finalDy = gridOffset.y;
-			alignmentGuides = [];
-
-			if (verticalGuide) {
-				finalDx = verticalGuide.offset;
-				alignmentGuides.push({ type: 'vertical', x: verticalGuide.x });
-			}
-			if (horizontalGuide) {
-				finalDy = horizontalGuide.offset;
-				alignmentGuides.push({ type: 'horizontal', y: horizontalGuide.y });
-			}
-
-			if (finalDx !== 0 || finalDy !== 0) {
-				let targets = movedItems && movedItems.length > 0 ? [...movedItems] : (draggedItem ? [draggedItem] : []);
-				if (draggedItem && draggedItem.associatedSeccionadorId) {
-					const assoc = userDrawings.find(d => d.id === draggedItem.associatedSeccionadorId);
-					if (assoc) targets.push(assoc);
-				}
-				if (draggedItem && draggedItem.associatedCtId) {
-					const assoc = userDrawings.find(d => d.id === draggedItem.associatedCtId);
-					if (assoc) targets.push(assoc);
-				}
-				targets.forEach(item => moveItemBy(item, finalDx, finalDy));
-			}
-		}
-
 
         function updateHistoryButtons() {
             undoBtn.disabled = undoStack.length <= 1;
@@ -2405,39 +2301,6 @@
 				dxfCtx.fillStyle = '#f0f0f0';
 				dxfCtx.fillRect(0, 0, rect.width, rect.height);
 
-				// --- Grid Overlay ---
-				if (isGridSnapEnabled) {
-					const modelStart = screenToModel(0, rect.height);
-					const modelEnd = screenToModel(rect.width, 0);
-					const startX = Math.floor(modelStart.x / gridSize) * gridSize;
-					const endX = Math.ceil(modelEnd.x / gridSize) * gridSize;
-					const startY = Math.floor(modelStart.y / gridSize) * gridSize;
-					const endY = Math.ceil(modelEnd.y / gridSize) * gridSize;
-
-					dxfCtx.save();
-					dxfCtx.strokeStyle = 'rgba(37, 99, 235, 0.08)';
-					dxfCtx.lineWidth = 1;
-
-					for (let gx = startX; gx <= endX; gx += gridSize) {
-						const p1 = modelToScreen(gx, modelStart.y);
-						const p2 = modelToScreen(gx, modelEnd.y);
-						dxfCtx.beginPath();
-						dxfCtx.moveTo(p1.x, p1.y);
-						dxfCtx.lineTo(p2.x, p2.y);
-						dxfCtx.stroke();
-					}
-
-					for (let gy = startY; gy <= endY; gy += gridSize) {
-						const p1 = modelToScreen(modelStart.x, gy);
-						const p2 = modelToScreen(modelEnd.x, gy);
-						dxfCtx.beginPath();
-						dxfCtx.moveTo(p1.x, p1.y);
-						dxfCtx.lineTo(p2.x, p2.y);
-						dxfCtx.stroke();
-					}
-					dxfCtx.restore();
-				}
-				
 				// --- Draw DXF content (potentially clipped) ---
 				dxfCtx.save(); // Save state before clipping for DXF content
 			if (originalExtents) {
@@ -2907,49 +2770,8 @@
 	                dxfCtx.lineTo(end.x, end.y);
 	                dxfCtx.stroke();
 	                dxfCtx.restore();
-	            }
+		            }
 
-				// --- Draw Alignment/Grid Guides ---
-				if (alignmentGuides.length > 0) {
-					dxfCtx.save();
-					dxfCtx.strokeStyle = '#10b981';
-					dxfCtx.lineWidth = 1.25;
-					dxfCtx.setLineDash([6, 4]);
-					alignmentGuides.forEach(g => {
-						if (g.type === 'vertical') {
-							const start = modelToScreen(g.x, extents.maxY);
-							const end = modelToScreen(g.x, extents.minY);
-							dxfCtx.beginPath();
-							dxfCtx.moveTo(start.x, start.y);
-							dxfCtx.lineTo(end.x, end.y);
-							dxfCtx.stroke();
-						} else if (g.type === 'horizontal') {
-							const start = modelToScreen(extents.minX, g.y);
-							const end = modelToScreen(extents.maxX, g.y);
-							dxfCtx.beginPath();
-							dxfCtx.moveTo(start.x, start.y);
-							dxfCtx.lineTo(end.x, end.y);
-							dxfCtx.stroke();
-						}
-					});
-					dxfCtx.restore();
-				}
-
-				if (gridGuide) {
-					dxfCtx.save();
-					dxfCtx.strokeStyle = '#22c55e';
-					dxfCtx.lineWidth = 1.5;
-					const center = modelToScreen(gridGuide.x, gridGuide.y);
-					const size = 8;
-					dxfCtx.beginPath();
-					dxfCtx.moveTo(center.x - size, center.y);
-					dxfCtx.lineTo(center.x + size, center.y);
-					dxfCtx.moveTo(center.x, center.y - size);
-					dxfCtx.lineTo(center.x, center.y + size);
-					dxfCtx.stroke();
-					dxfCtx.restore();
-				}
-	
 				// --- Draw UI elements like marquee on top of everything ---
 				if (marqueeStart && marqueeEnd && (currentTool === 'crop' || currentTool === 'marquee-select')) {
 					dxfCtx.save();
@@ -5044,43 +4866,6 @@
 				isManualModeEnabled = e.target.checked;
 				updateManualModeTitle();
 			});
-
-			function updateGuidesUI() {
-				if (toggleGuidesBtn) {
-					toggleGuidesBtn.classList.toggle('bg-emerald-100', isAlignmentGuidesEnabled);
-					toggleGuidesBtn.classList.toggle('text-emerald-700', isAlignmentGuidesEnabled);
-				}
-				if (gridSnapToggle) gridSnapToggle.checked = isGridSnapEnabled;
-				if (gridSizeSelect) gridSizeSelect.value = `${gridSize}`;
-			}
-
-			if (toggleGuidesBtn) {
-				toggleGuidesBtn.addEventListener('click', () => {
-					isAlignmentGuidesEnabled = !isAlignmentGuidesEnabled;
-					updateGuidesUI();
-					draw();
-				});
-			}
-
-			if (gridSnapToggle) {
-				gridSnapToggle.addEventListener('change', (e) => {
-					isGridSnapEnabled = e.target.checked;
-					updateGuidesUI();
-					draw();
-				});
-			}
-
-			if (gridSizeSelect) {
-				gridSizeSelect.addEventListener('change', (e) => {
-					const val = parseFloat(e.target.value);
-					if (!isNaN(val) && val > 0) {
-						gridSize = val;
-					}
-					updateGuidesUI();
-					draw();
-				});
-			}
-			updateGuidesUI();
 
 			resetViewBtn.addEventListener('click', () => {
 				if (originalExtents) {
