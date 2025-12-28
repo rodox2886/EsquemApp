@@ -860,7 +860,7 @@
 	        // --- CONSTANTS ---
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
-        const CT_COVER_FACTOR = 1.1;
+	        const CT_COVER_FACTOR = 1.1;
         const LINE_COLOR = '#1f2937';
         const SYMBOL_STROKE_COLOR = '#1f2937';
 	        const CT_FILL_COLOR = '#d4d4d8';
@@ -868,6 +868,8 @@
 			const DEFAULT_DRAW_COLOR = '#ef4444';
 			const HANDLE_HIT_RADIUS = 5; // Aumentar el área de detección de clics para los puntos de redimensión
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
+			const GRAPH_KEY_PRECISION = 3;
+			const SYMBOL_GRAPH_ATTACH_DISTANCE = 2;
 
 	        // --- STATE VARIABLES ---
 	        let linesAndPolylines = [];
@@ -1109,6 +1111,177 @@
             }
 
 	        }
+
+		function getGraphKey(point) {
+			return `${point.x.toFixed(GRAPH_KEY_PRECISION)},${point.y.toFixed(GRAPH_KEY_PRECISION)}`;
+		}
+
+		function ensureGraphNode(nodes, key, point) {
+			if (!nodes.has(key)) {
+				nodes.set(key, { point: { ...point }, items: new Set() });
+			}
+			return nodes.get(key);
+		}
+
+		function addGraphEdge(nodes, adjacency, edges, p1, p2, source) {
+			if (!p1 || !p2) return;
+			const keyA = getGraphKey(p1);
+			const keyB = getGraphKey(p2);
+			if (keyA === keyB) return;
+
+			ensureGraphNode(nodes, keyA, p1);
+			ensureGraphNode(nodes, keyB, p2);
+
+			if (!adjacency.has(keyA)) adjacency.set(keyA, []);
+			if (!adjacency.has(keyB)) adjacency.set(keyB, []);
+			adjacency.get(keyA).push(keyB);
+			adjacency.get(keyB).push(keyA);
+
+			edges.push({ keyA, keyB, source });
+		}
+
+		function getSymbolPosition(symbol) {
+			if (!symbol) return null;
+			if (symbol.position) return symbol.position;
+			if (symbol.start) return symbol.start;
+			return null;
+		}
+
+		function collectGraphSegments() {
+			const segments = [];
+
+			linesAndPolylines.forEach(ent => {
+				if (ent.type === 'LINE' && ent.start && ent.end) {
+					segments.push({ start: ent.start, end: ent.end, source: ent });
+				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
+					for (let i = 0; i < ent.vertices.length - 1; i++) {
+						const v1 = ent.vertices[i];
+						const v2 = ent.vertices[i + 1];
+						if (v1 && v2) segments.push({ start: v1, end: v2, source: ent });
+					}
+					if (ent.closed && ent.vertices[0] && ent.vertices[ent.vertices.length - 1]) {
+						segments.push({ start: ent.vertices[ent.vertices.length - 1], end: ent.vertices[0], source: ent });
+					}
+				}
+			});
+
+			userDrawings.forEach(d => {
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					segments.push({ start: d.start, end: d.end, source: d });
+				}
+			});
+
+			return segments;
+		}
+
+		function buildDiagramGraph() {
+			const nodes = new Map();
+			const adjacency = new Map();
+			const edges = [];
+			const segments = collectGraphSegments();
+
+			segments.forEach(seg => addGraphEdge(nodes, adjacency, edges, seg.start, seg.end, seg.source));
+
+			const symbolCandidates = [...symbols, ...userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador')];
+			symbolCandidates.forEach(sym => {
+				const pos = getSymbolPosition(sym);
+				if (!pos) return;
+				const key = getGraphKey(pos);
+				const node = ensureGraphNode(nodes, key, pos);
+				node.items.add(sym);
+			});
+
+			symbolCandidates.forEach(sym => {
+				const pos = getSymbolPosition(sym);
+				if (!pos) return;
+
+				let nearest = null;
+				segments.forEach(seg => {
+					const { distance } = findClosestPointOnSegment(pos, seg.start, seg.end);
+					if (nearest === null || distance < nearest.distance) {
+						nearest = { distance, seg };
+					}
+				});
+
+				if (nearest && nearest.distance <= SYMBOL_GRAPH_ATTACH_DISTANCE) {
+					addGraphEdge(nodes, adjacency, edges, pos, nearest.seg.start, null);
+					addGraphEdge(nodes, adjacency, edges, pos, nearest.seg.end, null);
+				}
+			});
+
+			return { nodes, adjacency, edges };
+		}
+
+		function bfsGraph(adjacency, startKey) {
+			const visited = new Set();
+			const queue = [startKey];
+			while (queue.length > 0) {
+				const current = queue.shift();
+				if (visited.has(current)) continue;
+				visited.add(current);
+				const neighbors = adjacency.get(current) || [];
+				neighbors.forEach(n => {
+					if (!visited.has(n)) queue.push(n);
+				});
+			}
+			return visited;
+		}
+
+		function updateOpenSeccionadorSubgraphSelection() {
+			const openSeccionadores = [...symbols, ...userDrawings].filter(ent => ent.symbolType === 'seccionador' && ent.isOpen);
+			if (openSeccionadores.length < 2) {
+				multiSelection = [];
+				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
+				return;
+			}
+
+			const { nodes, adjacency, edges } = buildDiagramGraph();
+			const seccionadorKeys = openSeccionadores.map(ent => {
+				const pos = getSymbolPosition(ent);
+				if (!pos) return null;
+				const key = getGraphKey(pos);
+				ensureGraphNode(nodes, key, pos);
+				return key;
+			}).filter(Boolean);
+
+			if (seccionadorKeys.length < 2) {
+				multiSelection = [];
+				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
+				return;
+			}
+
+			const startKey = seccionadorKeys[0];
+			const targetKey = seccionadorKeys[1];
+			const reachableFromStart = bfsGraph(adjacency, startKey);
+			const reachableFromTarget = bfsGraph(adjacency, targetKey);
+
+			const intersection = new Set([...reachableFromStart].filter(k => reachableFromTarget.has(k)));
+			if (intersection.size === 0) {
+				multiSelection = [];
+				deleteBtn.disabled = !selectedDrawingId && !selectedEntity;
+				return;
+			}
+
+			const selectionSet = new Set();
+			intersection.forEach(key => {
+				const node = nodes.get(key);
+				if (node && node.items) {
+					node.items.forEach(item => selectionSet.add(item));
+				}
+			});
+
+			edges.forEach(edge => {
+				if (intersection.has(edge.keyA) && intersection.has(edge.keyB) && edge.source) {
+					selectionSet.add(edge.source);
+				}
+			});
+
+			multiSelection = Array.from(selectionSet);
+			selectedDrawingId = null;
+			selectedEntity = null;
+			selectedGroupId = null;
+			deleteBtn.disabled = multiSelection.length === 0;
+		}
 
 		function getDisplayLabel(entity) {
 			if (!entity || !entity.label) return '';
@@ -3551,6 +3724,7 @@
 					if (statusText) {
 						statusText.textContent = drawing.isOpen ? 'Abierto' : 'Cerrado';
 					}
+					updateOpenSeccionadorSubgraphSelection();
 					draw();
 				});
 			}
@@ -3739,6 +3913,7 @@
 								saveHistoryState();
 								selectedEntity.isOpen = e.target.checked;
 								statusText.textContent = selectedEntity.isOpen ? 'Abierto' : 'Cerrado';
+								updateOpenSeccionadorSubgraphSelection();
 								draw();
 							}
 						});
