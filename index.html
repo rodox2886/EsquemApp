@@ -796,6 +796,7 @@
 				<span id="seccionador-filter-active-badge" class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 hidden">Filtro activo</span>
 			</div>
 			<p class="text-sm text-gray-600">Selecciona uno o varios seccionadores para aislar la red conectada a ellos y editarla como siempre.</p>
+			<p id="seccionador-filter-locked-message" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-2 hidden">Esta vista solo está disponible mientras la red cargada permanezca sin modificaciones.</p>
 			<div id="seccionador-filter-list" class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto divide-y divide-gray-100 bg-gray-50"></div>
 			<p id="seccionador-filter-empty" class="text-sm text-gray-500 italic hidden">No hay seccionadores disponibles en el croquis.</p>
 			<div class="flex items-center justify-between text-xs text-gray-500">
@@ -885,6 +886,7 @@
 		const clearSeccionadorFilterBtn = document.getElementById('clear-seccionador-filter-btn');
 		const seccionadorFilterActiveBadge = document.getElementById('seccionador-filter-active-badge');
 		const toggleSeccionadorFilterVisibility = document.getElementById('toggle-seccionador-filter-visibility');
+		const seccionadorFilterLockedMessage = document.getElementById('seccionador-filter-locked-message');
 
 	        // --- CONSTANTS ---
         const SYMBOL_SIZE = 2.0;
@@ -929,11 +931,12 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			let isSeccionadorFilterCollapsed = false;
+				let isSeccionadorFilterCollapsed = false;
 			const seccionadorFilterState = {
 				selectedIds: new Set(),
 				visibleEntities: new Set(),
-				active: false
+				active: false,
+				locked: false
 			};
 
 
@@ -1353,17 +1356,35 @@
 				const count = seccionadorFilterState.selectedIds.size;
 				seccionadorFilterCounter.textContent = `${count} seleccionado${count === 1 ? '' : 's'}`;
 			}
-			if (applySeccionadorFilterBtn) applySeccionadorFilterBtn.disabled = seccionadorFilterState.selectedIds.size === 0;
+			if (applySeccionadorFilterBtn) {
+				applySeccionadorFilterBtn.disabled = seccionadorFilterState.selectedIds.size === 0 || seccionadorFilterState.locked;
+				applySeccionadorFilterBtn.title = seccionadorFilterState.locked ? 'No disponible: la red fue modificada' : '';
+			}
 			if (clearSeccionadorFilterBtn) clearSeccionadorFilterBtn.disabled = !seccionadorFilterState.active && seccionadorFilterState.selectedIds.size === 0;
 			if (seccionadorFilterActiveBadge) {
 				if (seccionadorFilterState.active) seccionadorFilterActiveBadge.classList.remove('hidden');
 				else seccionadorFilterActiveBadge.classList.add('hidden');
+			}
+			if (seccionadorFilterLockedMessage) {
+				seccionadorFilterLockedMessage.classList.toggle('hidden', !seccionadorFilterState.locked);
 			}
 		}
 
 		function updateSeccionadorFilterVisibilityToggle() {
 			if (!toggleSeccionadorFilterVisibility) return;
 			toggleSeccionadorFilterVisibility.textContent = isSeccionadorFilterCollapsed ? 'Mostrar opciones' : 'Ocultar opciones';
+		}
+
+		function resetSeccionadorFilterLock() {
+			seccionadorFilterState.locked = false;
+			updateSeccionadorFilterControlsState();
+		}
+
+		function markSeccionadorFilterLocked() {
+			if (seccionadorFilterState.locked) return;
+			seccionadorFilterState.locked = true;
+			clearSeccionadorFilter(false, true);
+			updateSeccionadorFilterControlsState();
 		}
 
 		function refreshSeccionadorFilterOptions() {
@@ -1427,12 +1448,14 @@
 			updateSeccionadorFilterControlsState();
 		}
 
-		function applySeccionadorFilterFromSelection() {
-			const selectedEntries = collectSeccionadoresForFilter().filter(entry => seccionadorFilterState.selectedIds.has(entry.id));
-			if (selectedEntries.length === 0) {
-				clearSeccionadorFilter();
-				return;
-			}
+			function applySeccionadorFilterFromSelection() {
+				if (seccionadorFilterState.locked) return;
+
+				const selectedEntries = collectSeccionadoresForFilter().filter(entry => seccionadorFilterState.selectedIds.has(entry.id));
+				if (selectedEntries.length === 0) {
+					clearSeccionadorFilter();
+					return;
+				}
 
 			const visibleSet = computeConnectedEntitiesFromSeccionadores(selectedEntries.map(e => e.entity));
 			seccionadorFilterState.visibleEntities = visibleSet;
@@ -1469,6 +1492,10 @@
 
 		function reapplySeccionadorFilterAfterDataChange(shouldRedraw = true) {
 			refreshSeccionadorFilterOptions();
+			if (seccionadorFilterState.locked) {
+				updateSeccionadorFilterControlsState();
+				return;
+			}
 			if (!seccionadorFilterState.active || seccionadorFilterState.selectedIds.size === 0) {
 				clearSeccionadorFilter(true, !shouldRedraw);
 				return;
@@ -1977,7 +2004,7 @@
 			updateHistoryButtons();
 		}
 		
-		function saveHistoryState() {
+			function saveHistoryState(markAsModified = true) {
                         /*
                          * When storing state for undo/redo we need to create deep copies of the
                          * current data structures.  Using JSON.parse(JSON.stringify(...)) works
@@ -2007,6 +2034,9 @@
                         };
                         undoStack.push(state);
                         redoStack = []; // A new action clears the redo stack.
+						if (markAsModified) {
+							markSeccionadorFilterLocked();
+						}
                         updateHistoryButtons();
                 }
 
@@ -5520,12 +5550,13 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
-				clearSeccionadorFilter(false, true);
-				populateSearchSuggestions();
-				reapplySeccionadorFilterAfterDataChange(false);
-				
-				if (originalExtents) {
-					resetViewBtn.classList.remove('hidden');
+					clearSeccionadorFilter(false, true);
+					resetSeccionadorFilterLock();
+					populateSearchSuggestions();
+					reapplySeccionadorFilterAfterDataChange(false);
+					
+					if (originalExtents) {
+						resetViewBtn.classList.remove('hidden');
 				} else {
 					resetViewBtn.classList.add('hidden');
 				}
@@ -5533,10 +5564,10 @@
 				document.getElementById('initial-message').classList.add('hidden');
 				dxfCanvas.classList.remove('hidden');
 
-                fitViewToExtents();
-                resizeCanvas();
-				saveHistoryState();
-            };
+	                fitViewToExtents();
+	                resizeCanvas();
+					saveHistoryState(false);
+	            };
 			
 			const loadFileAction = () => {
                 reader.readAsText(file);
@@ -5588,20 +5619,22 @@
 						if (newTempExtents.minX !== Infinity) {
 							offsetX = (extents.maxX + 20) - newTempExtents.minX;
 						}
-					} else {
-						// First file load, so reset everything
-						linesAndPolylines = [];
-						symbols = [];
-						originalExtents = null;
-						userDrawings = [];
-						resetViewBtn.classList.add('hidden');
-						setActiveTool(null);
-						selectedDrawingId = null;
-						selectedGroupId = null;
-						clearSeccionadorFilter(false, true);
-					}
+						} else {
+							// First file load, so reset everything
+							linesAndPolylines = [];
+							symbols = [];
+							originalExtents = null;
+							userDrawings = [];
+							resetViewBtn.classList.add('hidden');
+							setActiveTool(null);
+							selectedDrawingId = null;
+							selectedGroupId = null;
+						}
 
-					processDxfBlocks(dxf);
+						clearSeccionadorFilter(false, true);
+						resetSeccionadorFilterLock();
+
+						processDxfBlocks(dxf);
 
 					const getSymbolType = (blockName, blockDesc, xdata) => {
 						// New high-priority rule for TR1/TR2
@@ -5787,13 +5820,13 @@
 					
 					document.getElementById('dxf-upload-label-span').textContent = 'Añadir DXF';
 
-					requestAnimationFrame(() => {
-						fitViewToExtents();
-						resizeCanvas();
-						updateHistoryButtons();
-						saveHistoryState();
-					});
-				};
+						requestAnimationFrame(() => {
+							fitViewToExtents();
+							resizeCanvas();
+							updateHistoryButtons();
+							saveHistoryState(false);
+						});
+					};
 				reader.readAsText(file);
 				event.target.value = '';
 			};
@@ -5822,6 +5855,7 @@
                 updateHistoryButtons();
                 resetViewBtn.classList.add('hidden');
 				clearSeccionadorFilter(false, true);
+				resetSeccionadorFilterLock();
 
                 // Cambiar vistas
                 dxfCanvas.classList.add('hidden');
@@ -5835,8 +5869,9 @@
                 computeExtents();
                 fitViewToExtents();
                 resizeCanvas();
-                saveHistoryState();
-            }
+				saveHistoryState(false);
+				resetSeccionadorFilterLock();
+			}
         });
 
 		function populateCtSymbolPicker() {
