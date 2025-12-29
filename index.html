@@ -415,6 +415,27 @@
 		</div>
 	</div>
 
+	<!-- Subgrafo Modal -->
+	<div id="subgraph-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+		<div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4">
+			<div class="flex items-start justify-between">
+				<div>
+					<h3 class="text-lg font-bold text-gray-800">Filtrar subgrafo A-B</h3>
+					<p class="text-sm text-gray-600 mt-1">Selecciona dos o más seccionadores abiertos para mostrar todo lo que queda entre ellos.</p>
+				</div>
+				<button id="close-subgraph-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+			</div>
+			<div id="subgraph-points-list" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-gray-50"></div>
+			<div class="flex items-center justify-between pt-2">
+				<button id="clear-subgraph-filter-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Quitar filtro</button>
+				<div class="flex items-center gap-2">
+					<button id="cancel-subgraph-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Cancelar</button>
+					<button id="apply-subgraph-btn" class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">Aplicar</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- Help Modal -->
     <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
 		<div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
