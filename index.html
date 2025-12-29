@@ -382,14 +382,35 @@
 	</div>
 
 	<!-- Seccionador Symbol Picker Modal -->
-	<div id="seccionador-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
-			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-lg font-bold">Seleccionar Símbolo de Elemento de Red</h3>
-				<button id="close-seccionador-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+		<div id="seccionador-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+			<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-lg font-bold">Seleccionar Símbolo de Elemento de Red</h3>
+					<button id="close-seccionador-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+				</div>
+				<div id="seccionador-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+					<!-- Symbols will be populated by JS -->
+				</div>
 			</div>
-			<div id="seccionador-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-				<!-- Symbols will be populated by JS -->
+		</div>
+
+		<!-- Subgrafo Modal -->
+		<div id="subgraph-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+			<div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4">
+				<div class="flex items-start justify-between">
+					<div>
+						<h3 class="text-lg font-bold text-gray-800">Filtrar subgrafo A-B</h3>
+						<p class="text-sm text-gray-600 mt-1">Selecciona dos o más puntos (seccionadores u otros elementos) para mostrar todo lo que hay en el camino entre ellos.</p>
+					</div>
+					<button id="close-subgraph-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+				</div>
+				<div id="subgraph-points-list" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-gray-50"></div>
+				<div class="flex items-center justify-between pt-2">
+				<button id="clear-subgraph-filter-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Quitar filtro</button>
+				<div class="flex items-center gap-2">
+					<button id="cancel-subgraph-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Cancelar</button>
+					<button id="apply-subgraph-btn" class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">Aplicar</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -714,7 +735,7 @@
 								<input type="text" id="search-input" list="search-suggestions" placeholder="Buscar elemento..." class="bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none ml-2 text-sm w-48">
 								<datalist id="search-suggestions"></datalist>
 							</div>
-							<button id="subgraph-filter-btn" title="Filtrar subgrafo entre seccionadores abiertos" class="px-3 py-1 text-sm rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors font-semibold flex items-center gap-2">
+							<button id="subgraph-filter-btn" title="Filtrar subgrafo entre dos o más puntos de la red" class="px-3 py-1 text-sm rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors font-semibold flex items-center gap-2">
 								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 9.75L9 5.25m6 0l4.5 4.5m-15 4.5L9 18.75m6 0l4.5-4.5M9 5.25h6M9 18.75h6" />
 								</svg>
@@ -1320,12 +1341,14 @@
 			return { graph, symbolNodeKeyMap };
 		}
 
-		function collectOpenSeccionadores(graphData) {
+		function collectSelectableNodes(graphData) {
 			const options = [];
-			const pushOption = (item, idx, source) => {
+			let unnamedCounter = 1;
+
+			const pushOption = (item, source) => {
 				const nodeKey = graphData.symbolNodeKeyMap.get(item);
 				if (!nodeKey) return;
-				const label = getDisplayLabel(item) || `Seccionador ${idx + 1}`;
+				const label = getDisplayLabel(item) || `Nodo ${unnamedCounter++}`;
 				options.push({
 					id: ensureGraphId(item),
 					label,
@@ -1334,15 +1357,15 @@
 				});
 			};
 
-			symbols.forEach((s, idx) => {
-				if (s.symbolType === 'seccionador' && s.isOpen) {
-					pushOption(s, idx, 'dxf');
+			symbols.forEach((s) => {
+				if (s.symbolType) {
+					pushOption(s, 'dxf');
 				}
 			});
 
-			userDrawings.forEach((d, idx) => {
-				if (d.type === 'draw-seccionador' && d.isOpen) {
-					pushOption(d, idx, 'manual');
+			userDrawings.forEach((d) => {
+				if (d.symbolType || d.type === 'draw-ct' || d.type === 'draw-seccionador') {
+					pushOption(d, 'manual');
 				}
 			});
 
@@ -1404,15 +1427,15 @@
 				graphData = buildGraphForSubgraph();
 			}
 
-			if (selectedNodeKeys.length < 2) {
-				showConfirm('Selecciona al menos dos seccionadores abiertos para construir el subgrafo.', () => {});
-				return;
-			}
+				if (selectedNodeKeys.length < 2) {
+					showConfirm('Selecciona al menos dos puntos para construir el subgrafo.', () => {});
+					return;
+				}
 
-			if (graphData.graph.size === 0) {
-				showConfirm('No hay datos de red para generar el subgrafo.', () => {});
-				return;
-			}
+				if (graphData.graph.size === 0) {
+					showConfirm('No hay datos de red para generar el subgrafo.', () => {});
+					return;
+				}
 
 			const boundarySet = new Set(selectedNodeKeys);
 			const reachabilitySets = selectedNodeKeys.map(nodeKey => traverseFromBoundary(nodeKey, boundarySet, graphData.graph));
@@ -1497,14 +1520,14 @@
 
 		function renderSubgraphOptions(graphData) {
 			subgraphPointsList.innerHTML = '';
-			const options = collectOpenSeccionadores(graphData);
+			const options = collectSelectableNodes(graphData);
 
 			if (options.length < 2) {
 				const emptyState = document.createElement('div');
 				emptyState.className = 'p-4 text-sm text-gray-600 text-center';
 				emptyState.textContent = options.length === 0
-					? 'No hay seccionadores abiertos disponibles. Marca al menos dos como abiertos para continuar.'
-					: 'Selecciona al menos dos seccionadores abiertos para construir el subgrafo.';
+					? 'No hay elementos seleccionables disponibles. Asegúrate de tener puntos de red cargados.'
+					: 'Selecciona al menos dos puntos para construir el subgrafo.';
 				subgraphPointsList.appendChild(emptyState);
 				applySubgraphBtn.disabled = true;
 				return;
@@ -1513,21 +1536,21 @@
 			applySubgraphBtn.disabled = false;
 			options.sort((a, b) => a.label.localeCompare(b.label));
 
-			options.forEach((opt, idx) => {
-				const row = document.createElement('label');
-				row.className = 'flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50';
-				const left = document.createElement('div');
-				left.className = 'flex items-center gap-3';
+				options.forEach((opt, idx) => {
+					const row = document.createElement('label');
+					row.className = 'flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50';
+					const left = document.createElement('div');
+					left.className = 'flex items-center gap-3';
 
-				const checkbox = document.createElement('input');
-				checkbox.type = 'checkbox';
-				checkbox.value = opt.nodeKey;
-				checkbox.className = 'h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500';
-				if (idx < 2) checkbox.checked = true;
+					const checkbox = document.createElement('input');
+					checkbox.type = 'checkbox';
+					checkbox.value = opt.nodeKey;
+					checkbox.className = 'h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500';
+					if (idx < 2) checkbox.checked = true;
 
-				const label = document.createElement('div');
-				label.className = 'flex flex-col';
-				label.innerHTML = `<span class="text-sm font-semibold text-gray-800">${opt.label}</span><span class="text-xs text-gray-500">${opt.source === 'manual' ? 'Manual' : 'DXF'}</span>`;
+					const label = document.createElement('div');
+					label.className = 'flex flex-col';
+					label.innerHTML = `<span class="text-sm font-semibold text-gray-800">${opt.label}</span><span class="text-xs text-gray-500">${opt.source === 'manual' ? 'Manual' : 'DXF'}</span>`;
 
 				left.appendChild(checkbox);
 				left.appendChild(label);
