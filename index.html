@@ -382,56 +382,14 @@
 	</div>
 
 	<!-- Seccionador Symbol Picker Modal -->
-		<div id="seccionador-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-			<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
-				<div class="flex justify-between items-center mb-4">
-					<h3 class="text-lg font-bold">Seleccionar Símbolo de Elemento de Red</h3>
-					<button id="close-seccionador-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-				</div>
-				<div id="seccionador-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-					<!-- Symbols will be populated by JS -->
-				</div>
+	<div id="seccionador-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-lg font-bold">Seleccionar Símbolo de Elemento de Red</h3>
+				<button id="close-seccionador-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 			</div>
-		</div>
-
-		<!-- Subgrafo Modal -->
-		<div id="subgraph-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-			<div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4">
-				<div class="flex items-start justify-between">
-					<div>
-						<h3 class="text-lg font-bold text-gray-800">Filtrar subgrafo A-B</h3>
-						<p class="text-sm text-gray-600 mt-1">Selecciona dos o más puntos (seccionadores u otros elementos) para mostrar todo lo que hay en el camino entre ellos.</p>
-					</div>
-					<button id="close-subgraph-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-				</div>
-				<div id="subgraph-points-list" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-gray-50"></div>
-				<div class="flex items-center justify-between pt-2">
-				<button id="clear-subgraph-filter-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Quitar filtro</button>
-				<div class="flex items-center gap-2">
-					<button id="cancel-subgraph-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Cancelar</button>
-					<button id="apply-subgraph-btn" class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">Aplicar</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Subgrafo Modal -->
-	<div id="subgraph-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full space-y-4">
-			<div class="flex items-start justify-between">
-				<div>
-					<h3 class="text-lg font-bold text-gray-800">Filtrar subgrafo A-B</h3>
-					<p class="text-sm text-gray-600 mt-1">Selecciona dos o más seccionadores abiertos para mostrar todo lo que queda entre ellos.</p>
-				</div>
-				<button id="close-subgraph-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-			</div>
-			<div id="subgraph-points-list" class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 bg-gray-50"></div>
-			<div class="flex items-center justify-between pt-2">
-				<button id="clear-subgraph-filter-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Quitar filtro</button>
-				<div class="flex items-center gap-2">
-					<button id="cancel-subgraph-btn" class="px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">Cancelar</button>
-					<button id="apply-subgraph-btn" class="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">Aplicar</button>
-				</div>
+			<div id="seccionador-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+				<!-- Symbols will be populated by JS -->
 			</div>
 		</div>
 	</div>
@@ -735,13 +693,6 @@
 								<input type="text" id="search-input" list="search-suggestions" placeholder="Buscar elemento..." class="bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none ml-2 text-sm w-48">
 								<datalist id="search-suggestions"></datalist>
 							</div>
-							<button id="subgraph-filter-btn" title="Filtrar subgrafo entre dos o más puntos de la red" class="px-3 py-1 text-sm rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors font-semibold flex items-center gap-2">
-								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 9.75L9 5.25m6 0l4.5 4.5m-15 4.5L9 18.75m6 0l4.5-4.5M9 5.25h6M9 18.75h6" />
-								</svg>
-								<span>Subgrafo A-B</span>
-							</button>
-							<span id="subgraph-filter-status" class="hidden ml-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700">Filtro A-B activo</span>
 
 							<div class="relative inline-block text-left ml-2">
 								<div>
@@ -902,14 +853,6 @@
 		const seccionadorPickerModal = document.getElementById('seccionador-symbol-picker-modal');
 		const closeSeccionadorPickerBtn = document.getElementById('close-seccionador-picker-btn');
 		const seccionadorSymbolGrid = document.getElementById('seccionador-symbol-grid');
-		const subgraphFilterBtn = document.getElementById('subgraph-filter-btn');
-		const subgraphModal = document.getElementById('subgraph-modal');
-		const closeSubgraphModalBtn = document.getElementById('close-subgraph-modal-btn');
-		const cancelSubgraphBtn = document.getElementById('cancel-subgraph-btn');
-		const applySubgraphBtn = document.getElementById('apply-subgraph-btn');
-		const subgraphPointsList = document.getElementById('subgraph-points-list');
-		const subgraphStatus = document.getElementById('subgraph-filter-status');
-		const clearSubgraphFilterBtn = document.getElementById('clear-subgraph-filter-btn');
 		const helpBtn = document.getElementById('help-btn');
 		const helpModal = document.getElementById('help-modal');
 		const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
@@ -925,7 +868,6 @@
 			const DEFAULT_DRAW_COLOR = '#ef4444';
 			const HANDLE_HIT_RADIUS = 5; // Aumentar el área de detección de clics para los puntos de redimensión
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
-			const SYMBOL_ATTACHMENT_DISTANCE = 2.0; // Distancia máxima para unir nodos a líneas existentes
 
 	        // --- STATE VARIABLES ---
 	        let linesAndPolylines = [];
@@ -957,8 +899,6 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			let activeSubgraphFilter = null;
-			let cachedSubgraphGraph = null;
 
 
 			// --- Undo/Redo State ---
@@ -1069,7 +1009,7 @@
 
 
             let closestSnap = { point: null, distance: Infinity, segmentStart: null };
-            const allLines = [...getVisibleLinesAndPolylines(), ...getVisibleUserDrawings().filter(d => d.type.includes('line'))];
+            const allLines = [...linesAndPolylines, ...userDrawings.filter(d => d.type.includes('line'))];
 
             allLines.forEach(line => {
                 if (line === draggedItem) return; // Don't snap to self if it's a line
@@ -1183,12 +1123,12 @@
 			searchSuggestions.innerHTML = '';
 			const visibleTexts = new Set();
 
-			getVisibleSymbols().forEach(s => {
+			symbols.forEach(s => {
 				const displayLabel = getDisplayLabel(s);
 				if (displayLabel) visibleTexts.add(displayLabel);
 			});
 
-			getVisibleUserDrawings().forEach(d => {
+			userDrawings.forEach(d => {
 				if (d.label && (d.symbolType === 'ct' || d.symbolType === 'seccionador')) {
 					const displayLabel = getDisplayLabel(d);
 					if (displayLabel) visibleTexts.add(displayLabel);
@@ -1222,343 +1162,6 @@
             undoBtn.disabled = undoStack.length <= 1;
             redoBtn.disabled = redoStack.length === 0;
         }
-
-		function isEntityVisible(entity) {
-			if (!activeSubgraphFilter) return true;
-			return activeSubgraphFilter.visibleEntities.has(entity);
-		}
-
-		function getVisibleLinesAndPolylines() {
-			return activeSubgraphFilter ? linesAndPolylines.filter(isEntityVisible) : linesAndPolylines;
-		}
-
-		function getVisibleSymbols() {
-			return activeSubgraphFilter ? symbols.filter(isEntityVisible) : symbols;
-		}
-
-		function getVisibleUserDrawings() {
-			return activeSubgraphFilter ? userDrawings.filter(isEntityVisible) : userDrawings;
-		}
-
-		function addToVisibleEntitiesIfFiltered(entity) {
-			if (activeSubgraphFilter && activeSubgraphFilter.visibleEntities) {
-				activeSubgraphFilter.visibleEntities.add(entity);
-			}
-		}
-
-		function ensureGraphId(entity) {
-			if (!entity) return null;
-			if (!entity.__graphId) {
-				entity.__graphId = crypto.randomUUID ? crypto.randomUUID() : `graph-${Math.random().toString(36).slice(2)}`;
-			}
-			return entity.__graphId;
-		}
-
-		function serializePoint(pt) {
-			return `${pt.x.toFixed(3)},${pt.y.toFixed(3)}`;
-		}
-
-		function distanceSquared(p1, p2) {
-			const dx = p1.x - p2.x;
-			const dy = p1.y - p2.y;
-			return dx * dx + dy * dy;
-		}
-
-		function findNearestNodeKey(point, graph, excludeKey = null) {
-			let nearestKey = null;
-			let minDist = Infinity;
-			graph.forEach((node, key) => {
-				if (excludeKey && key === excludeKey) return;
-				const dist = distanceSquared(point, node.point);
-				if (dist < minDist) {
-					minDist = dist;
-					nearestKey = key;
-				}
-			});
-			return nearestKey ? { key: nearestKey, distance: Math.sqrt(minDist) } : null;
-		}
-
-		function buildGraphForSubgraph() {
-			const graph = new Map();
-			const symbolNodeKeyMap = new Map();
-
-			const ensureNode = (point) => {
-				const key = serializePoint(point);
-				if (!graph.has(key)) {
-					graph.set(key, { point: { ...point }, edges: [] });
-				}
-				return key;
-			};
-
-			const addEdge = (p1, p2, entity = null) => {
-				const k1 = ensureNode(p1);
-				const k2 = ensureNode(p2);
-				graph.get(k1).edges.push({ to: k2, entity });
-				graph.get(k2).edges.push({ to: k1, entity });
-			};
-
-			const networkLines = [
-				...linesAndPolylines,
-				...userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line')
-			];
-
-			networkLines.forEach(line => {
-				if (line.type === 'LINE' && line.start && line.end) {
-					addEdge(line.start, line.end, line);
-				} else if ((line.type === 'LWPOLYLINE' || line.type === 'POLYLINE') && line.vertices && line.vertices.length > 1) {
-					for (let i = 0; i < line.vertices.length - 1; i++) {
-						if (line.vertices[i] && line.vertices[i + 1]) {
-							addEdge(line.vertices[i], line.vertices[i + 1], line);
-						}
-					}
-					if (line.closed && line.vertices[0] && line.vertices[line.vertices.length - 1]) {
-						addEdge(line.vertices[line.vertices.length - 1], line.vertices[0], line);
-					}
-				}
-			});
-
-			const symbolLike = [
-				...symbols.filter(s => s.symbolType === 'ct' || s.symbolType === 'seccionador'),
-				...userDrawings.filter(d => d.symbolType === 'ct' || d.symbolType === 'seccionador')
-			];
-
-			symbolLike.forEach(sym => {
-				const point = sym.position || sym.start;
-				if (!point) return;
-				const nodeKey = ensureNode(point);
-				symbolNodeKeyMap.set(sym, nodeKey);
-			});
-
-			symbolNodeKeyMap.forEach((nodeKey, sym) => {
-				const point = sym.position || sym.start;
-				if (!point) return;
-				const nearest = findNearestNodeKey(point, graph, nodeKey);
-				if (nearest && nearest.distance <= SYMBOL_ATTACHMENT_DISTANCE) {
-					addEdge(point, graph.get(nearest.key).point, sym);
-				}
-			});
-
-			return { graph, symbolNodeKeyMap };
-		}
-
-		function collectSelectableNodes(graphData) {
-			const options = [];
-			let unnamedCounter = 1;
-
-			const pushOption = (item, source) => {
-				const nodeKey = graphData.symbolNodeKeyMap.get(item);
-				if (!nodeKey) return;
-				const label = getDisplayLabel(item) || `Nodo ${unnamedCounter++}`;
-				options.push({
-					id: ensureGraphId(item),
-					label,
-					nodeKey,
-					source
-				});
-			};
-
-			symbols.forEach((s) => {
-				if (s.symbolType) {
-					pushOption(s, 'dxf');
-				}
-			});
-
-			userDrawings.forEach((d) => {
-				if (d.symbolType || d.type === 'draw-ct' || d.type === 'draw-seccionador') {
-					pushOption(d, 'manual');
-				}
-			});
-
-			return options;
-		}
-
-		function traverseFromBoundary(startKey, boundarySet, graph) {
-			const visited = new Set();
-			const queue = [startKey];
-			visited.add(startKey);
-
-			while (queue.length > 0) {
-				const currentKey = queue.shift();
-				const node = graph.get(currentKey);
-				if (!node) continue;
-
-				node.edges.forEach(edge => {
-					if (boundarySet.has(currentKey) && boundarySet.has(edge.to) && edge.to !== startKey) {
-						visited.add(edge.to);
-						return;
-					}
-
-					if (!visited.has(edge.to)) {
-						visited.add(edge.to);
-						if (!(boundarySet.has(edge.to) && edge.to !== startKey)) {
-							queue.push(edge.to);
-						}
-					}
-				});
-			}
-			return visited;
-		}
-
-		function computeIntersection(sets) {
-			if (!sets || sets.length === 0) return new Set();
-			let intersection = new Set(sets[0]);
-			for (let i = 1; i < sets.length; i++) {
-				const current = sets[i];
-				intersection = new Set([...intersection].filter(x => current.has(x)));
-				if (intersection.size === 0) break;
-			}
-			return intersection;
-		}
-
-		function includeContextualDrawings(intersectionNodes, graphData, visibleEntities) {
-			const contextualDrawings = userDrawings.filter(d => !visibleEntities.has(d) && !['draw-line', 'draw-dashed-line', 'draw-ct', 'draw-seccionador'].includes(d.type));
-			contextualDrawings.forEach(d => {
-				const anchor = d.start || d.position;
-				if (!anchor) return;
-				const nearest = findNearestNodeKey(anchor, graphData.graph);
-				if (nearest && intersectionNodes.has(nearest.key) && nearest.distance <= SYMBOL_ATTACHMENT_DISTANCE) {
-					visibleEntities.add(d);
-				}
-			});
-		}
-
-		function applySubgraphFilterWithNodes(selectedNodeKeys, graphData) {
-			if (!graphData) {
-				graphData = buildGraphForSubgraph();
-			}
-
-				if (selectedNodeKeys.length < 2) {
-					showConfirm('Selecciona al menos dos puntos para construir el subgrafo.', () => {});
-					return;
-				}
-
-				if (graphData.graph.size === 0) {
-					showConfirm('No hay datos de red para generar el subgrafo.', () => {});
-					return;
-				}
-
-			const boundarySet = new Set(selectedNodeKeys);
-			const reachabilitySets = selectedNodeKeys.map(nodeKey => traverseFromBoundary(nodeKey, boundarySet, graphData.graph));
-			const intersectionNodes = computeIntersection(reachabilitySets);
-
-			if (intersectionNodes.size === 0) {
-				showConfirm('No se encontró un tramo común entre los puntos seleccionados.', () => {});
-				return;
-			}
-
-			const visibleEntities = new Set();
-
-			graphData.graph.forEach((node, key) => {
-				node.edges.forEach(edge => {
-					if (edge.entity && intersectionNodes.has(key) && intersectionNodes.has(edge.to)) {
-						visibleEntities.add(edge.entity);
-					}
-				});
-			});
-
-			graphData.symbolNodeKeyMap.forEach((nodeKey, sym) => {
-				if (intersectionNodes.has(nodeKey)) {
-					visibleEntities.add(sym);
-				}
-			});
-
-			includeContextualDrawings(intersectionNodes, graphData, visibleEntities);
-
-			if (visibleEntities.size === 0) {
-				showConfirm('El subgrafo está vacío con la selección actual.', () => {});
-				return;
-			}
-
-			activeSubgraphFilter = {
-				visibleEntities,
-				selectedNodes: selectedNodeKeys
-			};
-
-			selectedEntity = null;
-			selectedDrawingId = null;
-			multiSelection = [];
-			updateInfoPanel(null);
-			updateInfoPanelForDrawing(null);
-			updateSubgraphUiState(true);
-			computeExtents();
-			fitViewToExtents();
-			populateSearchSuggestions();
-			draw();
-		}
-
-		function clearSubgraphFilter() {
-			if (!activeSubgraphFilter) return;
-			activeSubgraphFilter = null;
-			selectedEntity = null;
-			selectedDrawingId = null;
-			multiSelection = [];
-			updateInfoPanel(null);
-			updateInfoPanelForDrawing(null);
-			updateSubgraphUiState(false);
-			computeExtents();
-			fitViewToExtents();
-			populateSearchSuggestions();
-			draw();
-		}
-
-		function updateSubgraphUiState(isActive) {
-			if (!subgraphStatus) return;
-			if (isActive) {
-				subgraphStatus.classList.remove('hidden');
-				if (clearSubgraphFilterBtn) {
-					clearSubgraphFilterBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-					clearSubgraphFilterBtn.disabled = false;
-				}
-			} else {
-				subgraphStatus.classList.add('hidden');
-				if (clearSubgraphFilterBtn) {
-					clearSubgraphFilterBtn.classList.add('opacity-50', 'cursor-not-allowed');
-					clearSubgraphFilterBtn.disabled = true;
-				}
-			}
-		}
-
-		function renderSubgraphOptions(graphData) {
-			subgraphPointsList.innerHTML = '';
-			const options = collectSelectableNodes(graphData);
-
-			if (options.length < 2) {
-				const emptyState = document.createElement('div');
-				emptyState.className = 'p-4 text-sm text-gray-600 text-center';
-				emptyState.textContent = options.length === 0
-					? 'No hay elementos seleccionables disponibles. Asegúrate de tener puntos de red cargados.'
-					: 'Selecciona al menos dos puntos para construir el subgrafo.';
-				subgraphPointsList.appendChild(emptyState);
-				applySubgraphBtn.disabled = true;
-				return;
-			}
-
-			applySubgraphBtn.disabled = false;
-			options.sort((a, b) => a.label.localeCompare(b.label));
-
-				options.forEach((opt, idx) => {
-					const row = document.createElement('label');
-					row.className = 'flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50';
-					const left = document.createElement('div');
-					left.className = 'flex items-center gap-3';
-
-					const checkbox = document.createElement('input');
-					checkbox.type = 'checkbox';
-					checkbox.value = opt.nodeKey;
-					checkbox.className = 'h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500';
-					if (idx < 2) checkbox.checked = true;
-
-					const label = document.createElement('div');
-					label.className = 'flex flex-col';
-					label.innerHTML = `<span class="text-sm font-semibold text-gray-800">${opt.label}</span><span class="text-xs text-gray-500">${opt.source === 'manual' ? 'Manual' : 'DXF'}</span>`;
-
-				left.appendChild(checkbox);
-				left.appendChild(label);
-
-				row.appendChild(left);
-				subgraphPointsList.appendChild(row);
-			});
-		}
 		
 			function showInputPrompt(message, callback, defaultValue = '') {
 				const container = document.getElementById('message-box-container');
@@ -2794,7 +2397,7 @@
         }
         
         function computeExtents() {
-            const allEntities = [...getVisibleLinesAndPolylines(), ...getVisibleSymbols(), ...getVisibleUserDrawings()];
+            const allEntities = [...linesAndPolylines, ...symbols, ...userDrawings];
             
             if (allEntities.length === 0) {
                 // Blank canvas, set a default view so drawing starts at a reasonable zoom.
@@ -2847,7 +2450,7 @@
 			}
 
 			dxfCtx.lineWidth = 1.5;
-			getVisibleLinesAndPolylines().forEach(ent => {
+			linesAndPolylines.forEach(ent => {
 				dxfCtx.strokeStyle = LINE_COLOR;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
@@ -2888,9 +2491,8 @@
                 }
 			});
 
-			const visibleSymbols = getVisibleSymbols();
-			const ctSymbols = visibleSymbols.filter(s => s.symbolType === 'ct');
-			const otherSymbols = visibleSymbols.filter(s => s.symbolType !== 'ct');
+			const ctSymbols = symbols.filter(s => s.symbolType === 'ct');
+			const otherSymbols = symbols.filter(s => s.symbolType !== 'ct');
 			otherSymbols.forEach(drawSymbol);
 			ctSymbols.forEach(drawSymbol);
 			
@@ -2899,7 +2501,7 @@
 
 
 			// --- Draw User Annotations (never clipped) ---
-			[...getVisibleUserDrawings(), activeDrawing].filter(Boolean).forEach(d => {
+			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
 				dxfCtx.save();
 				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
 				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
@@ -3593,9 +3195,8 @@
 		}
 
         function getEntityAtScreenPos(screenX, screenY) {
-            const visibleSymbols = getVisibleSymbols();
-            for (let i = visibleSymbols.length - 1; i >= 0; i--) {
-                const ent = visibleSymbols[i];
+            for (let i = symbols.length - 1; i >= 0; i--) {
+                const ent = symbols[i];
 				const bbox = getEntityBBox(ent, false);
                 if (bbox && screenX >= bbox.x && screenX <= bbox.x + bbox.width && screenY >= bbox.y && screenY <= bbox.y + bbox.height) {
                     return ent;
@@ -3610,7 +3211,7 @@
 
 			// Check lines
 			const inflate = 5; 
-			for (const line of getVisibleLinesAndPolylines()) {
+			for (const line of linesAndPolylines) {
 				const isPointOnLine = (p1, p2, pt, tolerance) => {
 					const dist = Math.abs((p2.y - p1.y) * pt.x - (p2.x - p1.x) * pt.y + p2.x * p1.y - p2.y * p1.x) / Math.sqrt(Math.pow(p2.y - p1.y, 2) + Math.pow(p2.x - p1.x, 2));
 					return dist < tolerance &&
@@ -3633,9 +3234,8 @@
         }
 
 		function getDrawingAtScreenPos(screenX, screenY) {
-			const visibleUserDrawings = getVisibleUserDrawings();
-			for (let i = visibleUserDrawings.length - 1; i >= 0; i--) {
-				const d = visibleUserDrawings[i];
+			for (let i = userDrawings.length - 1; i >= 0; i--) {
+				const d = userDrawings[i];
 				const bbox = getEntityBBox(d, false); // Screen coords
 				if (!bbox) continue;
 				const inflate = 5; // Make selection easier
@@ -4186,8 +3786,8 @@
              * prevents unnecessary processing while still allowing the diagram to
              * compress correctly once the manual elements are removed.
              */
-            const allSymbols = [...getVisibleSymbols()];
-            const allLines = [...getVisibleLinesAndPolylines()];
+            const allSymbols = [...symbols];
+            const allLines = [...linesAndPolylines];
 
             if (allSymbols.length < 2) return;
 
@@ -4428,7 +4028,7 @@
 			let targetPoint = null;
 
 			// Search in symbols first
-			for (const sym of getVisibleSymbols()) {
+			for (const sym of symbols) {
 				const displayLabel = getDisplayLabel(sym).toLowerCase();
 				if (displayLabel && displayLabel === lowerCaseQuery) {
 					selectedEntity = sym;
@@ -4443,7 +4043,7 @@
 			}
 
 			if (!found) {
-				for (const drawing of getVisibleUserDrawings()) {
+				for (const drawing of userDrawings) {
 					if (drawing.label && (drawing.symbolType === 'ct' || drawing.symbolType === 'seccionador')) {
 						const displayLabel = getDisplayLabel(drawing).toLowerCase();
 						if (displayLabel && displayLabel === lowerCaseQuery) {
@@ -5112,14 +4712,12 @@
 
                         if (closestVertex) {
                             const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...networkConnectionPoint }, end: { ...closestVertex }, color: '#ef4444', strokeWidth: 1.5, rotation: 0 };
-                            addToVisibleEntitiesIfFiltered(permanentSnapLine);
                             userDrawings.push(permanentSnapLine);
                             ct.snapConnectionId = permanentSnapLine.id;
                             seccionador.snapConnectionId = permanentSnapLine.id;
                         }
                     } else if (draggedDrawing) {
                          const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...tempSnapLine.start }, end: { ...tempSnapLine.end }, color: '#3b82f6', strokeWidth: 1.5, rotation: 0 };
-                        addToVisibleEntitiesIfFiltered(permanentSnapLine);
                         userDrawings.push(permanentSnapLine);
                         draggedDrawing.snapConnectionId = permanentSnapLine.id;
                     }
@@ -5137,9 +4735,7 @@
 						const minY = Math.min(start.y, end.y), maxY = Math.max(start.y, end.y);
 						activeDrawing.start = {x: minX, y: minY}; activeDrawing.end = {x: maxX, y: maxY};
 					}
-					saveHistoryState();
-					addToVisibleEntitiesIfFiltered(activeDrawing);
-					userDrawings.push(activeDrawing); clearDrawingsBtn.disabled = false;
+					saveHistoryState(); userDrawings.push(activeDrawing); clearDrawingsBtn.disabled = false;
 				}
 				activeDrawing = null; setActiveTool(null);
 			}
@@ -5181,7 +4777,7 @@
 						maxY: Math.max(screenToModel(marqueeStart.x, marqueeStart.y).y, screenToModel(marqueeEnd.x, marqueeEnd.y).y)
 					};
 					const newlySelected = [];
-					[...getVisibleUserDrawings(), ...getVisibleSymbols(), ...getVisibleLinesAndPolylines()].forEach(item => {
+					[...userDrawings, ...symbols, ...linesAndPolylines].forEach(item => {
 						const bbox = getEntityBBox(item, true);
 						if (!bbox) return;
 
@@ -5273,13 +4869,13 @@
 					let newDrawing = { id: crypto.randomUUID(), type: currentTool, start: modelPos, color: DEFAULT_DRAW_COLOR, rotation: 0 };
 					if (currentTool === 'draw-ground') {
 						newDrawing.size = 0.5; newDrawing.strokeWidth = 1.5;
-						saveHistoryState(); addToVisibleEntitiesIfFiltered(newDrawing); userDrawings.push(newDrawing); clearDrawingsBtn.disabled = false;
+						saveHistoryState(); userDrawings.push(newDrawing); clearDrawingsBtn.disabled = false;
 						setActiveTool(null); draw();
 					} else {
 						showInputPrompt("Ingrese el texto:", (text) => {
 							if (text) {
 								newDrawing.text = text; newDrawing.modelHeight = 0.5;
-								saveHistoryState(); addToVisibleEntitiesIfFiltered(newDrawing); userDrawings.push(newDrawing); populateSearchSuggestions();
+								saveHistoryState(); userDrawings.push(newDrawing); populateSearchSuggestions();
 								clearDrawingsBtn.disabled = false; draw();
 							}
 							setActiveTool(null);
@@ -5304,8 +4900,6 @@
 								size: seccionadorSize, rotation: 0, associatedCtId: ctId, isOpen: false, symbolStyle: 'standard'
 							};
 							saveHistoryState();
-							addToVisibleEntitiesIfFiltered(newCtDrawing);
-							addToVisibleEntitiesIfFiltered(newSeccionadorDrawing);
 							userDrawings.push(newCtDrawing, newSeccionadorDrawing);
 							populateSearchSuggestions();
 							clearDrawingsBtn.disabled = false;
@@ -5330,7 +4924,6 @@
 								labelOffset: { x: 0, y: 0 }
 							};
 							saveHistoryState();
-							addToVisibleEntitiesIfFiltered(newSeccionador);
 							userDrawings.push(newSeccionador);
 							if (newSeccionador.label) {
 								populateSearchSuggestions();
@@ -5351,7 +4944,6 @@
 						symbolStyle: activeMundoInternoIconType
 					};
 					saveHistoryState();
-					addToVisibleEntitiesIfFiltered(newMundoInterno);
 					userDrawings.push(newMundoInterno);
 					clearDrawingsBtn.disabled = false;
 					draw();
@@ -5499,8 +5091,6 @@
 				userDrawings = sketch.userDrawings || [];
 				extents = sketch.extents;
 				originalExtents = sketch.originalExtents || null;
-				activeSubgraphFilter = null;
-				updateSubgraphUiState(false);
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5559,8 +5149,6 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
-				activeSubgraphFilter = null;
-				updateSubgraphUiState(false);
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5633,8 +5221,6 @@
 						originalExtents = null;
 						userDrawings = [];
 						resetViewBtn.classList.add('hidden');
-						activeSubgraphFilter = null;
-						updateSubgraphUiState(false);
 						setActiveTool(null);
 						selectedDrawingId = null;
 						selectedGroupId = null;
@@ -5859,8 +5445,6 @@
 				multiSelection = [];
                 updateHistoryButtons();
                 resetViewBtn.classList.add('hidden');
-				activeSubgraphFilter = null;
-				updateSubgraphUiState(false);
 
                 // Cambiar vistas
                 dxfCanvas.classList.add('hidden');
@@ -6245,36 +5829,6 @@
 		}
 	});
 
-	subgraphFilterBtn.addEventListener('click', () => {
-		cachedSubgraphGraph = buildGraphForSubgraph();
-		renderSubgraphOptions(cachedSubgraphGraph);
-		subgraphModal.classList.remove('hidden');
-		subgraphModal.classList.add('flex');
-	});
-
-	closeSubgraphModalBtn.addEventListener('click', () => {
-		subgraphModal.classList.add('hidden');
-		subgraphModal.classList.remove('flex');
-	});
-
-	cancelSubgraphBtn.addEventListener('click', () => {
-		subgraphModal.classList.add('hidden');
-		subgraphModal.classList.remove('flex');
-	});
-
-	applySubgraphBtn.addEventListener('click', () => {
-		const selectedNodes = Array.from(subgraphPointsList.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-		applySubgraphFilterWithNodes(selectedNodes, cachedSubgraphGraph);
-		subgraphModal.classList.add('hidden');
-		subgraphModal.classList.remove('flex');
-	});
-
-	clearSubgraphFilterBtn.addEventListener('click', () => {
-		clearSubgraphFilter();
-		subgraphModal.classList.add('hidden');
-		subgraphModal.classList.remove('flex');
-	});
-
 	drawSeccionadorBtn.addEventListener('click', (e) => {
 		setActiveTool(e.currentTarget);
 	});
@@ -6311,8 +5865,6 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
-				activeSubgraphFilter = null;
-				updateSubgraphUiState(false);
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -6343,7 +5895,6 @@
 		populateCtSymbolPicker();
 		populateMundoInternoSymbolPicker();
 		populateSeccionadorSymbolPicker();
-		updateSubgraphUiState(false);
 
         // Show the initial message on load instead of a blank canvas.
         // The "Inicio" button will now properly initialize the blank canvas.
