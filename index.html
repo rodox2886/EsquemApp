@@ -787,6 +787,27 @@
 			</div>
 		</div>
 		
+		<div id="seccionador-filter-panel" class="fixed right-4 top-28 w-80 bg-white shadow-lg border border-gray-200 rounded-xl p-4 z-20 space-y-3 hidden">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Filtrar red</p>
+					<h3 class="text-lg font-bold text-gray-800">Seccionadores</h3>
+				</div>
+				<span id="seccionador-filter-active-badge" class="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-700 hidden">Filtro activo</span>
+			</div>
+			<p class="text-sm text-gray-600">Selecciona uno o varios seccionadores para aislar la red conectada a ellos y editarla como siempre.</p>
+			<div id="seccionador-filter-list" class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto divide-y divide-gray-100 bg-gray-50"></div>
+			<p id="seccionador-filter-empty" class="text-sm text-gray-500 italic hidden">No hay seccionadores disponibles en el croquis.</p>
+			<div class="flex items-center justify-between text-xs text-gray-500">
+				<span id="seccionador-filter-counter">0 seleccionados</span>
+				<button id="toggle-seccionador-filter-visibility" class="text-blue-600 hover:underline font-semibold">Ocultar opciones</button>
+			</div>
+			<div class="flex gap-2">
+				<button id="apply-seccionador-filter-btn" class="flex-1 px-3 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Aplicar</button>
+				<button id="clear-seccionador-filter-btn" class="flex-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-800 font-semibold hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Limpiar</button>
+			</div>
+		</div>
+
 		<div id="info-panel" class="relative w-80 bg-white shadow-lg p-6 transform translate-x-full transition-transform duration-300 ease-in-out z-30">
 			<button id="close-info-panel-btn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 z-10">
 				<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -856,9 +877,17 @@
 		const helpBtn = document.getElementById('help-btn');
 		const helpModal = document.getElementById('help-modal');
 		const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+		const seccionadorFilterPanel = document.getElementById('seccionador-filter-panel');
+		const seccionadorFilterList = document.getElementById('seccionador-filter-list');
+		const seccionadorFilterEmpty = document.getElementById('seccionador-filter-empty');
+		const seccionadorFilterCounter = document.getElementById('seccionador-filter-counter');
+		const applySeccionadorFilterBtn = document.getElementById('apply-seccionador-filter-btn');
+		const clearSeccionadorFilterBtn = document.getElementById('clear-seccionador-filter-btn');
+		const seccionadorFilterActiveBadge = document.getElementById('seccionador-filter-active-badge');
+		const toggleSeccionadorFilterVisibility = document.getElementById('toggle-seccionador-filter-visibility');
 
 	        // --- CONSTANTS ---
-	        const SYMBOL_SIZE = 2.0;
+        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
         const CT_COVER_FACTOR = 1.1;
         const LINE_COLOR = '#1f2937';
@@ -868,6 +897,7 @@
 			const DEFAULT_DRAW_COLOR = '#ef4444';
 			const HANDLE_HIT_RADIUS = 5; // Aumentar el área de detección de clics para los puntos de redimensión
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
+		const NETWORK_PROXIMITY_THRESHOLD = 1.5; // Distancia para detectar conexiones entre elementos de la red
 
 	        // --- STATE VARIABLES ---
 	        let linesAndPolylines = [];
@@ -899,6 +929,12 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let isSeccionadorFilterCollapsed = false;
+			const seccionadorFilterState = {
+				selectedIds: new Set(),
+				visibleEntities: new Set(),
+				active: false
+			};
 
 
 			// --- Undo/Redo State ---
@@ -1009,7 +1045,7 @@
 
 
             let closestSnap = { point: null, distance: Infinity, segmentStart: null };
-            const allLines = [...linesAndPolylines, ...userDrawings.filter(d => d.type.includes('line'))];
+            const allLines = [...getVisibleEntities(linesAndPolylines), ...getVisibleEntities(userDrawings).filter(d => d.type.includes('line'))];
 
             allLines.forEach(line => {
                 if (line === draggedItem) return; // Don't snap to self if it's a line
@@ -1119,16 +1155,34 @@
 			return entity.label;
 		}
 
+		function ensureEntityHasId(entity) {
+			if (!entity) return null;
+			if (!entity.id) {
+				entity.id = crypto.randomUUID();
+			}
+			return entity.id;
+		}
+
+		function isEntityVisibleForSeccionadorFilter(entity) {
+			if (!seccionadorFilterState.active) return true;
+			return seccionadorFilterState.visibleEntities.has(entity);
+		}
+
+		function getVisibleEntities(collection = []) {
+			if (!seccionadorFilterState.active) return [...collection];
+			return collection.filter(item => seccionadorFilterState.visibleEntities.has(item));
+		}
+
 		function populateSearchSuggestions() {
 			searchSuggestions.innerHTML = '';
 			const visibleTexts = new Set();
 
-			symbols.forEach(s => {
+			getVisibleEntities(symbols).forEach(s => {
 				const displayLabel = getDisplayLabel(s);
 				if (displayLabel) visibleTexts.add(displayLabel);
 			});
 
-			userDrawings.forEach(d => {
+			getVisibleEntities(userDrawings).forEach(d => {
 				if (d.label && (d.symbolType === 'ct' || d.symbolType === 'seccionador')) {
 					const displayLabel = getDisplayLabel(d);
 					if (displayLabel) visibleTexts.add(displayLabel);
@@ -1140,6 +1194,314 @@
 				option.value = text;
 				searchSuggestions.appendChild(option);
 			});
+
+			refreshSeccionadorFilterOptions();
+		}
+
+		function getEntityPointsForNetwork(entity) {
+			if (!entity) return [];
+			const points = [];
+			if ((entity.type === 'LINE' || entity.type === 'draw-line' || entity.type === 'draw-dashed-line') && entity.start && entity.end) {
+				points.push(entity.start, entity.end);
+			} else if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && Array.isArray(entity.vertices)) {
+				entity.vertices.filter(Boolean).forEach(v => points.push(v));
+			} else if (entity.center) {
+				points.push(entity.center);
+			}
+
+			if (entity.position) points.push(entity.position);
+			else if (entity.start) points.push(entity.start);
+			else if (entity.end) points.push(entity.end);
+
+			return points.filter(p => p && isFinite(p.x) && isFinite(p.y));
+		}
+
+		function isEntityNearPoint(entity, point, tolerance = NETWORK_PROXIMITY_THRESHOLD) {
+			if (!entity || !point) return false;
+
+			const checkDistance = (p1, p2) => {
+				const dx = p1.x - p2.x;
+				const dy = p1.y - p2.y;
+				return Math.sqrt(dx * dx + dy * dy) <= tolerance;
+			};
+
+			if (entity.type === 'LINE' || entity.type === 'draw-line' || entity.type === 'draw-dashed-line') {
+				if (entity.start && entity.end) {
+					return findClosestPointOnSegment(point, entity.start, entity.end).distance <= tolerance;
+				}
+			} else if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && entity.vertices) {
+				for (let i = 0; i < entity.vertices.length - 1; i++) {
+					const v1 = entity.vertices[i];
+					const v2 = entity.vertices[i + 1];
+					if (v1 && v2 && findClosestPointOnSegment(point, v1, v2).distance <= tolerance) return true;
+				}
+				if (entity.closed && entity.vertices.length > 2) {
+					const first = entity.vertices[0];
+					const last = entity.vertices[entity.vertices.length - 1];
+					if (first && last && findClosestPointOnSegment(point, last, first).distance <= tolerance) return true;
+				}
+			}
+
+			if (entity.type === 'draw-rect' || entity.type === 'draw-ellipse') {
+				const bbox = getEntityBBox(entity, true);
+				if (bbox) {
+					const expanded = {
+						minX: bbox.x - tolerance,
+						maxX: bbox.x + bbox.width + tolerance,
+						minY: bbox.y - tolerance,
+						maxY: bbox.y + bbox.height + tolerance,
+					};
+					if (point.x >= expanded.minX && point.x <= expanded.maxX && point.y >= expanded.minY && point.y <= expanded.maxY) return true;
+				}
+			}
+
+			const anchor = entity.position || entity.start || entity.center;
+			if (anchor) return checkDistance(anchor, point);
+
+			return false;
+		}
+
+		function computeConnectedEntitiesFromSeccionadores(selectedEntities) {
+			const visible = new Set(selectedEntities);
+			const queue = [];
+			const visitedPoints = new Set();
+
+			const enqueuePoint = (pt) => {
+				if (!pt) return;
+				const key = `${pt.x.toFixed(3)},${pt.y.toFixed(3)}`;
+				if (!visitedPoints.has(key)) {
+					visitedPoints.add(key);
+					queue.push(pt);
+				}
+			};
+
+			selectedEntities.forEach(ent => getEntityPointsForNetwork(ent).forEach(enqueuePoint));
+
+			const lineLikeEntities = [
+				...linesAndPolylines,
+				...userDrawings.filter(d => d.type === 'draw-line' || d.type === 'draw-dashed-line')
+			];
+
+			const symbolLikeEntities = [
+				...symbols,
+				...userDrawings.filter(d => ['draw-seccionador', 'draw-ct', 'draw-ground', 'draw-mundo-interno'].includes(d.type) || d.symbolType === 'seccionador' || d.symbolType === 'ct')
+			];
+
+			const otherDrawings = userDrawings.filter(d => !lineLikeEntities.includes(d) && !symbolLikeEntities.includes(d));
+
+			while (queue.length > 0) {
+				const current = queue.shift();
+
+				lineLikeEntities.forEach(ent => {
+					if (visible.has(ent)) return;
+					if (isEntityNearPoint(ent, current)) {
+						visible.add(ent);
+						getEntityPointsForNetwork(ent).forEach(enqueuePoint);
+					}
+				});
+
+				symbolLikeEntities.forEach(ent => {
+					if (visible.has(ent)) return;
+					if (isEntityNearPoint(ent, current)) {
+						visible.add(ent);
+						getEntityPointsForNetwork(ent).forEach(enqueuePoint);
+					}
+				});
+
+				otherDrawings.forEach(ent => {
+					if (visible.has(ent)) return;
+					if (isEntityNearPoint(ent, current)) {
+						visible.add(ent);
+						getEntityPointsForNetwork(ent).forEach(enqueuePoint);
+					}
+				});
+			}
+
+			return visible;
+		}
+
+		function collectSeccionadoresForFilter() {
+			const entries = [];
+			symbols.forEach(s => {
+				if (s.symbolType === 'seccionador') {
+					entries.push({
+						id: ensureEntityHasId(s),
+						label: getDisplayLabel(s) || 'Seccionador sin nombre',
+						connection: s.connection || '',
+						source: 'dxf',
+						entity: s
+					});
+				}
+			});
+			userDrawings.forEach(d => {
+				if (d.type === 'draw-seccionador' || d.symbolType === 'seccionador') {
+					entries.push({
+						id: ensureEntityHasId(d),
+						label: d.label || 'Seccionador sin nombre',
+						connection: d.connection || '',
+						source: 'drawing',
+						entity: d
+					});
+				}
+			});
+
+			return entries.sort((a, b) => (a.label || '').localeCompare(b.label || '', 'es', { sensitivity: 'base', numeric: true }));
+		}
+
+		function updateSeccionadorFilterControlsState() {
+			if (seccionadorFilterCounter) {
+				const count = seccionadorFilterState.selectedIds.size;
+				seccionadorFilterCounter.textContent = `${count} seleccionado${count === 1 ? '' : 's'}`;
+			}
+			if (applySeccionadorFilterBtn) applySeccionadorFilterBtn.disabled = seccionadorFilterState.selectedIds.size === 0;
+			if (clearSeccionadorFilterBtn) clearSeccionadorFilterBtn.disabled = !seccionadorFilterState.active && seccionadorFilterState.selectedIds.size === 0;
+			if (seccionadorFilterActiveBadge) {
+				if (seccionadorFilterState.active) seccionadorFilterActiveBadge.classList.remove('hidden');
+				else seccionadorFilterActiveBadge.classList.add('hidden');
+			}
+		}
+
+		function updateSeccionadorFilterVisibilityToggle() {
+			if (!toggleSeccionadorFilterVisibility) return;
+			toggleSeccionadorFilterVisibility.textContent = isSeccionadorFilterCollapsed ? 'Mostrar opciones' : 'Ocultar opciones';
+		}
+
+		function refreshSeccionadorFilterOptions() {
+			if (!seccionadorFilterPanel || !seccionadorFilterList) return;
+
+			seccionadorFilterPanel.classList.remove('hidden');
+			seccionadorFilterList.innerHTML = '';
+
+			const entries = collectSeccionadoresForFilter();
+			if (entries.length === 0) {
+				if (seccionadorFilterEmpty) {
+					if (isSeccionadorFilterCollapsed) seccionadorFilterEmpty.classList.add('hidden');
+					else seccionadorFilterEmpty.classList.remove('hidden');
+				}
+				seccionadorFilterList.classList.add('hidden');
+				updateSeccionadorFilterVisibilityToggle();
+				updateSeccionadorFilterControlsState();
+				return;
+			}
+
+			if (seccionadorFilterEmpty) seccionadorFilterEmpty.classList.add('hidden');
+
+			entries.forEach(entry => {
+				const wrapper = document.createElement('label');
+				wrapper.className = 'flex items-center justify-between px-3 py-2 hover:bg-white';
+
+				const left = document.createElement('div');
+				left.className = 'flex flex-col';
+
+				const name = document.createElement('span');
+				name.className = 'text-sm font-semibold text-gray-800';
+				name.textContent = entry.label;
+				left.appendChild(name);
+
+				if (entry.connection) {
+					const conn = document.createElement('span');
+					conn.className = 'text-xs text-gray-500';
+					conn.textContent = entry.connection;
+					left.appendChild(conn);
+				}
+
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.className = 'h-4 w-4 text-blue-600 border-gray-300 rounded';
+				checkbox.checked = seccionadorFilterState.selectedIds.has(entry.id);
+				checkbox.addEventListener('change', () => {
+					if (checkbox.checked) seccionadorFilterState.selectedIds.add(entry.id);
+					else seccionadorFilterState.selectedIds.delete(entry.id);
+					updateSeccionadorFilterControlsState();
+				});
+
+				wrapper.appendChild(left);
+				wrapper.appendChild(checkbox);
+
+				seccionadorFilterList.appendChild(wrapper);
+			});
+
+			seccionadorFilterList.classList.toggle('hidden', isSeccionadorFilterCollapsed);
+			if (seccionadorFilterEmpty) seccionadorFilterEmpty.classList.toggle('hidden', isSeccionadorFilterCollapsed);
+			updateSeccionadorFilterVisibilityToggle();
+			updateSeccionadorFilterControlsState();
+		}
+
+		function applySeccionadorFilterFromSelection() {
+			const selectedEntries = collectSeccionadoresForFilter().filter(entry => seccionadorFilterState.selectedIds.has(entry.id));
+			if (selectedEntries.length === 0) {
+				clearSeccionadorFilter();
+				return;
+			}
+
+			const visibleSet = computeConnectedEntitiesFromSeccionadores(selectedEntries.map(e => e.entity));
+			seccionadorFilterState.visibleEntities = visibleSet;
+			seccionadorFilterState.active = true;
+			updateSeccionadorFilterControlsState();
+			selectedEntity = null;
+			selectedDrawingId = null;
+			multiSelection = [];
+			updateInfoPanel(null);
+			updateInfoPanelForDrawing(null);
+			computeExtents();
+			fitViewToExtents();
+			resizeCanvas();
+			draw();
+		}
+
+		function clearSeccionadorFilter(keepSelection = false, skipRedraw = false) {
+			seccionadorFilterState.visibleEntities.clear();
+			seccionadorFilterState.active = false;
+			if (!keepSelection) seccionadorFilterState.selectedIds.clear();
+			updateSeccionadorFilterControlsState();
+			selectedEntity = null;
+			selectedDrawingId = null;
+			multiSelection = [];
+			updateInfoPanel(null);
+			updateInfoPanelForDrawing(null);
+			if (!skipRedraw) {
+				computeExtents();
+				fitViewToExtents();
+				resizeCanvas();
+				draw();
+			}
+		}
+
+		function reapplySeccionadorFilterAfterDataChange(shouldRedraw = true) {
+			refreshSeccionadorFilterOptions();
+			if (!seccionadorFilterState.active || seccionadorFilterState.selectedIds.size === 0) {
+				clearSeccionadorFilter(true, !shouldRedraw);
+				return;
+			}
+
+			const selectedEntries = collectSeccionadoresForFilter().filter(entry => seccionadorFilterState.selectedIds.has(entry.id));
+			if (selectedEntries.length === 0) {
+				clearSeccionadorFilter(false, !shouldRedraw);
+				return;
+			}
+
+			seccionadorFilterState.visibleEntities = computeConnectedEntitiesFromSeccionadores(selectedEntries.map(e => e.entity));
+			seccionadorFilterState.active = true;
+			updateSeccionadorFilterControlsState();
+			if (shouldRedraw) {
+				draw();
+			}
+		}
+
+		if (applySeccionadorFilterBtn) {
+			applySeccionadorFilterBtn.addEventListener('click', () => applySeccionadorFilterFromSelection());
+		}
+
+		if (clearSeccionadorFilterBtn) {
+			clearSeccionadorFilterBtn.addEventListener('click', () => clearSeccionadorFilter());
+		}
+
+		if (toggleSeccionadorFilterVisibility) {
+			toggleSeccionadorFilterVisibility.addEventListener('click', () => {
+				isSeccionadorFilterCollapsed = !isSeccionadorFilterCollapsed;
+				refreshSeccionadorFilterOptions();
+			});
+			updateSeccionadorFilterVisibilityToggle();
 		}
 
 		function panAndZoomToPoint(modelPoint) {
@@ -1580,6 +1942,7 @@
 				resetViewBtn.classList.add('hidden');
 			}
 			clearDrawingsBtn.disabled = userDrawings.length === 0;
+			reapplySeccionadorFilterAfterDataChange(false);
 
 			// Deselect everything on state change for simplicity
 			selectedDrawingId = null;
@@ -2397,7 +2760,10 @@
         }
         
         function computeExtents() {
-            const allEntities = [...linesAndPolylines, ...symbols, ...userDrawings];
+            const visibleLines = getVisibleEntities(linesAndPolylines);
+            const visibleSymbols = getVisibleEntities(symbols);
+            const visibleDrawings = getVisibleEntities(userDrawings);
+            const allEntities = [...visibleLines, ...visibleSymbols, ...visibleDrawings];
             
             if (allEntities.length === 0) {
                 // Blank canvas, set a default view so drawing starts at a reasonable zoom.
@@ -2438,6 +2804,9 @@
 				dxfCtx.save(); // Save the clean, untransformed state
 				dxfCtx.fillStyle = '#f0f0f0';
 				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+				const visibleLines = getVisibleEntities(linesAndPolylines);
+				const visibleSymbols = getVisibleEntities(symbols);
+				const visibleUserDrawings = getVisibleEntities(userDrawings);
 
 					// --- Draw DXF content (potentially clipped) ---
 					dxfCtx.save(); // Save state before clipping for DXF content
@@ -2450,7 +2819,7 @@
 			}
 
 			dxfCtx.lineWidth = 1.5;
-			linesAndPolylines.forEach(ent => {
+			visibleLines.forEach(ent => {
 				dxfCtx.strokeStyle = LINE_COLOR;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
@@ -2491,8 +2860,8 @@
                 }
 			});
 
-			const ctSymbols = symbols.filter(s => s.symbolType === 'ct');
-			const otherSymbols = symbols.filter(s => s.symbolType !== 'ct');
+			const ctSymbols = visibleSymbols.filter(s => s.symbolType === 'ct');
+			const otherSymbols = visibleSymbols.filter(s => s.symbolType !== 'ct');
 			otherSymbols.forEach(drawSymbol);
 			ctSymbols.forEach(drawSymbol);
 			
@@ -2501,7 +2870,7 @@
 
 
 			// --- Draw User Annotations (never clipped) ---
-			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
+			[...visibleUserDrawings, activeDrawing].filter(Boolean).forEach(d => {
 				dxfCtx.save();
 				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
 				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
@@ -3195,8 +3564,9 @@
 		}
 
         function getEntityAtScreenPos(screenX, screenY) {
-            for (let i = symbols.length - 1; i >= 0; i--) {
-                const ent = symbols[i];
+            const visibleSymbols = getVisibleEntities(symbols);
+            for (let i = visibleSymbols.length - 1; i >= 0; i--) {
+                const ent = visibleSymbols[i];
 				const bbox = getEntityBBox(ent, false);
                 if (bbox && screenX >= bbox.x && screenX <= bbox.x + bbox.width && screenY >= bbox.y && screenY <= bbox.y + bbox.height) {
                     return ent;
@@ -3207,11 +3577,11 @@
 						return ent;
 					}
                 }
-            }
+			}
 
 			// Check lines
 			const inflate = 5; 
-			for (const line of linesAndPolylines) {
+			for (const line of getVisibleEntities(linesAndPolylines)) {
 				const isPointOnLine = (p1, p2, pt, tolerance) => {
 					const dist = Math.abs((p2.y - p1.y) * pt.x - (p2.x - p1.x) * pt.y + p2.x * p1.y - p2.y * p1.x) / Math.sqrt(Math.pow(p2.y - p1.y, 2) + Math.pow(p2.x - p1.x, 2));
 					return dist < tolerance &&
@@ -3234,8 +3604,9 @@
         }
 
 		function getDrawingAtScreenPos(screenX, screenY) {
-			for (let i = userDrawings.length - 1; i >= 0; i--) {
-				const d = userDrawings[i];
+			const visibleDrawings = getVisibleEntities(userDrawings);
+			for (let i = visibleDrawings.length - 1; i >= 0; i--) {
+				const d = visibleDrawings[i];
 				const bbox = getEntityBBox(d, false); // Screen coords
 				if (!bbox) continue;
 				const inflate = 5; // Make selection easier
@@ -3786,8 +4157,8 @@
              * prevents unnecessary processing while still allowing the diagram to
              * compress correctly once the manual elements are removed.
              */
-            const allSymbols = [...symbols];
-            const allLines = [...linesAndPolylines];
+            const allSymbols = getVisibleEntities(symbols);
+            const allLines = getVisibleEntities(linesAndPolylines);
 
             if (allSymbols.length < 2) return;
 
@@ -5149,6 +5520,9 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents;
 				originalExtents = data.originalExtents || null;
+				clearSeccionadorFilter(false, true);
+				populateSearchSuggestions();
+				reapplySeccionadorFilterAfterDataChange(false);
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -5224,6 +5598,7 @@
 						setActiveTool(null);
 						selectedDrawingId = null;
 						selectedGroupId = null;
+						clearSeccionadorFilter(false, true);
 					}
 
 					processDxfBlocks(dxf);
@@ -5398,6 +5773,7 @@
 					linesAndPolylines.push(...newLinesAndPolylines);
 					symbols.push(...newSymbols, ...newCts, ...newSeccionadores);
 					populateSearchSuggestions();
+					reapplySeccionadorFilterAfterDataChange(false);
 					computeExtents();
 
 					if (!isAdding) {
@@ -5445,6 +5821,7 @@
 				multiSelection = [];
                 updateHistoryButtons();
                 resetViewBtn.classList.add('hidden');
+				clearSeccionadorFilter(false, true);
 
                 // Cambiar vistas
                 dxfCanvas.classList.add('hidden');
@@ -5895,6 +6272,8 @@
 		populateCtSymbolPicker();
 		populateMundoInternoSymbolPicker();
 		populateSeccionadorSymbolPicker();
+		refreshSeccionadorFilterOptions();
+		updateSeccionadorFilterVisibilityToggle();
 
         // Show the initial message on load instead of a blank canvas.
         // The "Inicio" button will now properly initialize the blank canvas.
