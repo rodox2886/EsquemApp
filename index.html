@@ -438,15 +438,7 @@
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-purple-100 rounded-md mt-1">
 								<svg class="w-4 h-4 text-purple-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 3h16v18H4z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"></path></svg>
 							</span>
-							<p><strong class="font-semibold text-gray-800">Cargar DXF/TXT:</strong> Usa el botón 'DXF/TXT' para cargar un archivo `.dxf` o `.txt` que contenga datos DXF. Puedes cargar múltiples archivos y se añadirán al lienzo uno al lado del otro.</p>
-						</div>
-						<div class="flex items-start gap-3">
-							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-amber-100 rounded-md mt-1">
-								<svg class="w-4 h-4 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v6a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-6a2.25 2.25 0 00-2.25-2.25H15M9 8.25v-.75A3.75 3.75 0 0112.75 3h0A3.75 3.75 0 0116.5 6.75v1.5A2.25 2.25 0 0114.25 10.5h-4.5A2.25 2.25 0 017.5 8.25h0z" />
-								</svg>
-							</span>
-							<p><strong class="font-semibold text-gray-800">Ejemplo incorporado:</strong> El botón "Ejemplo TXT" carga automáticamente la red geográfica del archivo <em>Red_de_5_recorridos (1).txt</em> incluido en el proyecto.</p>
+							<p><strong class="font-semibold text-gray-800">Cargar DXF:</strong> Usa el botón 'DXF' para cargar un archivo `.dxf`. Puedes cargar múltiples archivos DXF y se añadirán al lienzo uno al lado del otro.</p>
 						</div>
 						<div class="flex items-start gap-3">
 							<div class="flex-shrink-0 w-auto flex items-center justify-center gap-1 bg-blue-100 rounded-md mt-1 p-1">
@@ -760,20 +752,14 @@
 								</svg>
 								<span>JSON</span>
 							</button>
-                            <label for="dxf-upload-input" title="Cargar archivo DXF o TXT con contenido DXF" class="cursor-pointer px-3 py-1 text-sm rounded bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors font-semibold flex items-center gap-1">
+                            <label for="dxf-upload-input" title="Cargar archivo DXF" class="cursor-pointer px-3 py-1 text-sm rounded bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors font-semibold flex items-center gap-1">
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 3h16v18H4z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16" />
                                 </svg>
-                                <span id="dxf-upload-label-span">DXF/TXT</span>
+                                <span id="dxf-upload-label-span">DXF</span>
                             </label>
-                            <input id="dxf-upload-input" type="file" class="hidden" accept=".dxf,.txt">
-                            <button id="load-sample-txt-btn" title="Cargar red de ejemplo desde el TXT incluido" class="px-3 py-1 text-sm rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors font-semibold flex items-center gap-1">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v6a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-6a2.25 2.25 0 00-2.25-2.25H15M9 8.25v-.75A3.75 3.75 0 0112.75 3h0A3.75 3.75 0 0116.5 6.75v1.5A2.25 2.25 0 0114.25 10.5h-4.5A2.25 2.25 0 017.5 8.25h0z" />
-                                </svg>
-                                <span>Ejemplo TXT</span>
-                            </button>
+                            <input id="dxf-upload-input" type="file" class="hidden" accept=".dxf">
                             <button id="help-btn" title="Ayuda" class="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                   <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
@@ -790,7 +776,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
 						</svg>
 						<h2 class="text-xl font-semibold">Bienvenido a EsquemApp</h2>
-						<p class="mt-2 max-w-md">Use las herramientas para dibujar o cargue un archivo de croquis (JSON o DXF/TXT con contenido DXF) para comenzar.</p>
+						<p class="mt-2 max-w-md">Use las herramientas para dibujar o cargue un archivo de croquis (JSON o DXF) para comenzar.</p>
 					</div>
 					<div id="loading-indicator" class="hidden flex flex-col items-center justify-center h-full" style="min-height: 65vh;">
 						<div class="loader"></div>
@@ -870,10 +856,8 @@
 		const helpBtn = document.getElementById('help-btn');
 		const helpModal = document.getElementById('help-modal');
 		const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
-		const sampleTxtBtn = document.getElementById('load-sample-txt-btn');
 
 	        // --- CONSTANTS ---
-			const SAMPLE_DXF_PATH = encodeURI('./Red_de_5_recorridos (1).txt');
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
         const CT_COVER_FACTOR = 1.1;
@@ -915,7 +899,6 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			let blockDescMap = {};
 
 
 			// --- Undo/Redo State ---
@@ -2034,9 +2017,9 @@
             return connString ? connString.substring('at|1019|'.length) : null;
         }
 
-	        function extractAllXData(entity) {
-	            const data = {};
-	            if (!entity.extendedData || !entity.extendedData.customStrings) return data;
+        function extractAllXData(entity) {
+            const data = {};
+            if (!entity.extendedData || !entity.extendedData.customStrings) return data;
 
             entity.extendedData.customStrings.forEach(s => {
                 if (s.startsWith('at|')) {
@@ -2049,35 +2032,23 @@
                 }
             });
             return data;
-	        }
-
-			function extractSolidVertices(entity, offsetX = 0) {
-				const pts = entity.points || entity.vertices || [];
-				return pts
-					.map(p => p ? { x: (p.x || 0) + offsetX, y: p.y || 0 } : null)
-					.filter(p => typeof p.x === 'number' && typeof p.y === 'number');
-			}
-	        
-	        function processDxfBlocks(dxf) {
-	            blockGeometries = {};
-	            if (!dxf || !dxf.blocks) return;
-	            for (const blockName in dxf.blocks) {
-	                const block = dxf.blocks[blockName];
-	                if (!block.entities) continue;
-	                blockGeometries[blockName] = block.entities.map(entity => {
-	                    switch (entity.type) {
-	                        case 'LINE': return { type: 'LINE', start: entity.vertices[0], end: entity.vertices[1] };
-	                        case 'LWPOLYLINE': case 'POLYLINE': return { type: 'POLYLINE', vertices: entity.vertices, closed: !!entity.shape || !!entity.closed };
-	                        case 'SOLID': case 'TRACE': {
-								const vertices = extractSolidVertices(entity);
-								if (vertices.length === 0) return null;
-								return { type: 'POLYLINE', vertices, closed: true };
-							}
-	                        case 'CIRCLE': return { type: 'CIRCLE', center: entity.center, radius: entity.radius };
-	                        case 'ARC': return { type: 'ARC', center: entity.center, radius: entity.radius, startAngle: entity.startAngle, endAngle: entity.endAngle };
-	                        case 'TEXT': return { type: 'TEXT', position: entity.startPoint, text: entity.text, height: entity.textHeight || entity.height };
-	                        default: return null;
-	                    }
+        }
+        
+        function processDxfBlocks(dxf) {
+            blockGeometries = {};
+            if (!dxf || !dxf.blocks) return;
+            for (const blockName in dxf.blocks) {
+                const block = dxf.blocks[blockName];
+                if (!block.entities) continue;
+                blockGeometries[blockName] = block.entities.map(entity => {
+                    switch (entity.type) {
+                        case 'LINE': return { type: 'LINE', start: entity.vertices[0], end: entity.vertices[1] };
+                        case 'LWPOLYLINE': case 'POLYLINE': return { type: 'POLYLINE', vertices: entity.vertices, closed: !!entity.shape || !!entity.closed };
+                        case 'CIRCLE': return { type: 'CIRCLE', center: entity.center, radius: entity.radius };
+                        case 'ARC': return { type: 'ARC', center: entity.center, radius: entity.radius, startAngle: entity.startAngle, endAngle: entity.endAngle };
+                        case 'TEXT': return { type: 'TEXT', position: entity.startPoint, text: entity.text, height: entity.textHeight || entity.height };
+                        default: return null;
+                    }
                 }).filter(Boolean);
             }
         }
@@ -2390,27 +2361,20 @@
                     geometries.forEach(geom => {
                         dxfCtx.beginPath();
                         switch (geom.type) {
-	                        case 'LINE': {
-	                                const s = transformPoint(geom.start, ent); const e = transformPoint(geom.end, ent);
-	                                dxfCtx.moveTo(s.x, s.y); dxfCtx.lineTo(e.x, e.y); break;
-	                            } case 'POLYLINE': {
-	                                if (!geom.vertices || geom.vertices.length === 0) break;
-	                                const pts = geom.vertices.map(v => transformPoint(v, ent));
-	                                dxfCtx.moveTo(pts[0].x, pts[0].y);
-	                                pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
-	                                if (geom.closed) dxfCtx.closePath(); break;
-	                            } case 'SOLID': {
-									if (!geom.vertices || geom.vertices.length === 0) break;
-									const pts = geom.vertices.map(v => transformPoint(v, ent));
-									dxfCtx.moveTo(pts[0].x, pts[0].y);
-									pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
-									dxfCtx.closePath();
-									break;
-	                            } case 'CIRCLE': {
-	                                const c = transformPoint(geom.center, ent);
-	                                const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
-	                                dxfCtx.arc(c.x, c.y, r, 0, 2 * Math.PI); break;
-	                            } case 'ARC': {
+                            case 'LINE': {
+                                const s = transformPoint(geom.start, ent); const e = transformPoint(geom.end, ent);
+                                dxfCtx.moveTo(s.x, s.y); dxfCtx.lineTo(e.x, e.y); break;
+                            } case 'POLYLINE': {
+                                if (!geom.vertices || geom.vertices.length === 0) break;
+                                const pts = geom.vertices.map(v => transformPoint(v, ent));
+                                dxfCtx.moveTo(pts[0].x, pts[0].y);
+                                pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
+                                if (geom.closed) dxfCtx.closePath(); break;
+                            } case 'CIRCLE': {
+                                const c = transformPoint(geom.center, ent);
+                                const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
+                                dxfCtx.arc(c.x, c.y, r, 0, 2 * Math.PI); break;
+                            } case 'ARC': {
                                 const c = transformPoint(geom.center, ent);
                                 const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
                                 const startRad = -geom.startAngle * Math.PI / 180, endRad = -geom.endAngle * Math.PI / 180;
@@ -2525,39 +2489,22 @@
 					    const p2 = modelToScreen(ent.end.x, ent.end.y);
 					    dxfCtx.beginPath(); dxfCtx.moveTo(p1.x, p1.y); dxfCtx.lineTo(p2.x, p2.y); dxfCtx.stroke();
                     }
-					} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 0) {
-	                    // FIX: Check that the first vertex exists before trying to draw from it.
-	                    if (ent.vertices[0]) {
-						    dxfCtx.beginPath();
-						    const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
-						    dxfCtx.moveTo(start.x, start.y);
+				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 0) {
+                    // FIX: Check that the first vertex exists before trying to draw from it.
+                    if (ent.vertices[0]) {
+					    dxfCtx.beginPath();
+					    const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
+					    dxfCtx.moveTo(start.x, start.y);
 					    for (let i=1; i<ent.vertices.length; i++) {
                             // FIX: Check that subsequent vertices exist before drawing to them.
                             if (ent.vertices[i]) {
 						        dxfCtx.lineTo(modelToScreen(ent.vertices[i].x, ent.vertices[i].y).x, modelToScreen(ent.vertices[i].x, ent.vertices[i].y).y);
                             }
-						    }
-						    if (ent.closed) dxfCtx.closePath();
-						    dxfCtx.stroke();
-	                    }
-					} else if ((ent.type === 'SOLID' || ent.type === 'TRACE') && ent.vertices && ent.vertices.length > 0) {
-						if (ent.vertices[0]) {
-							dxfCtx.beginPath();
-							const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
-							dxfCtx.moveTo(start.x, start.y);
-							for (let i = 1; i < ent.vertices.length; i++) {
-								const v = ent.vertices[i];
-								if (v) {
-									const p = modelToScreen(v.x, v.y);
-									dxfCtx.lineTo(p.x, p.y);
-								}
-							}
-							dxfCtx.closePath();
-							dxfCtx.fillStyle = LINE_COLOR;
-							dxfCtx.fill();
-							dxfCtx.stroke();
-						}
-					}
+					    }
+					    if (ent.closed) dxfCtx.closePath();
+					    dxfCtx.stroke();
+                    }
+				}
 
                 if (isSubterraneo || dashPattern) {
                     dxfCtx.setLineDash([]);
@@ -5317,16 +5264,13 @@
             e.target.value = '';
         });
 
-		function loadDxfTextContent(text, sourceLabel = 'DXF/TXT') {
-			blockDescMap = parseBlockDescriptions(text);
-			const parser = new window.DxfParser();
-			let dxf;
-			try {
-				dxf = parser.parseSync(text);
-			} catch(err) {
-				showConfirm('Error al analizar el archivo ' + sourceLabel + ': ' + err.message, () => {});
-				return false;
+        dxfInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+				event.target.value = '';
+				return;
 			}
+            const reader = new FileReader();
 
 			const loadDxfAction = () => {
 				reader.onload = function(evt) {
@@ -5345,19 +5289,17 @@
 					let offsetX = 0;
 
 					if (isAdding) {
-							const newTempExtents = { minX: Infinity };
-							 dxf.entities.forEach(ent => {
-								if (ent.type === 'INSERT' && ent.position) {
-									 newTempExtents.minX = Math.min(newTempExtents.minX, ent.position.x);
-								} else if (ent.vertices && ent.vertices.length > 0) {
-									ent.vertices.forEach(v => { newTempExtents.minX = Math.min(newTempExtents.minX, v.x); });
-								} else if (ent.points && ent.points.length > 0) {
-									ent.points.forEach(p => { if (p) newTempExtents.minX = Math.min(newTempExtents.minX, p.x); });
-								} else if (ent.center) {
-									newTempExtents.minX = Math.min(newTempExtents.minX, ent.center.x - (ent.radius || 0));
-								} else if (ent.startPoint) {
-									newTempExtents.minX = Math.min(newTempExtents.minX, ent.startPoint.x);
-								}
+						const newTempExtents = { minX: Infinity };
+						 dxf.entities.forEach(ent => {
+							if (ent.type === 'INSERT' && ent.position) {
+								 newTempExtents.minX = Math.min(newTempExtents.minX, ent.position.x);
+							} else if (ent.vertices && ent.vertices.length > 0) {
+								ent.vertices.forEach(v => { newTempExtents.minX = Math.min(newTempExtents.minX, v.x); });
+							} else if (ent.center) {
+								newTempExtents.minX = Math.min(newTempExtents.minX, ent.center.x - (ent.radius || 0));
+							} else if (ent.startPoint) {
+								newTempExtents.minX = Math.min(newTempExtents.minX, ent.startPoint.x);
+							}
 						});
 						if (newTempExtents.minX !== Infinity) {
 							offsetX = (extents.maxX + 20) - newTempExtents.minX;
@@ -5373,65 +5315,49 @@
 						selectedDrawingId = null;
 						selectedGroupId = null;
 					}
-				});
-				if (newTempExtents.minX !== Infinity) {
-					computeExtents();
-					offsetX = (extents.maxX + 20) - newTempExtents.minX;
-				}
-			} else {
-				// First file load, so reset everything
-				linesAndPolylines = [];
-				symbols = [];
-				originalExtents = null;
-				userDrawings = [];
-				resetViewBtn.classList.add('hidden');
-				setActiveTool(null);
-				selectedDrawingId = null;
-				selectedGroupId = null;
-			}
 
-			processDxfBlocks(dxf);
+					processDxfBlocks(dxf);
 
-			const getSymbolType = (blockName, blockDesc, xdata) => {
-				// New high-priority rule for TR1/TR2
-				if (xdata && xdata['1018']) {
-					const name = xdata['1018'].toUpperCase();
-					if (name.endsWith('-TR1') || name.endsWith('-TR2')) {
-						return 'seccionador';
-					}
-				}
+					const getSymbolType = (blockName, blockDesc, xdata) => {
+						// New high-priority rule for TR1/TR2
+						if (xdata && xdata['1018']) {
+							const name = xdata['1018'].toUpperCase();
+							if (name.endsWith('-TR1') || name.endsWith('-TR2')) {
+								return 'seccionador';
+							}
+						}
 
-				const n = (blockName || '').toLowerCase(), d = (blockDesc || '').toLowerCase();
-				if (d.includes('nodo')) return null;
-				if (d.includes('trafo') || d.includes('transformador') || ['1612', '1489', '1493'].includes(n)) return 'ct';
-				if (d.includes('seccionador') || d.includes('secc') || ['1436', '1393', '1397', '1400', '1448', '1401', '1415', '1420'].includes(n)) return 'seccionador';
-				
-				// New logic: Infer from xdata if type is uncertain
-				if (xdata && xdata['1018']) {
-					const name = xdata['1018'].toUpperCase();
-					if (name.startsWith('CT')) return 'ct';
-					if (name.startsWith('B')) return 'seccionador'; // Assumption based on "B1" element
-					// Heuristics for numeric IDs based on user feedback
-					if (/^\d+-\d+$/.test(name)) return 'seccionador'; // e.g., "78752-9"
-					if (/^\d+$/.test(name)) return 'ct'; // e.g., "78752"
-				}
-				
-				return null;
-			};
+						const n = (blockName || '').toLowerCase(), d = (blockDesc || '').toLowerCase();
+						if (d.includes('nodo')) return null;
+						if (d.includes('trafo') || d.includes('transformador') || ['1612', '1489', '1493'].includes(n)) return 'ct';
+						if (d.includes('seccionador') || d.includes('secc') || ['1436', '1393', '1397', '1400', '1448', '1401', '1415', '1420'].includes(n)) return 'seccionador';
+						
+						// New logic: Infer from xdata if type is uncertain
+						if (xdata && xdata['1018']) {
+							const name = xdata['1018'].toUpperCase();
+							if (name.startsWith('CT')) return 'ct';
+							if (name.startsWith('B')) return 'seccionador'; // Assumption based on "B1" element
+                            // Heuristics for numeric IDs based on user feedback
+                            if (/^\d+-\d+$/.test(name)) return 'seccionador'; // e.g., "78752-9"
+                            if (/^\d+$/.test(name)) return 'ct'; // e.g., "78752"
+						}
+						
+						return null;
+					};
 
-			const newCts = [], newSeccionadores = [], newSymbols = [], newLinesAndPolylines = [];
-			const groupId = crypto.randomUUID();
+					const newCts = [], newSeccionadores = [], newSymbols = [], newLinesAndPolylines = [];
+					const groupId = crypto.randomUUID();
 
-			(dxf.entities || []).forEach(entity => {
-				const name = entity.name;
-				const desc = blockDescMap[name] || '';
-				if (name && name.toUpperCase().startsWith('DE-')) return;
+					(dxf.entities || []).forEach(entity => {
+						const name = entity.name;
+						const desc = blockDescMap[name] || '';
+						if (name && name.toUpperCase().startsWith('DE-')) return;
 
-							if (entity.type === 'INSERT') {
+						if (entity.type === 'INSERT') {
                             const xdata = extractAllXData(entity);
-								const symbolType = getSymbolType(name, desc, xdata);
-								
-								const symbolEntity = { 
+							const symbolType = getSymbolType(name, desc, xdata);
+							
+							const symbolEntity = { 
 								type: 'SYMBOL',
 								blockName: name,
 								symbolType: symbolType,
@@ -5452,125 +5378,144 @@
 							else if (symbolEntity.symbolType === 'seccionador') newSeccionadores.push(symbolEntity);
 							else newSymbols.push(symbolEntity);
 						} else {
-								const newEnt = JSON.parse(JSON.stringify(entity));
-								const xdata = extractAllXData(entity);
-	                            newEnt.extendedAttributes = xdata;
-								newEnt.groupId = groupId;
-								if ((newEnt.type === 'SOLID' || newEnt.type === 'TRACE') && (!newEnt.vertices || newEnt.vertices.length === 0)) {
-									newEnt.vertices = extractSolidVertices(newEnt);
-									newEnt.closed = true;
-								}
-								if (newEnt.vertices) {
-									newEnt.vertices.forEach(v => { v.x += offsetX; });
-								}
-								if (newEnt.points) {
-									newEnt.points.forEach(p => { if (p && typeof p.x === 'number') { p.x += offsetX; } });
-								}
-								if (newEnt.center) {
-									newEnt.center.x += offsetX;
-								}
+							const newEnt = JSON.parse(JSON.stringify(entity));
+							const xdata = extractAllXData(entity);
+                            newEnt.extendedAttributes = xdata;
+							newEnt.groupId = groupId;
+							if (newEnt.vertices) {
+								newEnt.vertices.forEach(v => { v.x += offsetX; });
+							}
+							if (newEnt.center) {
+								newEnt.center.x += offsetX;
+							}
 							 if (newEnt.startPoint) {
 								newEnt.startPoint.x += offsetX;
 							}
-							if (!positionReferenceSecc) {
-								positionReferenceSecc = seccionadoresInGroup[0]; // Fallback to the first one in the group
+							
+							// Asegurarse de que las líneas tengan el formato start/end que la función de dibujo espera
+							if (newEnt.type === 'LINE' && newEnt.vertices && newEnt.vertices.length >= 2) {
+								newEnt.start = newEnt.vertices[0];
+								newEnt.end = newEnt.vertices[1];
 							}
 
-							if (positionReferenceSecc) {
-								const newExtendedAttributes = JSON.parse(JSON.stringify(positionReferenceSecc.extendedAttributes || {}));
-								newExtendedAttributes['1018'] = ctName;
-
-								const virtualCt = {
-									type: 'SYMBOL',
-									blockName: 'VIRTUAL_CT',
-									symbolType: 'ct',
-									// Use the exact same insertion point coordinates as the reference seccionador (-TR1).
-									position: { ...positionReferenceSecc.position },
-									rotation: 0,
-									xScale: 1,
-									yScale: 1,
-									label: ctName,
-									connection: positionReferenceSecc.connection,
-									extendedAttributes: newExtendedAttributes,
-									labelOffset: { x: 0, y: 0 },
-									isOpen: false,
-									groupId: positionReferenceSecc.groupId,
-									labelScale: 1,
-									ctIconType: 'plain'
-								};
-								implicitCtsToCreate.push(virtualCt);
-								// Add to map to ensure it's considered "existing" for subsequent logic
-								allCtsMap.set(ctName, virtualCt);
-								positionReferenceSecc.isReplacedByVirtualCt = true;
-							}
+							newLinesAndPolylines.push(newEnt);
 						}
 					});
+					
+                    // --- Create virtual CTs for those that don't have a symbol ---
+                    const allCtsMap = new Map();
+                    newCts.forEach(ct => { if (ct.label) allCtsMap.set(ct.label, ct); });
 
-					newCts.push(...implicitCtsToCreate);
+                    // 1. Group seccionadores by the implicit CT they reference.
+                    const implicitCtGroups = new Map();
+                    newSeccionadores.forEach(secc => {
+                        if (secc.extendedAttributes && secc.extendedAttributes['1198']) {
+                            const ctRefRaw = secc.extendedAttributes['1198'];
+                            const ctNameMatch = ctRefRaw.match(/\d+$/);
+                            if (ctNameMatch) {
+                                const ctName = ctNameMatch[0];
+                                // Only consider CTs that don't already have a symbol
+                                if (!allCtsMap.has(ctName)) {
+                                    if (!implicitCtGroups.has(ctName)) {
+                                        implicitCtGroups.set(ctName, []);
+                                    }
+                                    implicitCtGroups.get(ctName).push(secc);
+                                }
+                            }
+                        }
+                    });
 
-			newCts.forEach(ct => {
-				ct.outlets = [];
-				newSeccionadores.forEach(secc => {
-					const dist = Math.sqrt(Math.pow(secc.position.x - ct.position.x, 2) + Math.pow(secc.position.y - ct.position.y, 2));
-					if (dist < 1.5) { 
-						ct.outlets.push({ name: secc.label, connection: secc.connection });
+                    const implicitCtsToCreate = [];
+                    // 2. For each group, find the main seccionador and create one virtual CT.
+                    implicitCtGroups.forEach((seccionadoresInGroup, ctName) => {
+                        // A virtual CT is only created if there is more than one seccionador in the group,
+                        // or if one of them is a main transformer entry (TR1).
+                        const hasTR1 = seccionadoresInGroup.some(s => s.label && s.label.toUpperCase().endsWith('-TR1'));
+                        const isGroupEligible = seccionadoresInGroup.length > 1;
+
+                        if (hasTR1 || isGroupEligible) {
+                            // 3. Find the reference seccionador for positioning. Priority: "..-TR1", then "..-1", then the first one.
+                            let positionReferenceSecc = seccionadoresInGroup.find(s => s.label && s.label.toUpperCase().endsWith('-TR1'));
+                            if (!positionReferenceSecc) {
+                                positionReferenceSecc = seccionadoresInGroup.find(s => s.label && s.label.endsWith('-1'));
+                            }
+                            if (!positionReferenceSecc) {
+                                positionReferenceSecc = seccionadoresInGroup[0]; // Fallback to the first one in the group
+                            }
+
+                            if (positionReferenceSecc) {
+                                const newExtendedAttributes = JSON.parse(JSON.stringify(positionReferenceSecc.extendedAttributes || {}));
+                                newExtendedAttributes['1018'] = ctName;
+
+                                const virtualCt = {
+                                    type: 'SYMBOL',
+                                    blockName: 'VIRTUAL_CT',
+                                    symbolType: 'ct',
+                                    // Use the exact same insertion point coordinates as the reference seccionador (-TR1).
+                                    position: { ...positionReferenceSecc.position },
+                                    rotation: 0,
+                                    xScale: 1,
+                                    yScale: 1,
+                                    label: ctName,
+                                    connection: positionReferenceSecc.connection,
+                                    extendedAttributes: newExtendedAttributes,
+                                    labelOffset: { x: 0, y: 0 },
+                                    isOpen: false,
+                                    groupId: positionReferenceSecc.groupId,
+									labelScale: 1,
+                                    ctIconType: 'plain'
+                                };
+                                implicitCtsToCreate.push(virtualCt);
+                                // Add to map to ensure it's considered "existing" for subsequent logic
+                                allCtsMap.set(ctName, virtualCt);
+                                positionReferenceSecc.isReplacedByVirtualCt = true;
+                            }
+                        }
+                    });
+
+                    newCts.push(...implicitCtsToCreate);
+
+					newCts.forEach(ct => {
+						ct.outlets = [];
+						newSeccionadores.forEach(secc => {
+							const dist = Math.sqrt(Math.pow(secc.position.x - ct.position.x, 2) + Math.pow(secc.position.y - ct.position.y, 2));
+							if (dist < 1.5) { 
+								ct.outlets.push({ name: secc.label, connection: secc.connection });
+							}
+						});
+					});
+					
+					linesAndPolylines.push(...newLinesAndPolylines);
+					symbols.push(...newSymbols, ...newCts, ...newSeccionadores);
+					populateSearchSuggestions();
+					computeExtents();
+
+					if (!isAdding) {
+						document.getElementById('initial-message').classList.add('hidden');
+						dxfCanvas.classList.remove('hidden');
+						clearDrawingsBtn.disabled = true;
+						deleteBtn.disabled = true;
+						undoStack = [];
+						redoStack = [];
 					}
-				});
-			});
-			
-			linesAndPolylines.push(...newLinesAndPolylines);
-			symbols.push(...newSymbols, ...newCts, ...newSeccionadores);
-			populateSearchSuggestions();
-			computeExtents();
+					
+					document.getElementById('dxf-upload-label-span').textContent = 'Añadir DXF';
 
-			if (!isAdding) {
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
-				clearDrawingsBtn.disabled = true;
-				deleteBtn.disabled = true;
-				undoStack = [];
-				redoStack = [];
-			}
-			
-			document.getElementById('dxf-upload-label-span').textContent = 'Añadir DXF/TXT';
-
-			requestAnimationFrame(() => {
-				fitViewToExtents();
-				resizeCanvas();
-				updateHistoryButtons();
-				saveHistoryState();
-			});
-
-			return true;
-		}
-
-        dxfInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) {
+					requestAnimationFrame(() => {
+						fitViewToExtents();
+						resizeCanvas();
+						updateHistoryButtons();
+						saveHistoryState();
+					});
+				};
+				reader.readAsText(file);
 				event.target.value = '';
-				return;
-			}
-            const reader = new FileReader();
-
-			reader.onload = function(evt) {
-				loadDxfTextContent(evt.target.result, file.name || 'DXF/TXT');
 			};
-			reader.readAsText(file);
-			event.target.value = '';
+            
+			if (file) {
+                loadDxfAction();
+            }
         });
-
-		if (sampleTxtBtn) {
-			sampleTxtBtn.addEventListener('click', async () => {
-				try {
-					const response = await fetch(SAMPLE_DXF_PATH);
-					if (!response.ok) throw new Error(`Estado ${response.status}: ${response.statusText}`);
-					const text = await response.text();
-					loadDxfTextContent(text, 'ejemplo TXT');
-				} catch (error) {
-					showConfirm('No se pudo cargar el archivo de ejemplo: ' + error.message, () => {});
-				}
-			});
-		}
 
         homeBtn.addEventListener('click', function() {
             const initialMessage = document.getElementById('initial-message');
@@ -5583,7 +5528,7 @@
                 updateInfoPanel(null);
                 setActiveTool(null);
                 view = { offsetX: 0, offsetY: 0, scale: 1 };
-                document.getElementById('dxf-upload-label-span').textContent = 'DXF/TXT';
+                document.getElementById('dxf-upload-label-span').textContent = 'DXF';
                 selectedGroupId = null;
                 undoStack = [];
                 redoStack = [];
