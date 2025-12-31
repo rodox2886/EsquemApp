@@ -937,6 +937,26 @@
 			return null;
 		}
 
+		function calculateSketchExtents(lines = [], syms = [], drawings = []) {
+			const entities = [...lines, ...syms, ...drawings];
+			if (entities.length === 0) return null;
+
+			const initialBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+			const bounds = entities.reduce((acc, ent) => {
+				const bbox = getEntityBBox(ent, true);
+				if (bbox) {
+					acc.minX = Math.min(acc.minX, bbox.x);
+					acc.minY = Math.min(acc.minY, bbox.y);
+					acc.maxX = Math.max(acc.maxX, bbox.x + bbox.width);
+					acc.maxY = Math.max(acc.maxY, bbox.y + bbox.height);
+				}
+				return acc;
+			}, initialBounds);
+
+			if (bounds.minX === Infinity) return null;
+			return bounds;
+		}
+
 		function isBBoxInsideRect(bbox, rect) {
 			if (!bbox) return false;
 			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
@@ -5141,13 +5161,35 @@
                 e.target.value = '';
                 return;
             }
+
             const reader = new FileReader();
-            reader.onload = (event) => {
-                const data = JSON.parse(event.target.result);
+
+            const resetSelections = () => {
+                selectedEntity = null;
+                selectedDrawingId = null;
+                selectedGroupId = null;
+                multiSelection = [];
+                updateInfoPanel(null);
+                updateInfoPanelForDrawing(null);
+            };
+
+            const finalizeSketchLoad = () => {
+                document.getElementById('initial-message').classList.add('hidden');
+                dxfCanvas.classList.remove('hidden');
+                clearDrawingsBtn.disabled = userDrawings.length === 0;
+                deleteBtn.disabled = true;
+                setActiveTool(null);
+                populateSearchSuggestions();
+                fitViewToExtents();
+                resizeCanvas();
+                saveHistoryState();
+            };
+
+            const replaceSketchWith = (data) => {
                 linesAndPolylines = data.linesAndPolylines || [];
                 symbols = data.symbols || [];
                 userDrawings = data.userDrawings || [];
-                extents = data.extents;
+                extents = data.extents || extents;
 				originalExtents = data.originalExtents || null;
 				
 				if (originalExtents) {
@@ -5155,23 +5197,71 @@
 				} else {
 					resetViewBtn.classList.add('hidden');
 				}
-				
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
 
-                fitViewToExtents();
-                resizeCanvas();
-				saveHistoryState();
-            };
-			
-			const loadFileAction = () => {
-                reader.readAsText(file);
-                e.target.value = '';
+                resetSelections();
+
+                if (!data.extents) {
+                    computeExtents();
+                }
+                finalizeSketchLoad();
             };
 
-            if (file) {
-				loadFileAction();
-            }
+            const appendSketch = (data) => {
+                const incomingLines = data.linesAndPolylines || [];
+                const incomingSymbols = data.symbols || [];
+                const incomingDrawings = data.userDrawings || [];
+                const incomingExtents = calculateSketchExtents(incomingLines, incomingSymbols, incomingDrawings);
+
+                let offsetX = 0;
+                if (incomingExtents) {
+                    computeExtents();
+                    offsetX = (extents.maxX + 20) - incomingExtents.minX;
+                }
+
+                const offsetItems = (items = []) => items.map(item => {
+                    const clone = JSON.parse(JSON.stringify(item));
+                    moveItemBy(clone, offsetX, 0);
+                    return clone;
+                });
+
+                linesAndPolylines = [...linesAndPolylines, ...offsetItems(incomingLines)];
+                symbols = [...symbols, ...offsetItems(incomingSymbols)];
+                userDrawings = [...userDrawings, ...offsetItems(incomingDrawings)];
+
+                originalExtents = null;
+                resetViewBtn.classList.add('hidden');
+                resetSelections();
+                computeExtents();
+                finalizeSketchLoad();
+            };
+
+            reader.onload = (event) => {
+                let data;
+                try {
+                    data = JSON.parse(event.target.result);
+                } catch (err) {
+                    showConfirm('Error al leer el archivo JSON: ' + err.message, () => {});
+                    return;
+                }
+
+                const hasExistingSketch = symbols.length > 0 || linesAndPolylines.length > 0 || userDrawings.length > 0;
+
+                if (hasExistingSketch) {
+                    showDualConfirm(
+                        '¿Cómo deseas cargar el croquis?',
+                        'Reemplazar dibujo',
+                        'Agregar al actual',
+                        () => replaceSketchWith(data),
+                        () => appendSketch(data),
+                        () => {}
+                    );
+                } else {
+                    replaceSketchWith(data);
+                }
+            };
+
+            reader.readAsText(file);
+            e.target.value = '';
         });
 
         dxfInput.addEventListener('change', function(event) {
@@ -5850,45 +5940,6 @@
 			helpModal.classList.remove('flex');
 		}
 	});
-
-    uploadSketchInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-		if (!file) {
-                e.target.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const data = JSON.parse(event.target.result);
-                linesAndPolylines = data.linesAndPolylines || [];
-                symbols = data.symbols || [];
-                userDrawings = data.userDrawings || [];
-                extents = data.extents;
-				originalExtents = data.originalExtents || null;
-				
-				if (originalExtents) {
-					resetViewBtn.classList.remove('hidden');
-				} else {
-					resetViewBtn.classList.add('hidden');
-				}
-				
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
-
-                fitViewToExtents();
-                resizeCanvas();
-				saveHistoryState();
-            };
-			
-			const loadFileAction = () => {
-                reader.readAsText(file);
-                e.target.value = '';
-            };
-
-            if (file) {
-				loadFileAction();
-            }
-        });
 
 		// Initial population of the saved sketches list
 		populateSavedSketchesList();
