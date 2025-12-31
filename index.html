@@ -2017,9 +2017,9 @@
             return connString ? connString.substring('at|1019|'.length) : null;
         }
 
-        function extractAllXData(entity) {
-            const data = {};
-            if (!entity.extendedData || !entity.extendedData.customStrings) return data;
+	        function extractAllXData(entity) {
+	            const data = {};
+	            if (!entity.extendedData || !entity.extendedData.customStrings) return data;
 
             entity.extendedData.customStrings.forEach(s => {
                 if (s.startsWith('at|')) {
@@ -2032,23 +2032,35 @@
                 }
             });
             return data;
-        }
-        
-        function processDxfBlocks(dxf) {
-            blockGeometries = {};
-            if (!dxf || !dxf.blocks) return;
-            for (const blockName in dxf.blocks) {
-                const block = dxf.blocks[blockName];
-                if (!block.entities) continue;
-                blockGeometries[blockName] = block.entities.map(entity => {
-                    switch (entity.type) {
-                        case 'LINE': return { type: 'LINE', start: entity.vertices[0], end: entity.vertices[1] };
-                        case 'LWPOLYLINE': case 'POLYLINE': return { type: 'POLYLINE', vertices: entity.vertices, closed: !!entity.shape || !!entity.closed };
-                        case 'CIRCLE': return { type: 'CIRCLE', center: entity.center, radius: entity.radius };
-                        case 'ARC': return { type: 'ARC', center: entity.center, radius: entity.radius, startAngle: entity.startAngle, endAngle: entity.endAngle };
-                        case 'TEXT': return { type: 'TEXT', position: entity.startPoint, text: entity.text, height: entity.textHeight || entity.height };
-                        default: return null;
-                    }
+	        }
+
+			function extractSolidVertices(entity, offsetX = 0) {
+				const pts = entity.points || entity.vertices || [];
+				return pts
+					.map(p => p ? { x: (p.x || 0) + offsetX, y: p.y || 0 } : null)
+					.filter(p => typeof p.x === 'number' && typeof p.y === 'number');
+			}
+	        
+	        function processDxfBlocks(dxf) {
+	            blockGeometries = {};
+	            if (!dxf || !dxf.blocks) return;
+	            for (const blockName in dxf.blocks) {
+	                const block = dxf.blocks[blockName];
+	                if (!block.entities) continue;
+	                blockGeometries[blockName] = block.entities.map(entity => {
+	                    switch (entity.type) {
+	                        case 'LINE': return { type: 'LINE', start: entity.vertices[0], end: entity.vertices[1] };
+	                        case 'LWPOLYLINE': case 'POLYLINE': return { type: 'POLYLINE', vertices: entity.vertices, closed: !!entity.shape || !!entity.closed };
+	                        case 'SOLID': case 'TRACE': {
+								const vertices = extractSolidVertices(entity);
+								if (vertices.length === 0) return null;
+								return { type: 'POLYLINE', vertices, closed: true };
+							}
+	                        case 'CIRCLE': return { type: 'CIRCLE', center: entity.center, radius: entity.radius };
+	                        case 'ARC': return { type: 'ARC', center: entity.center, radius: entity.radius, startAngle: entity.startAngle, endAngle: entity.endAngle };
+	                        case 'TEXT': return { type: 'TEXT', position: entity.startPoint, text: entity.text, height: entity.textHeight || entity.height };
+	                        default: return null;
+	                    }
                 }).filter(Boolean);
             }
         }
@@ -2361,20 +2373,27 @@
                     geometries.forEach(geom => {
                         dxfCtx.beginPath();
                         switch (geom.type) {
-                            case 'LINE': {
-                                const s = transformPoint(geom.start, ent); const e = transformPoint(geom.end, ent);
-                                dxfCtx.moveTo(s.x, s.y); dxfCtx.lineTo(e.x, e.y); break;
-                            } case 'POLYLINE': {
-                                if (!geom.vertices || geom.vertices.length === 0) break;
-                                const pts = geom.vertices.map(v => transformPoint(v, ent));
-                                dxfCtx.moveTo(pts[0].x, pts[0].y);
-                                pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
-                                if (geom.closed) dxfCtx.closePath(); break;
-                            } case 'CIRCLE': {
-                                const c = transformPoint(geom.center, ent);
-                                const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
-                                dxfCtx.arc(c.x, c.y, r, 0, 2 * Math.PI); break;
-                            } case 'ARC': {
+	                        case 'LINE': {
+	                                const s = transformPoint(geom.start, ent); const e = transformPoint(geom.end, ent);
+	                                dxfCtx.moveTo(s.x, s.y); dxfCtx.lineTo(e.x, e.y); break;
+	                            } case 'POLYLINE': {
+	                                if (!geom.vertices || geom.vertices.length === 0) break;
+	                                const pts = geom.vertices.map(v => transformPoint(v, ent));
+	                                dxfCtx.moveTo(pts[0].x, pts[0].y);
+	                                pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
+	                                if (geom.closed) dxfCtx.closePath(); break;
+	                            } case 'SOLID': {
+									if (!geom.vertices || geom.vertices.length === 0) break;
+									const pts = geom.vertices.map(v => transformPoint(v, ent));
+									dxfCtx.moveTo(pts[0].x, pts[0].y);
+									pts.slice(1).forEach(p => dxfCtx.lineTo(p.x, p.y));
+									dxfCtx.closePath();
+									break;
+	                            } case 'CIRCLE': {
+	                                const c = transformPoint(geom.center, ent);
+	                                const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
+	                                dxfCtx.arc(c.x, c.y, r, 0, 2 * Math.PI); break;
+	                            } case 'ARC': {
                                 const c = transformPoint(geom.center, ent);
                                 const r = geom.radius * Math.min(Math.abs(ent.xScale || 1), Math.abs(ent.yScale || 1)) * view.scale;
                                 const startRad = -geom.startAngle * Math.PI / 180, endRad = -geom.endAngle * Math.PI / 180;
@@ -2489,22 +2508,39 @@
 					    const p2 = modelToScreen(ent.end.x, ent.end.y);
 					    dxfCtx.beginPath(); dxfCtx.moveTo(p1.x, p1.y); dxfCtx.lineTo(p2.x, p2.y); dxfCtx.stroke();
                     }
-				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 0) {
-                    // FIX: Check that the first vertex exists before trying to draw from it.
-                    if (ent.vertices[0]) {
-					    dxfCtx.beginPath();
-					    const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
-					    dxfCtx.moveTo(start.x, start.y);
+					} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 0) {
+	                    // FIX: Check that the first vertex exists before trying to draw from it.
+	                    if (ent.vertices[0]) {
+						    dxfCtx.beginPath();
+						    const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
+						    dxfCtx.moveTo(start.x, start.y);
 					    for (let i=1; i<ent.vertices.length; i++) {
                             // FIX: Check that subsequent vertices exist before drawing to them.
                             if (ent.vertices[i]) {
 						        dxfCtx.lineTo(modelToScreen(ent.vertices[i].x, ent.vertices[i].y).x, modelToScreen(ent.vertices[i].x, ent.vertices[i].y).y);
                             }
-					    }
-					    if (ent.closed) dxfCtx.closePath();
-					    dxfCtx.stroke();
-                    }
-				}
+						    }
+						    if (ent.closed) dxfCtx.closePath();
+						    dxfCtx.stroke();
+	                    }
+					} else if ((ent.type === 'SOLID' || ent.type === 'TRACE') && ent.vertices && ent.vertices.length > 0) {
+						if (ent.vertices[0]) {
+							dxfCtx.beginPath();
+							const start = modelToScreen(ent.vertices[0].x, ent.vertices[0].y);
+							dxfCtx.moveTo(start.x, start.y);
+							for (let i = 1; i < ent.vertices.length; i++) {
+								const v = ent.vertices[i];
+								if (v) {
+									const p = modelToScreen(v.x, v.y);
+									dxfCtx.lineTo(p.x, p.y);
+								}
+							}
+							dxfCtx.closePath();
+							dxfCtx.fillStyle = LINE_COLOR;
+							dxfCtx.fill();
+							dxfCtx.stroke();
+						}
+					}
 
                 if (isSubterraneo || dashPattern) {
                     dxfCtx.setLineDash([]);
@@ -5289,17 +5325,19 @@
 					let offsetX = 0;
 
 					if (isAdding) {
-						const newTempExtents = { minX: Infinity };
-						 dxf.entities.forEach(ent => {
-							if (ent.type === 'INSERT' && ent.position) {
-								 newTempExtents.minX = Math.min(newTempExtents.minX, ent.position.x);
-							} else if (ent.vertices && ent.vertices.length > 0) {
-								ent.vertices.forEach(v => { newTempExtents.minX = Math.min(newTempExtents.minX, v.x); });
-							} else if (ent.center) {
-								newTempExtents.minX = Math.min(newTempExtents.minX, ent.center.x - (ent.radius || 0));
-							} else if (ent.startPoint) {
-								newTempExtents.minX = Math.min(newTempExtents.minX, ent.startPoint.x);
-							}
+							const newTempExtents = { minX: Infinity };
+							 dxf.entities.forEach(ent => {
+								if (ent.type === 'INSERT' && ent.position) {
+									 newTempExtents.minX = Math.min(newTempExtents.minX, ent.position.x);
+								} else if (ent.vertices && ent.vertices.length > 0) {
+									ent.vertices.forEach(v => { newTempExtents.minX = Math.min(newTempExtents.minX, v.x); });
+								} else if (ent.points && ent.points.length > 0) {
+									ent.points.forEach(p => { if (p) newTempExtents.minX = Math.min(newTempExtents.minX, p.x); });
+								} else if (ent.center) {
+									newTempExtents.minX = Math.min(newTempExtents.minX, ent.center.x - (ent.radius || 0));
+								} else if (ent.startPoint) {
+									newTempExtents.minX = Math.min(newTempExtents.minX, ent.startPoint.x);
+								}
 						});
 						if (newTempExtents.minX !== Infinity) {
 							offsetX = (extents.maxX + 20) - newTempExtents.minX;
@@ -5353,11 +5391,11 @@
 						const desc = blockDescMap[name] || '';
 						if (name && name.toUpperCase().startsWith('DE-')) return;
 
-						if (entity.type === 'INSERT') {
+							if (entity.type === 'INSERT') {
                             const xdata = extractAllXData(entity);
-							const symbolType = getSymbolType(name, desc, xdata);
-							
-							const symbolEntity = { 
+								const symbolType = getSymbolType(name, desc, xdata);
+								
+								const symbolEntity = { 
 								type: 'SYMBOL',
 								blockName: name,
 								symbolType: symbolType,
@@ -5378,16 +5416,23 @@
 							else if (symbolEntity.symbolType === 'seccionador') newSeccionadores.push(symbolEntity);
 							else newSymbols.push(symbolEntity);
 						} else {
-							const newEnt = JSON.parse(JSON.stringify(entity));
-							const xdata = extractAllXData(entity);
-                            newEnt.extendedAttributes = xdata;
-							newEnt.groupId = groupId;
-							if (newEnt.vertices) {
-								newEnt.vertices.forEach(v => { v.x += offsetX; });
-							}
-							if (newEnt.center) {
-								newEnt.center.x += offsetX;
-							}
+								const newEnt = JSON.parse(JSON.stringify(entity));
+								const xdata = extractAllXData(entity);
+	                            newEnt.extendedAttributes = xdata;
+								newEnt.groupId = groupId;
+								if ((newEnt.type === 'SOLID' || newEnt.type === 'TRACE') && (!newEnt.vertices || newEnt.vertices.length === 0)) {
+									newEnt.vertices = extractSolidVertices(newEnt);
+									newEnt.closed = true;
+								}
+								if (newEnt.vertices) {
+									newEnt.vertices.forEach(v => { v.x += offsetX; });
+								}
+								if (newEnt.points) {
+									newEnt.points.forEach(p => { if (p && typeof p.x === 'number') { p.x += offsetX; } });
+								}
+								if (newEnt.center) {
+									newEnt.center.x += offsetX;
+								}
 							 if (newEnt.startPoint) {
 								newEnt.startPoint.x += offsetX;
 							}
