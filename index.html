@@ -783,12 +783,12 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-					  <div id="minimap-card" class="hidden md:block fixed top-1/2 right-4 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 pointer-events-none" style="width: clamp(220px, 22vw, 320px);">
-						  <div class="flex items-center justify-between mb-1">
+					  <div id="minimap-card" class="hidden md:flex fixed top-20 right-4 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 pointer-events-none flex-col gap-2" style="width: clamp(260px, 24vw, 360px); height: calc(100vh - 140px);">
+						  <div class="flex items-center justify-between">
 							  <span class="font-semibold text-gray-700">Minimapa</span>
 							  <span class="text-gray-500" id="minimap-scale-label"></span>
 						  </div>
-						  <canvas id="minimap-canvas" width="220" height="160" class="w-full aspect-video rounded border border-gray-100"></canvas>
+						  <canvas id="minimap-canvas" width="300" height="300" class="w-full h-full flex-1 rounded border border-gray-100"></canvas>
 					  </div>
 				</main>
 			</div>
@@ -910,7 +910,7 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			const minimapViewportPaddingFactor = 0.5; // Show ~2x the main view (0.5x padding each side)
+			const minimapViewportPaddingFactor = 0.35; // Closer view (~1.7x the main viewport)
 			const minimapScenePaddingModel = 5;
 
 
