@@ -154,7 +154,13 @@
 
 		 /* Warning button for dual confirm dialogs */
 		 .message-box .btn-warning { background-color: #d97706; }
-		 .message-box .btn-warning:hover { background-color: #b45309; }
+		.message-box .btn-warning:hover { background-color: #b45309; }
+
+		@media (min-width: 768px) {
+			#visualization-container {
+				padding-right: clamp(260px, 24vw, 380px);
+			}
+		}
 
 		.connector-group {
 			cursor: pointer;
@@ -783,12 +789,12 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-					  <div id="minimap-card" class="hidden md:flex fixed top-20 right-4 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 pointer-events-none flex-col gap-2" style="width: clamp(260px, 24vw, 360px); height: calc(100vh - 140px);">
+					  <div id="minimap-card" class="hidden md:flex fixed top-3 bottom-3 right-3 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 flex-col gap-2" style="width: clamp(260px, 24vw, 380px);">
 						  <div class="flex items-center justify-between">
 							  <span class="font-semibold text-gray-700">Minimapa</span>
 							  <span class="text-gray-500" id="minimap-scale-label"></span>
 						  </div>
-						  <canvas id="minimap-canvas" width="300" height="300" class="w-full h-full flex-1 rounded border border-gray-100"></canvas>
+						  <canvas id="minimap-canvas" width="400" height="400" class="w-full h-full flex-1 rounded border border-gray-100"></canvas>
 					  </div>
 				</main>
 			</div>
@@ -910,8 +916,9 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			const minimapViewportPaddingFactor = 0.35; // Closer view (~1.7x the main viewport)
+			const minimapViewportPaddingFactor = 0.0; // Match main view closely
 			const minimapScenePaddingModel = 5;
+			let lastMinimapBounds = null;
 
 
 			// --- Undo/Redo State ---
@@ -3175,16 +3182,6 @@
 				maxY: viewBounds.maxY + targetPadY
 			};
 
-			// Clamp to global extents to avoid drifting outside all content
-			if (isFinite(extents.minX) && isFinite(extents.maxX)) {
-				bounds.minX = Math.max(bounds.minX, extents.minX - targetPadX);
-				bounds.maxX = Math.min(bounds.maxX, extents.maxX + targetPadX);
-			}
-			if (isFinite(extents.minY) && isFinite(extents.maxY)) {
-				bounds.minY = Math.max(bounds.minY, extents.minY - targetPadY);
-				bounds.maxY = Math.min(bounds.maxY, extents.maxY + targetPadY);
-			}
-
 			const mapPoint = (x, y) => ({
 				x: ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * displayWidth,
 				y: (1 - (y - bounds.minY) / (bounds.maxY - bounds.minY)) * displayHeight
@@ -3204,6 +3201,8 @@
 			};
 
 			linesAndPolylines.forEach(ent => {
+				const bbox = getEntityBBox(ent, true);
+				if (!bbox || !doesBBoxIntersectRect(bbox, bounds)) return;
 				if (ent.start && ent.end) {
 					drawSegment(ent.start, ent.end, '#94a3b8', 1);
 				} else if (ent.vertices && ent.vertices.length > 1) {
@@ -3216,6 +3215,8 @@
 			});
 
 			userDrawings.forEach(d => {
+				const bbox = getEntityBBox(d, true);
+				if (!bbox || !doesBBoxIntersectRect(bbox, bounds)) return;
 				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
 					drawSegment(d.start, d.end, '#0ea5e9', 1.5);
 				} else if (d.type === 'draw-rect' || d.type === 'draw-ellipse') {
@@ -3235,6 +3236,7 @@
 			symbols.forEach(sym => {
 				const pos = sym.position || sym.start;
 				if (!pos) return;
+				if (pos.x < bounds.minX || pos.x > bounds.maxX || pos.y < bounds.minY || pos.y > bounds.maxY) return;
 				const p = mapPoint(pos.x, pos.y);
 				minimapCtx.save();
 				minimapCtx.fillStyle = '#111827';
@@ -3259,6 +3261,7 @@
 				minimapScaleLabel.textContent = `${shownWidth.toFixed(0)}u`;
 			}
 
+			lastMinimapBounds = { ...bounds };
 			minimapCtx.restore();
 		}
 		
@@ -6299,6 +6302,21 @@
 		populateSeccionadorSymbolPicker();
 		saveHistoryState({ immediate: true });
 		updateHistoryButtons();
+
+		if (minimapCanvas) {
+			minimapCanvas.addEventListener('click', (e) => {
+				if (!lastMinimapBounds) return;
+				const rect = minimapCanvas.getBoundingClientRect();
+				const x = e.clientX - rect.left;
+				const y = e.clientY - rect.top;
+				const modelX = lastMinimapBounds.minX + (x / rect.width) * (lastMinimapBounds.maxX - lastMinimapBounds.minX);
+				const modelY = lastMinimapBounds.maxY - (y / rect.height) * (lastMinimapBounds.maxY - lastMinimapBounds.minY);
+				const canvasRect = dxfCanvas.getBoundingClientRect();
+				view.offsetX = canvasRect.width / 2 - (modelX - extents.minX) * view.scale;
+				view.offsetY = canvasRect.height / 2 - (extents.maxY - modelY) * view.scale;
+				draw();
+			});
+		}
 
         // Show the initial message on load instead of a blank canvas.
         // The "Inicio" button will now properly initialize the blank canvas.
