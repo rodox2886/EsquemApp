@@ -2662,6 +2662,7 @@
 				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
 				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
 				dxfCtx.lineWidth = d.strokeWidth || 1.5;
+				const rotationRad = (d.rotation || 0) * Math.PI / 180;
 
 				if (d.type === 'draw-dashed-line') {
 					dxfCtx.setLineDash([5, 5]);
@@ -2670,23 +2671,35 @@
 				const start = modelToScreen(d.start.x, d.start.y);
 				let end;
 				if(d.end) end = modelToScreen(d.end.x, d.end.y);
+				const cx = end ? (start.x + end.x) / 2 : start.x;
+				const cy = end ? (start.y + end.y) / 2 : start.y;
+
+				const startLocal = { x: start.x - cx, y: start.y - cy };
+				const endLocal = end ? { x: end.x - cx, y: end.y - cy } : null;
+				const needsEndPoint = ['draw-rect', 'draw-ellipse', 'draw-line', 'draw-dashed-line'].includes(d.type);
+				if (needsEndPoint && !endLocal) {
+					dxfCtx.restore();
+					return;
+				}
 
 				switch(d.type) {
 					case 'draw-rect':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+						dxfCtx.rect(startLocal.x, startLocal.y, endLocal.x - startLocal.x, endLocal.y - startLocal.y);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
 						dxfCtx.stroke();
 						break;
 					case 'draw-ellipse':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						const rx = Math.abs(end.x - start.x) / 2;
-						const ry = Math.abs(end.y - start.y) / 2;
-						const cx = Math.min(start.x, end.x) + rx;
-						const cy = Math.min(start.y, end.y) + ry;
-						drawEllipsePath(dxfCtx, cx, cy, rx, ry);
+						const rx = Math.abs(endLocal.x - startLocal.x) / 2;
+						const ry = Math.abs(endLocal.y - startLocal.y) / 2;
+						drawEllipsePath(dxfCtx, 0, 0, rx, ry);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
@@ -2694,9 +2707,11 @@
 						break;
 					case 'draw-line':
 					case 'draw-dashed-line':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						dxfCtx.moveTo(start.x, start.y);
-						dxfCtx.lineTo(end.x, end.y);
+						dxfCtx.moveTo(startLocal.x, startLocal.y);
+						dxfCtx.lineTo(endLocal.x, endLocal.y);
 						dxfCtx.stroke();
 						break;
 					case 'draw-text':
@@ -3256,6 +3271,31 @@
 
 				if (!drawing.end) return null;
 
+				const rotation = drawing.rotation || 0;
+				if (rotation !== 0 && end) {
+					const cx = (drawing.start.x + drawing.end.x) / 2;
+					const cy = (drawing.start.y + drawing.end.y) / 2;
+					const baseCornersModel = [
+						{ x: drawing.start.x, y: drawing.start.y },
+						{ x: drawing.start.x, y: drawing.end.y },
+						{ x: drawing.end.x, y: drawing.start.y },
+						{ x: drawing.end.x, y: drawing.end.y },
+					].map(p => rotatePoint(p.x, p.y, cx, cy, rotation));
+
+					const min_x = Math.min(...baseCornersModel.map(c => c.x));
+					const min_y = Math.min(...baseCornersModel.map(c => c.y));
+					const max_x = Math.max(...baseCornersModel.map(c => c.x));
+					const max_y = Math.max(...baseCornersModel.map(c => c.y));
+
+					if (inModelCoords) {
+						return { x: min_x, y: min_y, width: max_x - min_x, height: max_y - min_y };
+					}
+
+					const screen_min = modelToScreen(min_x, max_y);
+					const screen_max = modelToScreen(max_x, min_y);
+					return { x: screen_min.x, y: screen_min.y, width: screen_max.x - screen_min.x, height: screen_max.y - screen_min.y };
+				}
+
 				const x = Math.min(start.x, end.x);
 				const y = Math.min(start.y, end.y);
 				const width = Math.abs(start.x - end.x);
@@ -3540,7 +3580,13 @@
 			if (drawing.type !== 'draw-text') { // No se permite rotar el texto para mantener la legibilidad
 				contentHtml += `<div>
 									<label for="drawing-rotation" class="font-semibold text-gray-600 block mb-1">Rotación (°)</label>
-									<input type="range" id="drawing-rotation" min="0" max="360" step="1" value="${drawing.rotation || 0}" class="w-full">
+									<input type="range" id="drawing-rotation" min="0" max="360" step="1" value="${drawing.rotation || 0}" class="w-full" list="rotation-presets">
+									<datalist id="rotation-presets">
+										<option value="0"><option value="45"><option value="90"><option value="135"><option value="180"><option value="225"><option value="270"><option value="315"><option value="360">
+									</datalist>
+									<div class="flex flex-wrap gap-2 mt-2" id="rotation-quick-buttons">
+										${[0,45,90,135,180,225,270,315,360].map(val => `<button data-rotation-preset="${val}" class="px-2 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200">${val}°</button>`).join('')}
+									</div>
 								</div>`;
 			}
 			
@@ -3639,23 +3685,38 @@
 			}
 
 			const rotationInput = document.getElementById('drawing-rotation');
+			const rotationPresetButtons = document.querySelectorAll('[data-rotation-preset]');
+			const applyRotation = (angle) => {
+				const newAngle = Number.isFinite(angle) ? angle : 0;
+				if (rotationInput) rotationInput.value = newAngle;
+				drawing.rotation = newAngle;
+				if (drawing.associatedSeccionadorId) {
+					const seccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
+					if (seccionador) {
+						const offset = drawing.size + seccionador.size;
+						const rad = newAngle * Math.PI / 180;
+						seccionador.start.x = drawing.start.x + offset * Math.cos(rad);
+						seccionador.start.y = drawing.start.y + offset * Math.sin(rad);
+						seccionador.rotation = newAngle; // Match rotation
+					}
+				}
+				draw();
+			};
+
 			if (rotationInput) {
 				rotationInput.addEventListener('input', (e) => {
-					drawing.rotation = parseFloat(e.target.value);
-					if (drawing.associatedSeccionadorId) {
-						const seccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
-						if (seccionador) {
-							const offset = drawing.size + seccionador.size;
-							const rad = drawing.rotation * Math.PI / 180;
-							seccionador.start.x = drawing.start.x + offset * Math.cos(rad);
-							seccionador.start.y = drawing.start.y + offset * Math.sin(rad);
-							seccionador.rotation = drawing.rotation; // Match rotation
-						}
-					}
-					draw();
+					applyRotation(parseFloat(e.target.value));
 				});
 				rotationInput.addEventListener('change', () => saveHistoryState());
 			}
+
+			rotationPresetButtons.forEach(btn => {
+				btn.addEventListener('click', () => {
+					const presetAngle = parseFloat(btn.dataset.rotationPreset);
+					applyRotation(presetAngle);
+					saveHistoryState();
+				});
+			});
 
             const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
             if (toggleDrawingLineStyleBtn) {
@@ -5824,6 +5885,7 @@
 						ctx.stroke();
 						break;
 				}
+				dxfCtx.restore();
 			});
     	}
 
