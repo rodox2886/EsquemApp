@@ -157,8 +157,8 @@
 		.message-box .btn-warning:hover { background-color: #b45309; }
 
 		@media (min-width: 768px) {
-			#visualization-container {
-				padding-right: clamp(260px, 24vw, 380px);
+			#visualization-container[data-minimap-width] {
+				padding-right: calc(var(--minimap-width, 0px) + 16px);
 			}
 		}
 
@@ -789,7 +789,7 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-					  <div id="minimap-card" class="hidden md:flex fixed top-3 bottom-3 right-3 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 flex-col gap-2" style="width: clamp(260px, 24vw, 380px);">
+					  <div id="minimap-card" class="hidden md:flex fixed top-3 bottom-3 right-3 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 flex-col gap-2" style="width: clamp(240px, 22vw, 320px);">
 						  <div class="flex items-center justify-between">
 							  <span class="font-semibold text-gray-700">Minimapa</span>
 							  <span class="text-gray-500" id="minimap-scale-label"></span>
@@ -916,9 +916,10 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			const minimapViewportPaddingFactor = 0.0; // Match main view closely
+			const minimapViewportPaddingFactor = 0.0; // Match main view closely (no extra padding)
 			const minimapScenePaddingModel = 5;
 			let lastMinimapBounds = null;
+			let minimapWidth = 0;
 
 
 			// --- Undo/Redo State ---
@@ -3172,8 +3173,8 @@
 			const viewBounds = screenToModelBounds();
 			const viewW = Math.max(viewBounds.maxX - viewBounds.minX, 1e-6);
 			const viewH = Math.max(viewBounds.maxY - viewBounds.minY, 1e-6);
-			const targetPadX = Math.max(viewW * minimapViewportPaddingFactor, minimapScenePaddingModel);
-			const targetPadY = Math.max(viewH * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const targetPadX = Math.max(viewW * minimapViewportPaddingFactor, 0);
+			const targetPadY = Math.max(viewH * minimapViewportPaddingFactor, 0);
 
 			const bounds = {
 				minX: viewBounds.minX - targetPadX,
@@ -6302,6 +6303,16 @@
 		populateSeccionadorSymbolPicker();
 		saveHistoryState({ immediate: true });
 		updateHistoryButtons();
+		const visualizationContainer = document.getElementById('visualization-container');
+		function updateMinimapLayout() {
+			if (!minimapCard || !visualizationContainer) return;
+			const width = minimapCard.getBoundingClientRect().width;
+			minimapWidth = width;
+			visualizationContainer.style.setProperty('--minimap-width', `${width}px`);
+			visualizationContainer.dataset.minimapWidth = 'true';
+		}
+		window.addEventListener('resize', updateMinimapLayout);
+		updateMinimapLayout();
 
 		if (minimapCanvas) {
 			minimapCanvas.addEventListener('click', (e) => {
