@@ -783,6 +783,13 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
+					  <div id="minimap-card" class="hidden md:block absolute top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-md p-2 text-xs text-gray-700 z-20 pointer-events-none">
+						  <div class="flex items-center justify-between mb-1">
+							  <span class="font-semibold text-gray-700">Minimapa</span>
+							  <span class="text-gray-500" id="minimap-scale-label"></span>
+						  </div>
+						  <canvas id="minimap-canvas" width="200" height="140" class="w-48 h-36 rounded border border-gray-100"></canvas>
+					  </div>
 				</main>
 			</div>
 		</div>
@@ -809,6 +816,10 @@
         const homeBtn = document.getElementById('home-btn');
         const dxfCanvas = document.getElementById('dxf-canvas');
         const dxfCtx = dxfCanvas.getContext('2d');
+		const minimapCard = document.getElementById('minimap-card');
+		const minimapCanvas = document.getElementById('minimap-canvas');
+		const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
+		const minimapScaleLabel = document.getElementById('minimap-scale-label');
         const infoPanel = document.getElementById('info-panel');
         const infoContent = document.getElementById('info-content');
         const closeInfoPanelBtn = document.getElementById('close-info-panel-btn');
@@ -870,8 +881,8 @@
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
 
 	        // --- STATE VARIABLES ---
-	        let linesAndPolylines = [];
-	        let symbols = [];
+        let linesAndPolylines = [];
+        let symbols = [];
         let extents = { minX: 0, minY: 0, maxX: -Infinity, maxY: -Infinity };
         let view = { offsetX: 0, offsetY: 0, scale: 1 };
         let selectedEntity = null;
@@ -899,6 +910,8 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			const minimapViewportPaddingFactor = 0.15;
+			const minimapScenePaddingModel = 5;
 
 
 			// --- Undo/Redo State ---
@@ -2063,11 +2076,23 @@
 			}
 		}
 
-		function modelToScreen(modelX, modelY) {
+        function modelToScreen(modelX, modelY) {
             const screenX = ((modelX - extents.minX) * view.scale) + view.offsetX;
             const screenY = ((extents.maxY - modelY) * view.scale) + view.offsetY;
             return { x: screenX, y: screenY };
         }
+
+		function screenToModelBounds() {
+			const rect = dxfCanvas.getBoundingClientRect();
+			const tl = screenToModel(0, 0);
+			const br = screenToModel(rect.width, rect.height);
+			return {
+				minX: Math.min(tl.x, br.x),
+				maxX: Math.max(tl.x, br.x),
+				minY: Math.min(tl.y, br.y),
+				maxY: Math.max(tl.y, br.y)
+			};
+		}
 
 		function screenToModel(sx, sy) {
 			const mx = ((sx - view.offsetX) / view.scale) + extents.minX;
@@ -3107,7 +3132,130 @@
         	}
 			
 			dxfCtx.restore(); // Restore the clean, initial state
+			updateMinimap();
         }
+		
+		function updateMinimap() {
+			if (!minimapCtx || !minimapCanvas) return;
+			if (dxfCanvas.classList.contains('hidden')) {
+				if (minimapCard) minimapCard.classList.add('hidden');
+				return;
+			}
+
+			if (minimapCard) minimapCard.classList.remove('hidden');
+
+			const displayWidth = minimapCanvas.clientWidth || minimapCanvas.width || 200;
+			const displayHeight = minimapCanvas.clientHeight || minimapCanvas.height || 140;
+			const dpr = window.devicePixelRatio || 1;
+			minimapCanvas.width = displayWidth * dpr;
+			minimapCanvas.height = displayHeight * dpr;
+			minimapCtx.save();
+			minimapCtx.scale(dpr, dpr);
+			minimapCtx.clearRect(0, 0, displayWidth, displayHeight);
+			minimapCtx.fillStyle = '#f8fafc';
+			minimapCtx.fillRect(0, 0, displayWidth, displayHeight);
+
+			const sceneWidth = extents.maxX - extents.minX;
+			const sceneHeight = extents.maxY - extents.minY;
+			if (!isFinite(sceneWidth) || !isFinite(sceneHeight) || sceneWidth <= 0 || sceneHeight <= 0) {
+				minimapCtx.restore();
+				return;
+			}
+
+			const padX = Math.max(sceneWidth * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const padY = Math.max(sceneHeight * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const bounds = {
+				minX: extents.minX - padX,
+				maxX: extents.maxX + padX,
+				minY: extents.minY - padY,
+				maxY: extents.maxY + padY
+			};
+
+			const mapPoint = (x, y) => ({
+				x: ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * displayWidth,
+				y: (1 - (y - bounds.minY) / (bounds.maxY - bounds.minY)) * displayHeight
+			});
+
+			const drawSegment = (a, b, color = '#9ca3af', width = 1) => {
+				minimapCtx.save();
+				minimapCtx.strokeStyle = color;
+				minimapCtx.lineWidth = width;
+				const p1 = mapPoint(a.x, a.y);
+				const p2 = mapPoint(b.x, b.y);
+				minimapCtx.beginPath();
+				minimapCtx.moveTo(p1.x, p1.y);
+				minimapCtx.lineTo(p2.x, p2.y);
+				minimapCtx.stroke();
+				minimapCtx.restore();
+			};
+
+			linesAndPolylines.forEach(ent => {
+				if (ent.start && ent.end) {
+					drawSegment(ent.start, ent.end, '#94a3b8', 1);
+				} else if (ent.vertices && ent.vertices.length > 1) {
+					for (let i = 0; i < ent.vertices.length - 1; i++) {
+						const v1 = ent.vertices[i];
+						const v2 = ent.vertices[i + 1];
+						if (v1 && v2) drawSegment(v1, v2, '#94a3b8', 1);
+					}
+				}
+			});
+
+			userDrawings.forEach(d => {
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					drawSegment(d.start, d.end, '#0ea5e9', 1.5);
+				} else if (d.type === 'draw-rect' || d.type === 'draw-ellipse') {
+					const bbox = getEntityBBox(d, true);
+					if (bbox) {
+						const p1 = mapPoint(bbox.x, bbox.y);
+						const p2 = mapPoint(bbox.x + bbox.width, bbox.y + bbox.height);
+						minimapCtx.save();
+						minimapCtx.strokeStyle = '#0ea5e9';
+						minimapCtx.lineWidth = 1;
+						minimapCtx.strokeRect(p1.x, p2.y, p2.x - p1.x, p1.y - p2.y);
+						minimapCtx.restore();
+					}
+				}
+			});
+
+			symbols.forEach(sym => {
+				const pos = sym.position || sym.start;
+				if (!pos) return;
+				const p = mapPoint(pos.x, pos.y);
+				minimapCtx.save();
+				minimapCtx.fillStyle = '#111827';
+				minimapCtx.beginPath();
+				minimapCtx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+				minimapCtx.fill();
+				minimapCtx.restore();
+			});
+
+			const viewBounds = screenToModelBounds();
+			const viewPadX = Math.max((viewBounds.maxX - viewBounds.minX) * minimapViewportPaddingFactor, 0);
+			const viewPadY = Math.max((viewBounds.maxY - viewBounds.minY) * minimapViewportPaddingFactor, 0);
+			const viewRect = {
+				minX: viewBounds.minX - viewPadX,
+				maxX: viewBounds.maxX + viewPadX,
+				minY: viewBounds.minY - viewPadY,
+				maxY: viewBounds.maxY + viewPadY
+			};
+
+			const tl = mapPoint(viewRect.minX, viewRect.maxY);
+			const br = mapPoint(viewRect.maxX, viewRect.minY);
+
+			minimapCtx.save();
+			minimapCtx.strokeStyle = '#ef4444';
+			minimapCtx.lineWidth = 1.5;
+			minimapCtx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+			minimapCtx.restore();
+
+			if (minimapScaleLabel) {
+				const shownWidth = bounds.maxX - bounds.minX;
+				minimapScaleLabel.textContent = `${shownWidth.toFixed(0)}u`;
+			}
+
+			minimapCtx.restore();
+		}
 		
 		function renderGroundSymbol(d) {
 			const size = (d.size || 0.5) * view.scale;
