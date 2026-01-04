@@ -783,12 +783,12 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-					  <div id="minimap-card" class="hidden md:block fixed top-1/2 right-4 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-md p-2 text-xs text-gray-700 z-20 pointer-events-none">
+					  <div id="minimap-card" class="hidden md:block fixed top-1/2 right-4 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 pointer-events-none" style="width: clamp(240px, 26vw, 420px);">
 						  <div class="flex items-center justify-between mb-1">
 							  <span class="font-semibold text-gray-700">Minimapa</span>
 							  <span class="text-gray-500" id="minimap-scale-label"></span>
 						  </div>
-						  <canvas id="minimap-canvas" width="220" height="160" class="w-52 h-40 rounded border border-gray-100"></canvas>
+						  <canvas id="minimap-canvas" width="220" height="160" class="w-full aspect-video rounded border border-gray-100"></canvas>
 					  </div>
 				</main>
 			</div>
@@ -910,7 +910,7 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			const minimapViewportPaddingFactor = 0.15;
+			const minimapViewportPaddingFactor = 1.0; // Show ~3x the main view (1x view + 2x padding)
 			const minimapScenePaddingModel = 5;
 
 
@@ -3177,12 +3177,12 @@
 
 			// Clamp to global extents to avoid drifting outside all content
 			if (isFinite(extents.minX) && isFinite(extents.maxX)) {
-				bounds.minX = Math.min(bounds.minX, extents.minX);
-				bounds.maxX = Math.max(bounds.maxX, extents.maxX);
+				bounds.minX = Math.max(bounds.minX, extents.minX - targetPadX);
+				bounds.maxX = Math.min(bounds.maxX, extents.maxX + targetPadX);
 			}
 			if (isFinite(extents.minY) && isFinite(extents.maxY)) {
-				bounds.minY = Math.min(bounds.minY, extents.minY);
-				bounds.maxY = Math.max(bounds.maxY, extents.maxY);
+				bounds.minY = Math.max(bounds.minY, extents.minY - targetPadY);
+				bounds.maxY = Math.min(bounds.maxY, extents.maxY + targetPadY);
 			}
 
 			const mapPoint = (x, y) => ({
