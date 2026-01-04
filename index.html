@@ -783,6 +783,13 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
+					  <div id="minimap-card" class="hidden md:block fixed top-1/2 right-4 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-md p-3 text-xs text-gray-700 z-20 pointer-events-none" style="width: clamp(240px, 26vw, 420px);">
+						  <div class="flex items-center justify-between mb-1">
+							  <span class="font-semibold text-gray-700">Minimapa</span>
+							  <span class="text-gray-500" id="minimap-scale-label"></span>
+						  </div>
+						  <canvas id="minimap-canvas" width="220" height="160" class="w-full aspect-video rounded border border-gray-100"></canvas>
+					  </div>
 				</main>
 			</div>
 		</div>
@@ -809,6 +816,10 @@
         const homeBtn = document.getElementById('home-btn');
         const dxfCanvas = document.getElementById('dxf-canvas');
         const dxfCtx = dxfCanvas.getContext('2d');
+		const minimapCard = document.getElementById('minimap-card');
+		const minimapCanvas = document.getElementById('minimap-canvas');
+		const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
+		const minimapScaleLabel = document.getElementById('minimap-scale-label');
         const infoPanel = document.getElementById('info-panel');
         const infoContent = document.getElementById('info-content');
         const closeInfoPanelBtn = document.getElementById('close-info-panel-btn');
@@ -870,8 +881,8 @@
 	        const SNAP_DISTANCE = 5.0; // Max distance in model units to show snap line
 
 	        // --- STATE VARIABLES ---
-	        let linesAndPolylines = [];
-	        let symbols = [];
+        let linesAndPolylines = [];
+        let symbols = [];
         let extents = { minX: 0, minY: 0, maxX: -Infinity, maxY: -Infinity };
         let view = { offsetX: 0, offsetY: 0, scale: 1 };
         let selectedEntity = null;
@@ -899,11 +910,14 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			const minimapViewportPaddingFactor = 1.0; // Show ~3x the main view (1x view + 2x padding)
+			const minimapScenePaddingModel = 5;
 
 
 			// --- Undo/Redo State ---
 			let undoStack = [];
 			let redoStack = [];
+			let historySaveScheduled = false;
 
 
 		// --- HELPER & CORE FUNCTIONS ---
@@ -957,16 +971,123 @@
 			return bounds;
 		}
 
-		function isBBoxInsideRect(bbox, rect) {
-			if (!bbox) return false;
-			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
-			       bbox.y >= rect.minY && (bbox.y + bbox.height) <= rect.maxY;
+		function doesBBoxIntersectRect(bbox, rect) {
+			if (!bbox || !rect) return false;
+			const bboxMaxX = bbox.x + bbox.width;
+			const bboxMaxY = bbox.y + bbox.height;
+			return bbox.x <= rect.maxX && bboxMaxX >= rect.minX &&
+			       bbox.y <= rect.maxY && bboxMaxY >= rect.minY;
+		}
+
+		function clipSegmentToRect(p1, p2, rect) {
+			// Cohen–Sutherland line clipping
+			const { minX, minY, maxX, maxY } = rect;
+			const INSIDE = 0, LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8;
+
+			const computeCode = ({ x, y }) => {
+				let code = INSIDE;
+				if (x < minX) code |= LEFT;
+				else if (x > maxX) code |= RIGHT;
+				if (y < minY) code |= BOTTOM;
+				else if (y > maxY) code |= TOP;
+				return code;
+			};
+
+			let c1 = computeCode(p1);
+			let c2 = computeCode(p2);
+			let pt1 = { ...p1 };
+			let pt2 = { ...p2 };
+
+			while (true) {
+				if ((c1 | c2) === 0) {
+					return { start: pt1, end: pt2 }; // Both inside
+				}
+				if (c1 & c2) {
+					return null; // Completely outside
+				}
+
+				const codeOut = c1 || c2;
+				let x, y;
+
+				if (codeOut & TOP) {
+					x = pt1.x + (pt2.x - pt1.x) * (maxY - pt1.y) / (pt2.y - pt1.y);
+					y = maxY;
+				} else if (codeOut & BOTTOM) {
+					x = pt1.x + (pt2.x - pt1.x) * (minY - pt1.y) / (pt2.y - pt1.y);
+					y = minY;
+				} else if (codeOut & RIGHT) {
+					y = pt1.y + (pt2.y - pt1.y) * (maxX - pt1.x) / (pt2.x - pt1.x);
+					x = maxX;
+				} else {
+					y = pt1.y + (pt2.y - pt1.y) * (minX - pt1.x) / (pt2.x - pt1.x);
+					x = minX;
+				}
+
+				if (codeOut === c1) {
+					pt1 = { x, y };
+					c1 = computeCode(pt1);
+				} else {
+					pt2 = { x, y };
+					c2 = computeCode(pt2);
+				}
+			}
 		}
 
 		function clipDiagramToExtents(clipRect) {
-			userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
-			symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
-			linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
+			userDrawings = userDrawings.flatMap(d => {
+				if (!doesBBoxIntersectRect(getEntityBBox(d, true), clipRect)) return [];
+
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					const clipped = clipSegmentToRect(d.start, d.end, clipRect);
+					if (!clipped) return [];
+					return [{ ...d, start: clipped.start, end: clipped.end }];
+				}
+				return [d];
+			});
+			symbols = symbols.filter(s => doesBBoxIntersectRect(getEntityBBox(s, true), clipRect));
+			linesAndPolylines = linesAndPolylines.flatMap(l => {
+				if (!doesBBoxIntersectRect(getEntityBBox(l, true), clipRect)) return [];
+
+				if ((l.type === 'LINE' || l.type === 'draw-line' || l.type === 'draw-dashed-line') && l.start && l.end) {
+					const clipped = clipSegmentToRect(l.start, l.end, clipRect);
+					if (!clipped) return [];
+					return [{ ...l, start: clipped.start, end: clipped.end }];
+				}
+
+				if ((l.type === 'LWPOLYLINE' || l.type === 'POLYLINE') && Array.isArray(l.vertices) && l.vertices.length > 1) {
+					const clippedSegments = [];
+					for (let i = 0; i < l.vertices.length - 1; i++) {
+						const seg = clipSegmentToRect(l.vertices[i], l.vertices[i + 1], clipRect);
+						if (seg) clippedSegments.push(seg);
+					}
+
+					if (clippedSegments.length === 0) return [];
+
+					const vertices = [];
+					clippedSegments.forEach((seg, idx) => {
+						if (idx === 0) vertices.push(seg.start);
+						vertices.push(seg.end);
+					});
+
+					return [{ ...l, vertices }];
+				}
+
+				return [l];
+			});
+		}
+
+		function drawEllipsePath(ctx, cx, cy, rx, ry) {
+			if (!ctx) return;
+			if (typeof ctx.ellipse === 'function') {
+				ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+				return;
+			}
+
+			ctx.save();
+			ctx.translate(cx, cy);
+			ctx.scale(rx, ry);
+			ctx.arc(0, 0, 1, 0, 2 * Math.PI);
+			ctx.restore();
 		}
 
         function findClosestPointOnSegment(p, a, b) {
@@ -1634,38 +1755,66 @@
 			updateHistoryButtons();
 		}
 		
-		function saveHistoryState() {
-                        /*
-                         * When storing state for undo/redo we need to create deep copies of the
-                         * current data structures.  Using JSON.parse(JSON.stringify(...)) works
-                         * for simple, acyclic objects but can be extremely expensive for large
-                         * DXF files or complex drawings.  Modern browsers support the
-                         * `structuredClone` API which performs a deep clone efficiently and
-                         * correctly handles circular references.  We fall back to the JSON
-                         * method if `structuredClone` is unavailable.
-                         */
-                        function safeClone(obj) {
-                            try {
-                                // structuredClone may throw if the environment doesn’t support it
-                                return (typeof structuredClone === 'function') ? structuredClone(obj) : JSON.parse(JSON.stringify(obj));
-                            } catch (ex) {
-                                // If cloning fails (e.g. circular references), attempt JSON cloning as a last resort
-                                return JSON.parse(JSON.stringify(obj));
-                            }
-                        }
-                        const state = {
-                                extents: safeClone(extents),
-                                view: safeClone(view),
-                                originalExtents: originalExtents ? safeClone(originalExtents) : null,
-                                userDrawings: safeClone(userDrawings),
-                                symbols: safeClone(symbols),
-                                linesAndPolylines: safeClone(linesAndPolylines),
-                                isManualModeEnabled: isManualModeEnabled,
-                        };
-                        undoStack.push(state);
-                        redoStack = []; // A new action clears the redo stack.
-                        updateHistoryButtons();
-                }
+		function safeClone(obj) {
+			try {
+				return (typeof structuredClone === 'function') ? structuredClone(obj) : JSON.parse(JSON.stringify(obj));
+			} catch (ex) {
+				return JSON.parse(JSON.stringify(obj));
+			}
+		}
+
+		function buildHistorySnapshot() {
+			return {
+				extents: safeClone(extents),
+				view: safeClone(view),
+				originalExtents: originalExtents ? safeClone(originalExtents) : null,
+				userDrawings: safeClone(userDrawings),
+				symbols: safeClone(symbols),
+				linesAndPolylines: safeClone(linesAndPolylines),
+				isManualModeEnabled: isManualModeEnabled,
+			};
+		}
+
+		function statesAreEqual(a, b) {
+			if (!a || !b) return false;
+			try {
+				return JSON.stringify(a) === JSON.stringify(b);
+			} catch (err) {
+				return false;
+			}
+		}
+
+		const scheduleHistorySnapshot = typeof queueMicrotask === 'function'
+			? queueMicrotask
+			: (fn) => Promise.resolve().then(fn);
+
+		function saveHistoryState(options = {}) {
+			const { immediate = false } = options;
+
+			const pushSnapshot = () => {
+				historySaveScheduled = false;
+				const snapshot = buildHistorySnapshot();
+
+				const last = undoStack[undoStack.length - 1];
+				if (statesAreEqual(last, snapshot)) {
+					updateHistoryButtons();
+					return;
+				}
+
+				undoStack.push(snapshot);
+				redoStack = [];
+				updateHistoryButtons();
+			};
+
+			if (immediate) {
+				pushSnapshot();
+				return;
+			}
+
+			if (historySaveScheduled) return;
+			historySaveScheduled = true;
+			scheduleHistorySnapshot(pushSnapshot);
+		}
 
 		function getDashPatternForLinetype(linetype) {
             if (!linetype) return null;
@@ -1927,11 +2076,23 @@
 			}
 		}
 
-		function modelToScreen(modelX, modelY) {
+        function modelToScreen(modelX, modelY) {
             const screenX = ((modelX - extents.minX) * view.scale) + view.offsetX;
             const screenY = ((extents.maxY - modelY) * view.scale) + view.offsetY;
             return { x: screenX, y: screenY };
         }
+
+		function screenToModelBounds() {
+			const rect = dxfCanvas.getBoundingClientRect();
+			const tl = screenToModel(0, 0);
+			const br = screenToModel(rect.width, rect.height);
+			return {
+				minX: Math.min(tl.x, br.x),
+				maxX: Math.max(tl.x, br.x),
+				minY: Math.min(tl.y, br.y),
+				maxY: Math.max(tl.y, br.y)
+			};
+		}
 
 		function screenToModel(sx, sy) {
 			const mx = ((sx - view.offsetX) / view.scale) + extents.minX;
@@ -2526,6 +2687,7 @@
 				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
 				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
 				dxfCtx.lineWidth = d.strokeWidth || 1.5;
+				const rotationRad = (d.rotation || 0) * Math.PI / 180;
 
 				if (d.type === 'draw-dashed-line') {
 					dxfCtx.setLineDash([5, 5]);
@@ -2534,23 +2696,35 @@
 				const start = modelToScreen(d.start.x, d.start.y);
 				let end;
 				if(d.end) end = modelToScreen(d.end.x, d.end.y);
+				const cx = end ? (start.x + end.x) / 2 : start.x;
+				const cy = end ? (start.y + end.y) / 2 : start.y;
+
+				const startLocal = { x: start.x - cx, y: start.y - cy };
+				const endLocal = end ? { x: end.x - cx, y: end.y - cy } : null;
+				const needsEndPoint = ['draw-rect', 'draw-ellipse', 'draw-line', 'draw-dashed-line'].includes(d.type);
+				if (needsEndPoint && !endLocal) {
+					dxfCtx.restore();
+					return;
+				}
 
 				switch(d.type) {
 					case 'draw-rect':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+						dxfCtx.rect(startLocal.x, startLocal.y, endLocal.x - startLocal.x, endLocal.y - startLocal.y);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
 						dxfCtx.stroke();
 						break;
 					case 'draw-ellipse':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						const rx = Math.abs(end.x - start.x) / 2;
-						const ry = Math.abs(end.y - start.y) / 2;
-						const cx = Math.min(start.x, end.x) + rx;
-						const cy = Math.min(start.y, end.y) + ry;
-						dxfCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+						const rx = Math.abs(endLocal.x - startLocal.x) / 2;
+						const ry = Math.abs(endLocal.y - startLocal.y) / 2;
+						drawEllipsePath(dxfCtx, 0, 0, rx, ry);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
@@ -2558,9 +2732,11 @@
 						break;
 					case 'draw-line':
 					case 'draw-dashed-line':
+						dxfCtx.translate(cx, cy);
+						if (rotationRad) dxfCtx.rotate(rotationRad);
 						dxfCtx.beginPath();
-						dxfCtx.moveTo(start.x, start.y);
-						dxfCtx.lineTo(end.x, end.y);
+						dxfCtx.moveTo(startLocal.x, startLocal.y);
+						dxfCtx.lineTo(endLocal.x, endLocal.y);
 						dxfCtx.stroke();
 						break;
 					case 'draw-text':
@@ -2956,7 +3132,135 @@
         	}
 			
 			dxfCtx.restore(); // Restore the clean, initial state
+			updateMinimap();
         }
+		
+		function updateMinimap() {
+			if (!minimapCtx || !minimapCanvas) return;
+			if (dxfCanvas.classList.contains('hidden')) {
+				if (minimapCard) minimapCard.classList.add('hidden');
+				return;
+			}
+
+			if (minimapCard) minimapCard.classList.remove('hidden');
+
+			const displayWidth = minimapCanvas.clientWidth || minimapCanvas.width || 200;
+			const displayHeight = minimapCanvas.clientHeight || minimapCanvas.height || 140;
+			const dpr = window.devicePixelRatio || 1;
+			minimapCanvas.width = displayWidth * dpr;
+			minimapCanvas.height = displayHeight * dpr;
+			minimapCtx.save();
+			minimapCtx.scale(dpr, dpr);
+			minimapCtx.clearRect(0, 0, displayWidth, displayHeight);
+			minimapCtx.fillStyle = '#f8fafc';
+			minimapCtx.fillRect(0, 0, displayWidth, displayHeight);
+
+			const sceneWidth = extents.maxX - extents.minX;
+			const sceneHeight = extents.maxY - extents.minY;
+			if (!isFinite(sceneWidth) || !isFinite(sceneHeight) || sceneWidth <= 0 || sceneHeight <= 0) {
+				minimapCtx.restore();
+				return;
+			}
+
+			const viewBounds = screenToModelBounds();
+			const viewW = Math.max(viewBounds.maxX - viewBounds.minX, 1e-6);
+			const viewH = Math.max(viewBounds.maxY - viewBounds.minY, 1e-6);
+			const targetPadX = Math.max(viewW * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const targetPadY = Math.max(viewH * minimapViewportPaddingFactor, minimapScenePaddingModel);
+
+			const bounds = {
+				minX: viewBounds.minX - targetPadX,
+				maxX: viewBounds.maxX + targetPadX,
+				minY: viewBounds.minY - targetPadY,
+				maxY: viewBounds.maxY + targetPadY
+			};
+
+			// Clamp to global extents to avoid drifting outside all content
+			if (isFinite(extents.minX) && isFinite(extents.maxX)) {
+				bounds.minX = Math.max(bounds.minX, extents.minX - targetPadX);
+				bounds.maxX = Math.min(bounds.maxX, extents.maxX + targetPadX);
+			}
+			if (isFinite(extents.minY) && isFinite(extents.maxY)) {
+				bounds.minY = Math.max(bounds.minY, extents.minY - targetPadY);
+				bounds.maxY = Math.min(bounds.maxY, extents.maxY + targetPadY);
+			}
+
+			const mapPoint = (x, y) => ({
+				x: ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * displayWidth,
+				y: (1 - (y - bounds.minY) / (bounds.maxY - bounds.minY)) * displayHeight
+			});
+
+			const drawSegment = (a, b, color = '#9ca3af', width = 1) => {
+				minimapCtx.save();
+				minimapCtx.strokeStyle = color;
+				minimapCtx.lineWidth = width;
+				const p1 = mapPoint(a.x, a.y);
+				const p2 = mapPoint(b.x, b.y);
+				minimapCtx.beginPath();
+				minimapCtx.moveTo(p1.x, p1.y);
+				minimapCtx.lineTo(p2.x, p2.y);
+				minimapCtx.stroke();
+				minimapCtx.restore();
+			};
+
+			linesAndPolylines.forEach(ent => {
+				if (ent.start && ent.end) {
+					drawSegment(ent.start, ent.end, '#94a3b8', 1);
+				} else if (ent.vertices && ent.vertices.length > 1) {
+					for (let i = 0; i < ent.vertices.length - 1; i++) {
+						const v1 = ent.vertices[i];
+						const v2 = ent.vertices[i + 1];
+						if (v1 && v2) drawSegment(v1, v2, '#94a3b8', 1);
+					}
+				}
+			});
+
+			userDrawings.forEach(d => {
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					drawSegment(d.start, d.end, '#0ea5e9', 1.5);
+				} else if (d.type === 'draw-rect' || d.type === 'draw-ellipse') {
+					const bbox = getEntityBBox(d, true);
+					if (bbox) {
+						const p1 = mapPoint(bbox.x, bbox.y);
+						const p2 = mapPoint(bbox.x + bbox.width, bbox.y + bbox.height);
+						minimapCtx.save();
+						minimapCtx.strokeStyle = '#0ea5e9';
+						minimapCtx.lineWidth = 1;
+						minimapCtx.strokeRect(p1.x, p2.y, p2.x - p1.x, p1.y - p2.y);
+						minimapCtx.restore();
+					}
+				}
+			});
+
+			symbols.forEach(sym => {
+				const pos = sym.position || sym.start;
+				if (!pos) return;
+				const p = mapPoint(pos.x, pos.y);
+				minimapCtx.save();
+				minimapCtx.fillStyle = '#111827';
+				minimapCtx.beginPath();
+				minimapCtx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+				minimapCtx.fill();
+				minimapCtx.restore();
+			});
+
+			const viewRect = screenToModelBounds();
+			const tl = mapPoint(viewRect.minX, viewRect.maxY);
+			const br = mapPoint(viewRect.maxX, viewRect.minY);
+
+			minimapCtx.save();
+			minimapCtx.strokeStyle = '#ef4444';
+			minimapCtx.lineWidth = 1.5;
+			minimapCtx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+			minimapCtx.restore();
+
+			if (minimapScaleLabel) {
+				const shownWidth = bounds.maxX - bounds.minX;
+				minimapScaleLabel.textContent = `${shownWidth.toFixed(0)}u`;
+			}
+
+			minimapCtx.restore();
+		}
 		
 		function renderGroundSymbol(d) {
 			const size = (d.size || 0.5) * view.scale;
@@ -3119,6 +3423,31 @@
 				}
 
 				if (!drawing.end) return null;
+
+				const rotation = drawing.rotation || 0;
+				if (rotation !== 0 && end) {
+					const cx = (drawing.start.x + drawing.end.x) / 2;
+					const cy = (drawing.start.y + drawing.end.y) / 2;
+					const baseCornersModel = [
+						{ x: drawing.start.x, y: drawing.start.y },
+						{ x: drawing.start.x, y: drawing.end.y },
+						{ x: drawing.end.x, y: drawing.start.y },
+						{ x: drawing.end.x, y: drawing.end.y },
+					].map(p => rotatePoint(p.x, p.y, cx, cy, rotation));
+
+					const min_x = Math.min(...baseCornersModel.map(c => c.x));
+					const min_y = Math.min(...baseCornersModel.map(c => c.y));
+					const max_x = Math.max(...baseCornersModel.map(c => c.x));
+					const max_y = Math.max(...baseCornersModel.map(c => c.y));
+
+					if (inModelCoords) {
+						return { x: min_x, y: min_y, width: max_x - min_x, height: max_y - min_y };
+					}
+
+					const screen_min = modelToScreen(min_x, max_y);
+					const screen_max = modelToScreen(max_x, min_y);
+					return { x: screen_min.x, y: screen_min.y, width: screen_max.x - screen_min.x, height: screen_max.y - screen_min.y };
+				}
 
 				const x = Math.min(start.x, end.x);
 				const y = Math.min(start.y, end.y);
@@ -3404,7 +3733,13 @@
 			if (drawing.type !== 'draw-text') { // No se permite rotar el texto para mantener la legibilidad
 				contentHtml += `<div>
 									<label for="drawing-rotation" class="font-semibold text-gray-600 block mb-1">Rotación (°)</label>
-									<input type="range" id="drawing-rotation" min="0" max="360" step="1" value="${drawing.rotation || 0}" class="w-full">
+									<input type="range" id="drawing-rotation" min="0" max="360" step="1" value="${drawing.rotation || 0}" class="w-full" list="rotation-presets">
+									<datalist id="rotation-presets">
+										<option value="0"><option value="45"><option value="90"><option value="135"><option value="180"><option value="225"><option value="270"><option value="315"><option value="360">
+									</datalist>
+									<div class="flex flex-wrap gap-2 mt-2" id="rotation-quick-buttons">
+										${[0,45,90,135,180,225,270,315,360].map(val => `<button data-rotation-preset="${val}" class="px-2 py-1 text-xs rounded bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200">${val}°</button>`).join('')}
+									</div>
 								</div>`;
 			}
 			
@@ -3503,23 +3838,38 @@
 			}
 
 			const rotationInput = document.getElementById('drawing-rotation');
+			const rotationPresetButtons = document.querySelectorAll('[data-rotation-preset]');
+			const applyRotation = (angle) => {
+				const newAngle = Number.isFinite(angle) ? angle : 0;
+				if (rotationInput) rotationInput.value = newAngle;
+				drawing.rotation = newAngle;
+				if (drawing.associatedSeccionadorId) {
+					const seccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
+					if (seccionador) {
+						const offset = drawing.size + seccionador.size;
+						const rad = newAngle * Math.PI / 180;
+						seccionador.start.x = drawing.start.x + offset * Math.cos(rad);
+						seccionador.start.y = drawing.start.y + offset * Math.sin(rad);
+						seccionador.rotation = newAngle; // Match rotation
+					}
+				}
+				draw();
+			};
+
 			if (rotationInput) {
 				rotationInput.addEventListener('input', (e) => {
-					drawing.rotation = parseFloat(e.target.value);
-					if (drawing.associatedSeccionadorId) {
-						const seccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
-						if (seccionador) {
-							const offset = drawing.size + seccionador.size;
-							const rad = drawing.rotation * Math.PI / 180;
-							seccionador.start.x = drawing.start.x + offset * Math.cos(rad);
-							seccionador.start.y = drawing.start.y + offset * Math.sin(rad);
-							seccionador.rotation = drawing.rotation; // Match rotation
-						}
-					}
-					draw();
+					applyRotation(parseFloat(e.target.value));
 				});
 				rotationInput.addEventListener('change', () => saveHistoryState());
 			}
+
+			rotationPresetButtons.forEach(btn => {
+				btn.addEventListener('click', () => {
+					const presetAngle = parseFloat(btn.dataset.rotationPreset);
+					applyRotation(presetAngle);
+					saveHistoryState();
+				});
+			});
 
             const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
             if (toggleDrawingLineStyleBtn) {
@@ -5688,6 +6038,7 @@
 						ctx.stroke();
 						break;
 				}
+				dxfCtx.restore();
 			});
     	}
 
@@ -5946,6 +6297,8 @@
 		populateCtSymbolPicker();
 		populateMundoInternoSymbolPicker();
 		populateSeccionadorSymbolPicker();
+		saveHistoryState({ immediate: true });
+		updateHistoryButtons();
 
         // Show the initial message on load instead of a blank canvas.
         // The "Inicio" button will now properly initialize the blank canvas.
