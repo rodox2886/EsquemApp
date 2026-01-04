@@ -783,12 +783,12 @@
 						<p class="mt-4 text-gray-600">Procesando datos y generando gráfico...</p>
 					</div>
                       <canvas id="dxf-canvas" class="absolute top-0 left-0 w-full h-full hidden"></canvas>
-					  <div id="minimap-card" class="hidden md:block absolute top-4 right-4 bg-white border border-gray-200 rounded-lg shadow-md p-2 text-xs text-gray-700 z-20 pointer-events-none">
+					  <div id="minimap-card" class="hidden md:block fixed top-1/2 right-4 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-md p-2 text-xs text-gray-700 z-20 pointer-events-none">
 						  <div class="flex items-center justify-between mb-1">
 							  <span class="font-semibold text-gray-700">Minimapa</span>
 							  <span class="text-gray-500" id="minimap-scale-label"></span>
 						  </div>
-						  <canvas id="minimap-canvas" width="200" height="140" class="w-48 h-36 rounded border border-gray-100"></canvas>
+						  <canvas id="minimap-canvas" width="220" height="160" class="w-52 h-40 rounded border border-gray-100"></canvas>
 					  </div>
 				</main>
 			</div>
@@ -3162,14 +3162,28 @@
 				return;
 			}
 
-			const padX = Math.max(sceneWidth * minimapViewportPaddingFactor, minimapScenePaddingModel);
-			const padY = Math.max(sceneHeight * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const viewBounds = screenToModelBounds();
+			const viewW = Math.max(viewBounds.maxX - viewBounds.minX, 1e-6);
+			const viewH = Math.max(viewBounds.maxY - viewBounds.minY, 1e-6);
+			const targetPadX = Math.max(viewW * minimapViewportPaddingFactor, minimapScenePaddingModel);
+			const targetPadY = Math.max(viewH * minimapViewportPaddingFactor, minimapScenePaddingModel);
+
 			const bounds = {
-				minX: extents.minX - padX,
-				maxX: extents.maxX + padX,
-				minY: extents.minY - padY,
-				maxY: extents.maxY + padY
+				minX: viewBounds.minX - targetPadX,
+				maxX: viewBounds.maxX + targetPadX,
+				minY: viewBounds.minY - targetPadY,
+				maxY: viewBounds.maxY + targetPadY
 			};
+
+			// Clamp to global extents to avoid drifting outside all content
+			if (isFinite(extents.minX) && isFinite(extents.maxX)) {
+				bounds.minX = Math.min(bounds.minX, extents.minX);
+				bounds.maxX = Math.max(bounds.maxX, extents.maxX);
+			}
+			if (isFinite(extents.minY) && isFinite(extents.maxY)) {
+				bounds.minY = Math.min(bounds.minY, extents.minY);
+				bounds.maxY = Math.max(bounds.maxY, extents.maxY);
+			}
 
 			const mapPoint = (x, y) => ({
 				x: ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * displayWidth,
@@ -3230,16 +3244,7 @@
 				minimapCtx.restore();
 			});
 
-			const viewBounds = screenToModelBounds();
-			const viewPadX = Math.max((viewBounds.maxX - viewBounds.minX) * minimapViewportPaddingFactor, 0);
-			const viewPadY = Math.max((viewBounds.maxY - viewBounds.minY) * minimapViewportPaddingFactor, 0);
-			const viewRect = {
-				minX: viewBounds.minX - viewPadX,
-				maxX: viewBounds.maxX + viewPadX,
-				minY: viewBounds.minY - viewPadY,
-				maxY: viewBounds.maxY + viewPadY
-			};
-
+			const viewRect = screenToModelBounds();
 			const tl = mapPoint(viewRect.minX, viewRect.maxY);
 			const br = mapPoint(viewRect.maxX, viewRect.minY);
 
