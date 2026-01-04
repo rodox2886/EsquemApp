@@ -957,16 +957,32 @@
 			return bounds;
 		}
 
-		function isBBoxInsideRect(bbox, rect) {
-			if (!bbox) return false;
-			return bbox.x >= rect.minX && (bbox.x + bbox.width) <= rect.maxX &&
-			       bbox.y >= rect.minY && (bbox.y + bbox.height) <= rect.maxY;
+		function doesBBoxIntersectRect(bbox, rect) {
+			if (!bbox || !rect) return false;
+			const bboxMaxX = bbox.x + bbox.width;
+			const bboxMaxY = bbox.y + bbox.height;
+			return bbox.x <= rect.maxX && bboxMaxX >= rect.minX &&
+			       bbox.y <= rect.maxY && bboxMaxY >= rect.minY;
 		}
 
 		function clipDiagramToExtents(clipRect) {
-			userDrawings = userDrawings.filter(d => isBBoxInsideRect(getEntityBBox(d, true), clipRect));
-			symbols = symbols.filter(s => isBBoxInsideRect(getEntityBBox(s, true), clipRect));
-			linesAndPolylines = linesAndPolylines.filter(l => isBBoxInsideRect(getEntityBBox(l, true), clipRect));
+			userDrawings = userDrawings.filter(d => doesBBoxIntersectRect(getEntityBBox(d, true), clipRect));
+			symbols = symbols.filter(s => doesBBoxIntersectRect(getEntityBBox(s, true), clipRect));
+			linesAndPolylines = linesAndPolylines.filter(l => doesBBoxIntersectRect(getEntityBBox(l, true), clipRect));
+		}
+
+		function drawEllipsePath(ctx, cx, cy, rx, ry) {
+			if (!ctx) return;
+			if (typeof ctx.ellipse === 'function') {
+				ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+				return;
+			}
+
+			ctx.save();
+			ctx.translate(cx, cy);
+			ctx.scale(rx, ry);
+			ctx.arc(0, 0, 1, 0, 2 * Math.PI);
+			ctx.restore();
 		}
 
         function findClosestPointOnSegment(p, a, b) {
@@ -2550,7 +2566,7 @@
 						const ry = Math.abs(end.y - start.y) / 2;
 						const cx = Math.min(start.x, end.x) + rx;
 						const cy = Math.min(start.y, end.y) + ry;
-						dxfCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+						drawEllipsePath(dxfCtx, cx, cy, rx, ry);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
