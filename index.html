@@ -916,10 +916,10 @@
 			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
-			const minimapViewportPaddingFactor = 0.0; // Match main view closely (no extra padding)
 			const minimapScenePaddingModel = 5;
 			let lastMinimapBounds = null;
 			let minimapWidth = 0;
+			let isMinimapDragging = false;
 
 
 			// --- Undo/Redo State ---
@@ -2108,6 +2108,13 @@
 			return { x: mx, y: my };
     	}
 
+		function centerViewOnModel(modelX, modelY) {
+			const canvasRect = dxfCanvas.getBoundingClientRect();
+			view.offsetX = canvasRect.width / 2 - (modelX - extents.minX) * view.scale;
+			view.offsetY = canvasRect.height / 2 - (extents.maxY - modelY) * view.scale;
+			draw();
+		}
+
 		function fitViewToExtents() {
 			const canvasContainer = document.getElementById('visualization-container');
 			const containerWidth = canvasContainer.clientWidth;
@@ -3170,17 +3177,28 @@
 				return;
 			}
 
-			const viewBounds = screenToModelBounds();
-			const viewW = Math.max(viewBounds.maxX - viewBounds.minX, 1e-6);
-			const viewH = Math.max(viewBounds.maxY - viewBounds.minY, 1e-6);
-			const targetPadX = Math.max(viewW * minimapViewportPaddingFactor, 0);
-			const targetPadY = Math.max(viewH * minimapViewportPaddingFactor, 0);
+			const sceneBounds = {
+				minX: extents.minX - minimapScenePaddingModel,
+				maxX: extents.maxX + minimapScenePaddingModel,
+				minY: extents.minY - minimapScenePaddingModel,
+				maxY: extents.maxY + minimapScenePaddingModel
+			};
 
-			const bounds = {
-				minX: viewBounds.minX - targetPadX,
-				maxX: viewBounds.maxX + targetPadX,
-				minY: viewBounds.minY - targetPadY,
-				maxY: viewBounds.maxY + targetPadY
+			let bounds = { ...sceneBounds };
+			const sceneW = bounds.maxX - bounds.minX;
+			const sceneH = bounds.maxY - bounds.minY;
+			const targetAspect = displayWidth / displayHeight;
+			const sceneAspect = sceneW / sceneH;
+			if (sceneAspect > targetAspect) {
+				const newHeight = sceneW / targetAspect;
+				const padY = (newHeight - sceneH) / 2;
+				bounds.minY -= padY;
+				bounds.maxY += padY;
+			} else {
+				const newWidth = sceneH * targetAspect;
+				const padX = (newWidth - sceneW) / 2;
+				bounds.minX -= padX;
+				bounds.maxX += padX;
 			};
 
 			const mapPoint = (x, y) => ({
@@ -3254,6 +3272,8 @@
 			minimapCtx.save();
 			minimapCtx.strokeStyle = '#ef4444';
 			minimapCtx.lineWidth = 1.5;
+			minimapCtx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+			minimapCtx.fillRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 			minimapCtx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 			minimapCtx.restore();
 
@@ -6315,17 +6335,50 @@
 		updateMinimapLayout();
 
 		if (minimapCanvas) {
-			minimapCanvas.addEventListener('click', (e) => {
-				if (!lastMinimapBounds) return;
+			const getModelFromMinimap = (e) => {
+				if (!lastMinimapBounds) return null;
 				const rect = minimapCanvas.getBoundingClientRect();
 				const x = e.clientX - rect.left;
 				const y = e.clientY - rect.top;
-				const modelX = lastMinimapBounds.minX + (x / rect.width) * (lastMinimapBounds.maxX - lastMinimapBounds.minX);
-				const modelY = lastMinimapBounds.maxY - (y / rect.height) * (lastMinimapBounds.maxY - lastMinimapBounds.minY);
-				const canvasRect = dxfCanvas.getBoundingClientRect();
-				view.offsetX = canvasRect.width / 2 - (modelX - extents.minX) * view.scale;
-				view.offsetY = canvasRect.height / 2 - (extents.maxY - modelY) * view.scale;
-				draw();
+				return {
+					modelX: lastMinimapBounds.minX + (x / rect.width) * (lastMinimapBounds.maxX - lastMinimapBounds.minX),
+					modelY: lastMinimapBounds.maxY - (y / rect.height) * (lastMinimapBounds.maxY - lastMinimapBounds.minY)
+				};
+			};
+
+			const updateFromEvent = (e) => {
+				const modelPos = getModelFromMinimap(e);
+				if (!modelPos) return;
+				centerViewOnModel(modelPos.modelX, modelPos.modelY);
+			};
+
+			minimapCanvas.addEventListener('pointerdown', (e) => {
+				if (!lastMinimapBounds) return;
+				isMinimapDragging = true;
+				minimapCanvas.setPointerCapture(e.pointerId);
+				updateFromEvent(e);
+			});
+
+			minimapCanvas.addEventListener('pointermove', (e) => {
+				if (!isMinimapDragging) return;
+				updateFromEvent(e);
+			});
+
+			minimapCanvas.addEventListener('pointerup', (e) => {
+				if (!isMinimapDragging) return;
+				isMinimapDragging = false;
+				if (minimapCanvas.hasPointerCapture(e.pointerId)) {
+					minimapCanvas.releasePointerCapture(e.pointerId);
+				}
+			});
+
+			minimapCanvas.addEventListener('pointerleave', () => {
+				isMinimapDragging = false;
+			});
+
+			minimapCanvas.addEventListener('click', (e) => {
+				if (isMinimapDragging) return;
+				updateFromEvent(e);
 			});
 		}
 
