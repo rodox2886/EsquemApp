@@ -395,16 +395,45 @@
 	</div>
 
 	<!-- Help Modal -->
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-			<div class="flex justify-between items-center mb-4 pb-4 border-b">
-				<h3 class="text-xl font-bold text-gray-800">Guía de Funcionalidades</h3>
-				<button id="close-help-modal-btn" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+    <div id="help-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+		<div class="bg-white/95 p-6 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-100 backdrop-blur">
+			<div class="flex flex-col gap-4 mb-4 pb-4 border-b border-gray-200/80">
+				<div class="flex justify-between items-start">
+					<div class="flex items-center gap-3">
+						<span class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+							<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M5 19h14"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 19V8a2 2 0 012-2h8a2 2 0 012 2v11"></path>
+							</svg>
+						</span>
+						<div>
+							<h3 class="text-2xl font-bold text-gray-900">Guía de Funcionalidades</h3>
+							<p class="text-sm text-gray-500">Vista renovada con las funciones clave y flujos más actuales.</p>
+						</div>
+					</div>
+					<button id="close-help-modal-btn" class="text-gray-400 hover:text-gray-800 text-3xl leading-none">&times;</button>
+				</div>
+				<div class="flex flex-wrap gap-2 text-xs font-semibold">
+					<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Actualizado 2024</span>
+					<span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700">Atajos + Tips</span>
+					<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700">Flujo de trabajo</span>
+				</div>
 			</div>
-			<div id="help-content" class="overflow-y-auto pr-4 text-gray-700 space-y-4 text-sm">
-				<details open>
-					<summary class="font-bold text-lg cursor-pointer py-2">Navegación Básica</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+			<div id="help-content" class="overflow-y-auto pr-3 text-gray-700 space-y-4 text-sm">
+				<details open class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 2 L12 22 M2 12 L22 12 M8 6 L12 2 L16 6 M8 18 L12 22 L16 18 M6 8 L2 12 L6 16 M18 8 L22 12 L18 16"></path>
+								</svg>
+							</span>
+							<span>Navegación Básica</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<div class="flex items-start gap-3">
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center mt-1">
 								<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -431,9 +460,17 @@
 					</div>
 				</details>
 			
-				<details>
-					<summary class="font-bold text-lg cursor-pointer py-2">Carga y Guardado de Archivos</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+				<details class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 3h16v18H4z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"></path></svg>
+							</span>
+							<span>Carga y Guardado de Archivos</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<div class="flex items-start gap-3">
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-purple-100 rounded-md mt-1">
 								<svg class="w-4 h-4 text-purple-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 3h16v18H4z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16"></path></svg>
@@ -457,9 +494,17 @@
 					</div>
 				</details>
 				
-				<details>
-					<summary class="font-bold text-lg cursor-pointer py-2">Barra de Herramientas (Izquierda)</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+				<details class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+								<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path></svg>
+							</span>
+							<span>Barra de Herramientas (Izquierda)</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<div class="flex items-start gap-3">
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-green-100 rounded-md mt-1">
 								<svg class="w-6 h-6 text-gray-600 p-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"></path><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"></path></svg>
@@ -487,9 +532,20 @@
 					</div>
 				</details>
 			
-				<details>
-					<summary class="font-bold text-lg cursor-pointer py-2">Interacción y Edición</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+				<details class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M3 12h9"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 6l6 6-6 6"></path>
+								</svg>
+							</span>
+							<span>Interacción y Edición</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<p><strong class="font-semibold text-gray-800">Seleccionar:</strong> Haz clic en cualquier elemento (símbolo, línea, dibujo) para seleccionarlo. Sus detalles aparecerán en el panel derecho para editarlo.</p>
 						<p><strong class="font-semibold text-gray-800">Selección Múltiple:</strong> Mantén presionada la tecla <kbd>Shift</kbd> mientras haces clic en varios elementos para seleccionarlos todos.</p>
 						<div class="flex items-start gap-3">
@@ -509,9 +565,17 @@
 					</div>
 				</details>
 			
-				<details>
-					<summary class="font-bold text-lg cursor-pointer py-2">Atajos de Teclado</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+				<details class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path stroke-linecap="round" stroke-linejoin="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"></path></svg>
+							</span>
+							<span>Atajos de Teclado</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<div class="flex items-start gap-3">
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center mt-1">
 								<svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg>
@@ -539,9 +603,17 @@
 					</div>
 				</details>
 
-				<details>
-					<summary class="font-bold text-lg cursor-pointer py-2">Funciones Avanzadas</summary>
-					<div class="pl-4 pt-2 space-y-3 border-l-2 border-gray-200 ml-1">
+				<details class="group rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-3">
+					<summary class="flex items-center justify-between gap-3 font-semibold text-lg cursor-pointer">
+						<span class="flex items-center gap-3">
+							<span class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 3h4a2 2 0 012 2v2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2v2a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2H6a2 2 0 01-2-2v-4a2 2 0 012-2h2V5a2 2 0 012-2z"></path></svg>
+							</span>
+							<span>Funciones Avanzadas</span>
+						</span>
+						<span class="text-gray-400 group-open:rotate-90 transition-transform">&rsaquo;</span>
+					</summary>
+					<div class="pl-4 pt-3 space-y-3 border-l-2 border-gray-200 ml-1">
 						<div class="flex items-start gap-3">
 							<span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full mt-1">
 								<svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
