@@ -117,7 +117,16 @@
 				linear-gradient(to bottom, rgba(148, 163, 184, 0.5) 1px, transparent 1px);
 			background-size: var(--grid-size) var(--grid-size);
 			background-position: center;
+			z-index: 1;
 			pointer-events: none;
+		}
+		#dxf-canvas {
+			z-index: 0;
+		}
+		#initial-message,
+		#loading-indicator {
+			position: relative;
+			z-index: 2;
 		}
 
 
@@ -5765,10 +5774,12 @@
                 // Cambiar vistas
                 dxfCanvas.classList.add('hidden');
                 initialMessage.classList.remove('hidden');
+				updateGridOverlay();
             } else {
                 // Si estamos en la pantalla de inicio, vamos a un lienzo en blanco
                 dxfCanvas.classList.remove('hidden');
                 initialMessage.classList.add('hidden');
+				updateGridOverlay();
                 
                 // Reiniciar para un lienzo en blanco
                 computeExtents();
