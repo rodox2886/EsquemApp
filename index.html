@@ -108,6 +108,18 @@
 			stroke-width: 2.5px !important;
 		}
 
+		#grid-overlay {
+			--grid-size: 40px;
+			position: absolute;
+			inset: 0;
+			background-image:
+				linear-gradient(to right, rgba(148, 163, 184, 0.5) 1px, transparent 1px),
+				linear-gradient(to bottom, rgba(148, 163, 184, 0.5) 1px, transparent 1px);
+			background-size: var(--grid-size) var(--grid-size);
+			background-position: center;
+			pointer-events: none;
+		}
+
 
 		.message-box {
 			position: fixed;
@@ -726,6 +738,19 @@
 									<div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 								</label>
 							</div>
+							<div id="toggle-grid-container" class="flex items-center px-1" title="Mostrar Cuadrícula">
+								<span class="text-sm font-medium text-gray-700 mr-2">Cuadrícula</span>
+								<label for="grid-toggle" class="relative inline-flex items-center cursor-pointer">
+									<input type="checkbox" id="grid-toggle" class="sr-only peer">
+									<div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+								</label>
+								<select id="grid-size-select" class="ml-2 text-xs rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
+									<option value="20">20x20</option>
+									<option value="40" selected>40x40</option>
+									<option value="80">80x80</option>
+									<option value="120">120x120</option>
+								</select>
+							</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
 							</button>
@@ -843,6 +868,7 @@
 				</header>
 
 <main id="visualization-container" class="bg-white shadow-sm rounded-xl p-2 sm:p-4 overflow-auto flex-grow border border-gray-300 relative" style="min-height: 70vh;">
+					<div id="grid-overlay" class="hidden"></div>
 					<div id="initial-message" class="flex flex-col items-center justify-center h-full text-center text-gray-500" style="min-height: 65vh;">
 						<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
 							<svg class="h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -911,6 +937,10 @@
         const searchSuggestions = document.getElementById('search-suggestions');
 		const manualModeToggle = document.getElementById('manual-mode-toggle');
 		const manualModeToggleContainer = document.getElementById('toggle-manual-mode-container');
+		const gridToggle = document.getElementById('grid-toggle');
+		const gridToggleContainer = document.getElementById('toggle-grid-container');
+		const gridSizeSelect = document.getElementById('grid-size-select');
+		const gridOverlay = document.getElementById('grid-overlay');
 		const saveSketchBtn = document.getElementById('save-sketch-btn');
         const savedSketchesMenuBtn = document.getElementById('saved-sketches-menu-button');
         const savedSketchesMenu = document.getElementById('saved-sketches-menu');
@@ -3955,6 +3985,17 @@
 			manualModeToggleContainer.title = isManualModeEnabled ? "Bloquear Movimiento" : "Habilitar Movimiento";
 		}
 
+		function updateGridOverlay() {
+			const isGridEnabled = gridToggle.checked;
+			const gridSize = Number(gridSizeSelect.value) || 40;
+			gridOverlay.style.setProperty('--grid-size', `${gridSize}px`);
+			gridOverlay.classList.toggle('hidden', !isGridEnabled);
+			gridSizeSelect.disabled = !isGridEnabled;
+			gridSizeSelect.classList.toggle('opacity-50', !isGridEnabled);
+			gridSizeSelect.classList.toggle('cursor-not-allowed', !isGridEnabled);
+			gridToggleContainer.title = isGridEnabled ? "Ocultar Cuadrícula" : "Mostrar Cuadrícula";
+		}
+
                 /**
                  * Compress the layout by moving symbols and scaling inter‑connecting lines.
                  *
@@ -5197,6 +5238,10 @@
 				isManualModeEnabled = e.target.checked;
 				updateManualModeTitle();
 			});
+
+			gridToggle.addEventListener('change', updateGridOverlay);
+			gridSizeSelect.addEventListener('change', updateGridOverlay);
+			updateGridOverlay();
 
 			resetViewBtn.addEventListener('click', () => {
 				if (originalExtents) {
