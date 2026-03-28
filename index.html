@@ -1118,6 +1118,8 @@
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let edenorLogoImage = null;
+			let edenorLogoPromise = null;
 
 
 			// --- Undo/Redo State ---
@@ -2204,6 +2206,22 @@
 			ctx.textAlign = previousAlign;
 		}
 
+		function loadEdenorLogo() {
+			if (edenorLogoImage) return Promise.resolve(edenorLogoImage);
+			if (edenorLogoPromise) return edenorLogoPromise;
+			edenorLogoPromise = new Promise((resolve) => {
+				const img = new Image();
+				img.crossOrigin = 'anonymous';
+				img.onload = () => {
+					edenorLogoImage = img;
+					resolve(img);
+				};
+				img.onerror = () => resolve(null);
+				img.src = 'https://upload.wikimedia.org/wikipedia/commons/5/5a/EDENOR_isologo.png';
+			});
+			return edenorLogoPromise;
+		}
+
 		function getPaperDimensionsPx(paperSize = 'a4', orientation = 'landscape', scale = 1) {
 			const dpi = 150 * Math.max(1, scale);
 			const mmToPx = (mm) => (mm / 25.4) * dpi;
@@ -2220,7 +2238,7 @@
 			return { width: w, height: h, mmToPx };
 		}
 
-		function drawTitleBlock(ctx, pageRect, pdfConfig = {}, mmToPx) {
+		function drawTitleBlock(ctx, pageRect, pdfConfig = {}, mmToPx, logoImage = null) {
 			const margin = mmToPx(pdfConfig.marginMm || 8);
 			const frame = {
 				x: margin,
@@ -2255,17 +2273,22 @@
 			ctx.lineWidth = Math.max(1.5, mmToPx(0.5));
 			ctx.strokeRect(centerBoxX, topY + mmToPx(1.5), centerBoxW, topBandHeight - mmToPx(3));
 
-			ctx.fillStyle = '#245999';
-			ctx.font = `bold ${Math.round(mmToPx(isPortraitLike ? 9.5 : 11))}px Inter, sans-serif`;
-			ctx.fillText('edenor', frame.x + mmToPx(8), topY + mmToPx(isPortraitLike ? 18 : 20));
-			ctx.fillStyle = '#22c55e';
-			ctx.beginPath();
-			ctx.arc(frame.x + mmToPx(56), topY + mmToPx(6), mmToPx(2), 0, Math.PI * 2);
-			ctx.fill();
-			ctx.fillStyle = '#1e88e5';
-			ctx.beginPath();
-			ctx.arc(frame.x + mmToPx(58), topY + mmToPx(8), mmToPx(2), 0, Math.PI * 2);
-			ctx.fill();
+			if (logoImage) {
+				const logoMaxW = leftW - mmToPx(10);
+				const logoMaxH = topBandHeight - mmToPx(10);
+				const ratio = logoImage.width / logoImage.height;
+				let logoW = logoMaxW;
+				let logoH = logoW / ratio;
+				if (logoH > logoMaxH) {
+					logoH = logoMaxH;
+					logoW = logoH * ratio;
+				}
+				ctx.drawImage(logoImage, frame.x + mmToPx(8), topY + mmToPx(4), logoW, logoH);
+			} else {
+				ctx.fillStyle = '#245999';
+				ctx.font = `bold ${Math.round(mmToPx(isPortraitLike ? 9.5 : 11))}px Inter, sans-serif`;
+				ctx.fillText('edenor', frame.x + mmToPx(8), topY + mmToPx(isPortraitLike ? 18 : 20));
+			}
 
 			ctx.fillStyle = '#111827';
 			drawFittedText(
@@ -2389,7 +2412,8 @@
 			if (isPdf) {
 				let diagramRect = { x: 0, y: 0, width: outputWidth, height: outputHeight };
 				if (includeTitleBlock) {
-					const layout = drawTitleBlock(tempCtx, { width: outputWidth, height: outputHeight }, pdfConfig, paper.mmToPx);
+					const logoImage = await loadEdenorLogo();
+					const layout = drawTitleBlock(tempCtx, { width: outputWidth, height: outputHeight }, pdfConfig, paper.mmToPx, logoImage);
 					diagramRect = layout.diagramRect;
 				}
 
