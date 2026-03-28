@@ -2228,10 +2228,11 @@
 				width: pageRect.width - margin * 2,
 				height: pageRect.height - margin * 2
 			};
-			const topBandHeight = Math.max(mmToPx(28), frame.height * 0.14);
-			const gerenciaBandHeight = Math.max(mmToPx(9), frame.height * 0.05);
-			const titleBandHeight = Math.max(mmToPx(12), frame.height * 0.06);
-			const croquisBandHeight = Math.max(mmToPx(9), frame.height * 0.045);
+			const isPortraitLike = pageRect.height > pageRect.width;
+			const topBandHeight = Math.max(mmToPx(isPortraitLike ? 20 : 28), frame.height * (isPortraitLike ? 0.095 : 0.14));
+			const gerenciaBandHeight = Math.max(mmToPx(isPortraitLike ? 6 : 9), frame.height * (isPortraitLike ? 0.03 : 0.05));
+			const titleBandHeight = Math.max(mmToPx(isPortraitLike ? 8 : 12), frame.height * (isPortraitLike ? 0.04 : 0.06));
+			const croquisBandHeight = Math.max(mmToPx(isPortraitLike ? 6 : 9), frame.height * (isPortraitLike ? 0.03 : 0.045));
 			const footerHeight = Math.max(mmToPx(8), frame.height * 0.06);
 			const innerPadding = mmToPx(3);
 			const topY = frame.y + innerPadding;
@@ -2246,7 +2247,6 @@
 
 			// Banda superior: logo + caja de código + meta (adaptable según orientación)
 			ctx.strokeRect(frame.x + innerPadding, topY, topW, topBandHeight);
-			const isPortraitLike = pageRect.height > pageRect.width;
 			const leftW = topW * (isPortraitLike ? 0.30 : 0.34);
 			const centerBoxW = topW * (isPortraitLike ? 0.41 : 0.38);
 			const centerBoxX = frame.x + innerPadding + leftW;
@@ -2304,7 +2304,7 @@
 			);
 
 			// Banda Gerencia
-			const gerenciaY = topY + topBandHeight + mmToPx(2);
+			const gerenciaY = topY + topBandHeight + mmToPx(isPortraitLike ? 1 : 2);
 			drawFittedText(
 				ctx,
 				`Gerencia: ${pdfConfig.gerencia || 'Región 1 - Zona 1'}`,
@@ -2317,33 +2317,33 @@
 			);
 
 			// Título principal
-			const titleY = gerenciaY + gerenciaBandHeight + mmToPx(1.5);
-			drawFittedText(
-				ctx,
-				(pdfConfig.title || 'ESQUEMAS UNIFILARES').toUpperCase(),
-				frame.x + frame.width / 2,
-				titleY + titleBandHeight - mmToPx(2),
-				frame.width - mmToPx(20),
-				mmToPx(8),
-				mmToPx(4),
-				'bold',
-				'center'
-			);
+			const titleY = gerenciaY + gerenciaBandHeight + mmToPx(isPortraitLike ? 0.8 : 1.5);
+				drawFittedText(
+					ctx,
+					(pdfConfig.title || 'ESQUEMAS UNIFILARES').toUpperCase(),
+					frame.x + frame.width / 2,
+					titleY + titleBandHeight - mmToPx(2),
+					frame.width - mmToPx(20),
+					mmToPx(isPortraitLike ? 6 : 8),
+					mmToPx(isPortraitLike ? 3.3 : 4),
+					'bold',
+					'center'
+				);
 
 			// Banda de croquis
-			const croquisY = titleY + titleBandHeight + mmToPx(2);
+			const croquisY = titleY + titleBandHeight + mmToPx(isPortraitLike ? 1 : 2);
 			ctx.strokeRect(frame.x + mmToPx(4), croquisY, frame.width - mmToPx(8), croquisBandHeight);
-			drawFittedText(
-				ctx,
-				(pdfConfig.croquisTitle || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO').toUpperCase(),
-				frame.x + frame.width / 2,
-				croquisY + croquisBandHeight - mmToPx(2),
-				frame.width - mmToPx(20),
-				mmToPx(5.5),
-				mmToPx(2.7),
-				'bold',
-				'center'
-			);
+				drawFittedText(
+					ctx,
+					(pdfConfig.croquisTitle || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO').toUpperCase(),
+					frame.x + frame.width / 2,
+					croquisY + croquisBandHeight - mmToPx(2),
+					frame.width - mmToPx(20),
+					mmToPx(isPortraitLike ? 4.3 : 5.5),
+					mmToPx(isPortraitLike ? 2.3 : 2.7),
+					'bold',
+					'center'
+				);
 
 			const diagramRect = {
 				x: frame.x + mmToPx(4),
