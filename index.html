@@ -347,6 +347,7 @@
 						<select id="export-format" class="w-full border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 							<option value="png">PNG</option>
 							<option value="svg">SVG</option>
+							<option value="pdf">PDF</option>
 						</select>
 					</div>
 					<div>
@@ -365,6 +366,12 @@
 							<input id="export-bg-color" type="color" value="#f0f0f0" class="h-10 w-16 border rounded cursor-pointer">
 							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
 						</div>
+					</div>
+					<div class="rounded-md border border-gray-200 bg-gray-50 p-3">
+						<label class="flex items-start gap-2 text-sm text-gray-700">
+							<input id="export-title-block" type="checkbox" class="mt-1" checked>
+							<span><strong>Incluir rótulo unifilar</strong> al exportar en PDF (encabezado con datos y fecha).</span>
+						</label>
 					</div>
 					<div class="flex flex-col sm:flex-row gap-2 pt-1">
 						<button id="copy-to-clipboard-btn" class="flex-1 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Copiar al portapapeles</button>
@@ -912,6 +919,7 @@
 		// --- Por brevedad, se omite. El código es idéntico al que ya tienes. ---
 	</script>
     <script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script>
     (function() {
         const dxfInput = document.getElementById('dxf-upload-input');
@@ -936,6 +944,7 @@
 		const exportFormatSelect = document.getElementById('export-format');
 		const exportResolutionSelect = document.getElementById('export-resolution');
 		const exportBgColorInput = document.getElementById('export-bg-color');
+		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1009,7 +1018,7 @@
 	        let snapLine = null; // To store the perpendicular connection line info
 			let activeMundoInternoIconType = 'half-f-circle';
 			let activeSeccionadorIconType = 'standard';
-			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
+			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0', includeTitleBlock: true };
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
 
@@ -1984,7 +1993,8 @@
 			return {
 				format: (exportFormatSelect && exportFormatSelect.value) || exportOptions.format || 'png',
 				scale: sanitizedScale,
-				backgroundColor: (exportBgColorInput && exportBgColorInput.value) || exportOptions.backgroundColor || '#f0f0f0'
+				backgroundColor: (exportBgColorInput && exportBgColorInput.value) || exportOptions.backgroundColor || '#f0f0f0',
+				includeTitleBlock: exportTitleBlockInput ? exportTitleBlockInput.checked : true
 			};
 		}
 
@@ -2005,38 +2015,120 @@
 			if (downloadImageBtn) downloadImageBtn.disabled = isLoading;
 		}
 
-		async function createDiagramImage(options = {}) {
-			const { format = 'png', scale = 1, backgroundColor = '#f0f0f0' } = options;
+		function syncExportControls() {
+			const isPdf = (exportOptions.format || '').toLowerCase() === 'pdf';
+			if (copyToClipboardBtn) {
+				copyToClipboardBtn.disabled = isPdf;
+				copyToClipboardBtn.classList.toggle('opacity-50', isPdf);
+				copyToClipboardBtn.title = isPdf ? 'El portapapeles no admite PDF. Usa Descargar.' : '';
+			}
+			if (exportTitleBlockInput) {
+				exportTitleBlockInput.disabled = !isPdf;
+				exportTitleBlockInput.parentElement.classList.toggle('opacity-60', !isPdf);
+			}
+		}
+
+		function drawTitleBlock(ctx, width, height, scale = 1) {
+			const safeScale = Math.max(1, scale);
+			const margin = 16 * safeScale;
+			const blockHeight = 110 * safeScale;
+			const rightWidth = Math.min(width * 0.42, 330 * safeScale);
+			const rightX = width - margin - rightWidth;
+			const logoWidth = Math.min(170 * safeScale, width * 0.32);
+
+			ctx.save();
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect(0, 0, width, blockHeight + margin);
+			ctx.strokeStyle = '#111827';
+			ctx.lineWidth = Math.max(1, 1.2 * safeScale);
+			ctx.strokeRect(margin, margin, width - margin * 2, blockHeight);
+
+			ctx.font = `${Math.round(44 * safeScale)}px Inter, sans-serif`;
+			ctx.fillStyle = '#1d4f91';
+			ctx.fillText('edenor', margin + 10 * safeScale, margin + 54 * safeScale);
+			ctx.fillStyle = '#22c55e';
+			ctx.beginPath();
+			ctx.arc(margin + logoWidth - 8 * safeScale, margin + 12 * safeScale, 8 * safeScale, 0, Math.PI * 2);
+			ctx.fill();
+
+			ctx.strokeRect(rightX, margin + 6 * safeScale, rightWidth, 62 * safeScale);
+			ctx.font = `${Math.round(11 * safeScale)}px Inter, sans-serif`;
+			ctx.fillStyle = '#111827';
+			ctx.fillText('ANEXO A PEDIDO DE INSTALACIONES MT N°', rightX + 8 * safeScale, margin + 20 * safeScale);
+			ctx.font = `bold ${Math.round(30 * safeScale)}px Inter, sans-serif`;
+			ctx.fillText('ESQUEMA UNIFILAR', margin + 10 * safeScale, margin + 98 * safeScale);
+			ctx.font = `bold ${Math.round(18 * safeScale)}px Inter, sans-serif`;
+			ctx.fillText('MA-25-40619', rightX + 12 * safeScale, margin + 52 * safeScale);
+
+			const today = new Date().toLocaleDateString('es-AR');
+			ctx.font = `${Math.round(12 * safeScale)}px Inter, sans-serif`;
+			ctx.fillText(`Código: NTO 6 - G`, rightX + rightWidth + 14 * safeScale, margin + 28 * safeScale);
+			ctx.fillText(`Revisión: 6`, rightX + rightWidth + 14 * safeScale, margin + 44 * safeScale);
+			ctx.fillText(`Fecha de actualización: ${today}`, rightX + rightWidth - 10 * safeScale, margin + 60 * safeScale);
+			ctx.restore();
+
+			return blockHeight + margin;
+		}
+
+		async function buildExportCanvas(options = {}) {
+			const sourceCanvas = dxfCanvas;
+			const scale = Math.max(0.25, Number(options.scale) || 1);
+			const baseWidth = Math.max(1, Math.round(sourceCanvas.width * scale));
+			const baseHeight = Math.max(1, Math.round(sourceCanvas.height * scale));
+			const includeTitleBlock = options.includeTitleBlock && options.format === 'pdf';
+			const headerHeight = includeTitleBlock ? Math.round(140 * scale) : 0;
+			const outputWidth = baseWidth;
+			const outputHeight = baseHeight + headerHeight;
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
-
-			const sourceCanvas = dxfCanvas;
-			const outputWidth = Math.max(1, Math.round(sourceCanvas.width * scale));
-			const outputHeight = Math.max(1, Math.round(sourceCanvas.height * scale));
-
 			tempCanvas.width = outputWidth;
 			tempCanvas.height = outputHeight;
 
-            // Primero, rellenar el lienzo temporal con el mismo color de fondo que el lienzo principal.
-            // Esto asegura que el fondo sea correcto incluso si el origen tiene áreas transparentes.
-            tempCtx.fillStyle = backgroundColor || '#f0f0f0';
+            tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-			// Dibujar el lienzo principal sobre el temporal. Esta es una copia de píxeles 1:1.
-			tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
+			if (includeTitleBlock) {
+				drawTitleBlock(tempCtx, outputWidth, outputHeight, scale);
+			}
+
+			tempCtx.drawImage(sourceCanvas, 0, headerHeight, baseWidth, baseHeight);
+			return { tempCanvas, outputWidth, outputHeight };
+		}
+
+		async function createDiagramImage(options = {}) {
+			const { format = 'png', scale = 1, backgroundColor = '#f0f0f0', includeTitleBlock = true } = options;
+			const normalizedOptions = { format, scale, backgroundColor, includeTitleBlock };
+			const { tempCanvas, outputWidth, outputHeight } = await buildExportCanvas(normalizedOptions);
 
 			if (format === 'svg') {
 				const pngDataUrl = tempCanvas.toDataURL('image/png');
 				const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}"><rect width="100%" height="100%" fill="${backgroundColor}"/><image href="${pngDataUrl}" width="${outputWidth}" height="${outputHeight}" preserveAspectRatio="xMidYMid meet"/></svg>`;
 				const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
 				const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
-				return { dataUrl: svgDataUrl, blob: svgBlob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
+				return { dataUrl: svgDataUrl, previewDataUrl: pngDataUrl, blob: svgBlob, width: outputWidth, height: outputHeight, options: normalizedOptions };
 			}
 
-			const dataUrl = tempCanvas.toDataURL('image/png');
-			const blob = await (await fetch(dataUrl)).blob();
+			const previewDataUrl = tempCanvas.toDataURL('image/png');
 
-			return { dataUrl, blob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
+			if (format === 'pdf') {
+				if (!window.jspdf || !window.jspdf.jsPDF) {
+					throw new Error('La librería jsPDF no está disponible.');
+				}
+				const { jsPDF } = window.jspdf;
+				const orientation = outputWidth >= outputHeight ? 'landscape' : 'portrait';
+				const pdf = new jsPDF({
+					orientation,
+					unit: 'px',
+					format: [outputWidth, outputHeight]
+				});
+				pdf.addImage(previewDataUrl, 'PNG', 0, 0, outputWidth, outputHeight, undefined, 'FAST');
+				const pdfBlob = pdf.output('blob');
+				return { dataUrl: '', previewDataUrl, blob: pdfBlob, width: outputWidth, height: outputHeight, options: normalizedOptions };
+			}
+
+			const blob = await (await fetch(previewDataUrl)).blob();
+
+			return { dataUrl: previewDataUrl, previewDataUrl, blob, width: outputWidth, height: outputHeight, options: normalizedOptions };
 		}
 
 		function showCopyImageModal(exportData) {
@@ -2045,8 +2137,9 @@
 			currentExportBlob = exportData.blob;
 			exportOptions = { ...exportOptions, ...exportData.options, width: exportData.width, height: exportData.height };
 
-			imageToCopy.src = exportData.dataUrl;
+			imageToCopy.src = exportData.previewDataUrl || exportData.dataUrl;
 			updateExportMeta(exportData.width, exportData.height, exportData.blob ? exportData.blob.size : 0);
+			syncExportControls();
 
 			copyImageModal.classList.remove('hidden');
 			copyImageModal.classList.add('flex');
@@ -2079,6 +2172,7 @@
 				copyImageModal.classList.remove('hidden');
 				copyImageModal.classList.add('flex');
 			}
+			syncExportControls();
 
 			toggleExportLoading(true);
 
@@ -2098,7 +2192,15 @@
 
 		async function copyImageToClipboard() {
 			if (!currentExportDataUrl) {
-				setClipboardNotice('Genera primero la vista previa para copiarla.', 'warning');
+				if (exportOptions.format === 'pdf') {
+					setClipboardNotice('El formato PDF no se puede copiar al portapapeles. Usa "Descargar".', 'warning');
+				} else {
+					setClipboardNotice('Genera primero la vista previa para copiarla.', 'warning');
+				}
+				return;
+			}
+			if (exportOptions.format === 'pdf') {
+				setClipboardNotice('El formato PDF no se puede copiar al portapapeles. Usa "Descargar".', 'warning');
 				return;
 			}
 
@@ -2121,12 +2223,13 @@
 		}
 
 		function downloadCurrentImage() {
-			if (!currentExportDataUrl) {
+			if (!currentExportDataUrl && !currentExportBlob) {
 				setClipboardNotice('Genera la vista previa antes de descargar.', 'warning');
 				return;
 			}
 
-			const extension = (exportOptions.format || 'png').toLowerCase() === 'svg' ? 'svg' : 'png';
+			const format = (exportOptions.format || 'png').toLowerCase();
+			const extension = format === 'svg' ? 'svg' : (format === 'pdf' ? 'pdf' : 'png');
 			const filename = `esquemapp.${extension}`;
 			const link = document.createElement('a');
 
@@ -2139,7 +2242,7 @@
 				document.body.removeChild(link);
 				URL.revokeObjectURL(blobUrl);
 			} else {
-				link.href = currentExportDataUrl;
+				link.href = currentExportDataUrl || URL.createObjectURL(currentExportBlob);
 				link.download = filename;
 				document.body.appendChild(link);
 				link.click();
@@ -4397,6 +4500,9 @@
 			if (exportBgColorInput) {
 				exportBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
 			}
+			if (exportTitleBlockInput) {
+				exportTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
+			}
 			refreshExportPreview(true);
 		});
 
@@ -4415,6 +4521,9 @@
 
 		if (exportBgColorInput) {
 			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
+		}
+		if (exportTitleBlockInput) {
+			exportTitleBlockInput.addEventListener('change', () => refreshExportPreview(false));
 		}
 
 		closeModalBtn.addEventListener('click', () => {
