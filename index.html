@@ -329,11 +329,11 @@
 			<p class="text-sm text-gray-600 mb-4">Elige formato, resolución y fondo antes de copiar o descargar la vista actual.</p>
 			<div class="grid md:grid-cols-3 gap-4">
 				<div class="md:col-span-2 space-y-3">
-					<div class="relative border rounded-md p-2 bg-gray-50 max-h-[60vh] overflow-auto flex items-center justify-center">
+					<div id="export-preview-viewport" class="relative border rounded-md p-2 bg-gray-50 max-h-[60vh] overflow-auto flex items-start justify-center">
 						<div id="export-preview-loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-md hidden">
 							<div class="loader"></div>
 						</div>
-						<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100">
+						<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
 					</div>
 					<div class="flex items-center justify-between text-xs sm:text-sm text-gray-600">
 						<span id="export-dimensions-label">Dimensiones: --</span>
@@ -987,6 +987,7 @@
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
 		const imageToCopy = document.getElementById('image-to-copy');
+		const exportPreviewViewport = document.getElementById('export-preview-viewport');
 		const exportFormatSelect = document.getElementById('export-format');
 		const exportResolutionSelect = document.getElementById('export-resolution');
 		const exportBgColorInput = document.getElementById('export-bg-color');
@@ -2170,6 +2171,25 @@
 			return { width: w, height: h, mmToPx };
 		}
 
+		function getExportCropRegion(sourceCanvas) {
+			if (!extents || !isFinite(extents.minX) || !isFinite(extents.maxX) || !isFinite(extents.minY) || !isFinite(extents.maxY)) {
+				return { sx: 0, sy: 0, sw: sourceCanvas.width, sh: sourceCanvas.height };
+			}
+			const a = modelToScreen(extents.minX, extents.minY);
+			const b = modelToScreen(extents.maxX, extents.maxY);
+			const minCssX = Math.max(0, Math.min(a.x, b.x) - 24);
+			const maxCssX = Math.min(sourceCanvas.clientWidth || sourceCanvas.width, Math.max(a.x, b.x) + 24);
+			const minCssY = Math.max(0, Math.min(a.y, b.y) - 24);
+			const maxCssY = Math.min(sourceCanvas.clientHeight || sourceCanvas.height, Math.max(a.y, b.y) + 24);
+			const dprX = sourceCanvas.clientWidth ? sourceCanvas.width / sourceCanvas.clientWidth : 1;
+			const dprY = sourceCanvas.clientHeight ? sourceCanvas.height / sourceCanvas.clientHeight : 1;
+			const sx = Math.max(0, Math.floor(minCssX * dprX));
+			const sy = Math.max(0, Math.floor(minCssY * dprY));
+			const sw = Math.max(1, Math.floor((maxCssX - minCssX) * dprX));
+			const sh = Math.max(1, Math.floor((maxCssY - minCssY) * dprY));
+			return { sx, sy, sw, sh };
+		}
+
 		function drawTitleBlock(ctx, pageRect, pdfConfig = {}, mmToPx) {
 			const margin = mmToPx(pdfConfig.marginMm || 8);
 			const frame = {
@@ -2178,8 +2198,8 @@
 				width: pageRect.width - margin * 2,
 				height: pageRect.height - margin * 2
 			};
-			const headerHeight = Math.max(mmToPx(24), frame.height * 0.13);
-			const footerHeight = Math.max(mmToPx(16), frame.height * 0.12);
+			const headerHeight = Math.max(mmToPx(18), frame.height * 0.1);
+			const footerHeight = Math.max(mmToPx(8), frame.height * 0.06);
 			const headerY = frame.y + mmToPx(2);
 			const headerW = frame.width - mmToPx(4);
 
@@ -2262,15 +2282,16 @@
 					diagramRect = layout.diagramRect;
 				}
 
-				const fitScale = Math.min(diagramRect.width / sourceCanvas.width, diagramRect.height / sourceCanvas.height);
-				const drawWidth = sourceCanvas.width * fitScale;
-				const drawHeight = sourceCanvas.height * fitScale;
-				const drawX = diagramRect.x + (diagramRect.width - drawWidth) / 2;
-				const drawY = diagramRect.y + (diagramRect.height - drawHeight) / 2;
-				tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
-				tempCtx.fillRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
-				tempCtx.drawImage(sourceCanvas, drawX, drawY, drawWidth, drawHeight);
-			} else {
+					const crop = getExportCropRegion(sourceCanvas);
+					const fitScale = Math.min(diagramRect.width / crop.sw, diagramRect.height / crop.sh);
+					const drawWidth = crop.sw * fitScale;
+					const drawHeight = crop.sh * fitScale;
+					const drawX = diagramRect.x + (diagramRect.width - drawWidth) / 2;
+					const drawY = diagramRect.y + (diagramRect.height - drawHeight) / 2;
+					tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
+					tempCtx.fillRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
+					tempCtx.drawImage(sourceCanvas, crop.sx, crop.sy, crop.sw, crop.sh, drawX, drawY, drawWidth, drawHeight);
+				} else {
 				tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
 			}
 			return { tempCanvas, outputWidth, outputHeight };
@@ -2325,6 +2346,10 @@
 			exportOptions = { ...exportOptions, ...exportData.options, width: exportData.width, height: exportData.height };
 
 			imageToCopy.src = exportData.previewDataUrl || exportData.dataUrl;
+			if (exportPreviewViewport) {
+				exportPreviewViewport.scrollTop = 0;
+				exportPreviewViewport.scrollLeft = 0;
+			}
 			updateExportMeta(exportData.width, exportData.height, exportData.blob ? exportData.blob.size : 0);
 			syncExportControls();
 
