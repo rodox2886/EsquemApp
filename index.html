@@ -366,6 +366,10 @@
 							<input id="export-bg-color" type="color" value="#f0f0f0" class="h-10 w-16 border rounded cursor-pointer">
 							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
 						</div>
+						<div class="mt-2 flex gap-2">
+							<button id="apply-bg-before-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Aplicar al lienzo (antes)</button>
+							<button id="restore-bg-after-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Restaurar (después)</button>
+						</div>
 					</div>
 					<div class="rounded-md border border-gray-200 bg-gray-50 p-3">
 						<label class="flex items-start gap-2 text-sm text-gray-700">
@@ -1009,6 +1013,8 @@
 		const exportFormatSelect = document.getElementById('export-format');
 		const exportResolutionSelect = document.getElementById('export-resolution');
 		const exportBgColorInput = document.getElementById('export-bg-color');
+		const applyBgBeforeBtn = document.getElementById('apply-bg-before-btn');
+		const restoreBgAfterBtn = document.getElementById('restore-bg-after-btn');
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -1118,6 +1124,8 @@
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let canvasBackgroundColor = '#f0f0f0';
+			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
 			let edenorLogoPromise = null;
 
@@ -2508,6 +2516,24 @@
 			clipboardNotice.classList.add('hidden');
 		}
 
+		function applyCanvasBackgroundColor(colorValue) {
+			if (!colorValue) return;
+			canvasBackgroundColor = colorValue;
+			exportOptions.backgroundColor = colorValue;
+			draw();
+			refreshExportPreview(false);
+		}
+
+		function restoreCanvasBackgroundColor() {
+			canvasBackgroundColor = defaultCanvasBackgroundColor;
+			exportOptions.backgroundColor = defaultCanvasBackgroundColor;
+			if (exportBgColorInput) {
+				exportBgColorInput.value = defaultCanvasBackgroundColor;
+			}
+			draw();
+			refreshExportPreview(false);
+		}
+
 		async function refreshExportPreview(openModal = false) {
 			const shouldShow = openModal || !copyImageModal.classList.contains('hidden');
 			if (!shouldShow) return;
@@ -3125,7 +3151,7 @@
 	        function draw() {
 				const rect = dxfCanvas.getBoundingClientRect();
 				dxfCtx.save(); // Save the clean, untransformed state
-				dxfCtx.fillStyle = '#f0f0f0';
+				dxfCtx.fillStyle = canvasBackgroundColor || '#f0f0f0';
 				dxfCtx.fillRect(0, 0, rect.width, rect.height);
 
 					// --- Draw DXF content (potentially clipped) ---
@@ -4903,6 +4929,14 @@
 
 		if (exportBgColorInput) {
 			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
+		}
+		if (applyBgBeforeBtn) {
+			applyBgBeforeBtn.addEventListener('click', () => {
+				applyCanvasBackgroundColor((exportBgColorInput && exportBgColorInput.value) || '#f0f0f0');
+			});
+		}
+		if (restoreBgAfterBtn) {
+			restoreBgAfterBtn.addEventListener('click', restoreCanvasBackgroundColor);
 		}
 		if (exportTitleBlockInput) {
 			exportTitleBlockInput.addEventListener('change', () => refreshExportPreview(false));
