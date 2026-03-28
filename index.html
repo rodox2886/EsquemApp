@@ -2179,10 +2179,14 @@
 				width: pageRect.width - margin * 2,
 				height: pageRect.height - margin * 2
 			};
-			const headerHeight = Math.max(mmToPx(18), frame.height * 0.1);
+			const topBandHeight = Math.max(mmToPx(28), frame.height * 0.14);
+			const gerenciaBandHeight = Math.max(mmToPx(9), frame.height * 0.05);
+			const titleBandHeight = Math.max(mmToPx(12), frame.height * 0.06);
+			const croquisBandHeight = Math.max(mmToPx(9), frame.height * 0.045);
 			const footerHeight = Math.max(mmToPx(8), frame.height * 0.06);
-			const headerY = frame.y + mmToPx(2);
-			const headerW = frame.width - mmToPx(4);
+			const innerPadding = mmToPx(3);
+			const topY = frame.y + innerPadding;
+			const topW = frame.width - innerPadding * 2;
 
 			ctx.save();
 			ctx.fillStyle = '#ffffff';
@@ -2191,35 +2195,63 @@
 			ctx.lineWidth = Math.max(1, mmToPx(0.25));
 			ctx.strokeRect(frame.x, frame.y, frame.width, frame.height);
 
-			ctx.strokeRect(frame.x + mmToPx(2), headerY, headerW, headerHeight);
-			const rightBoxW = headerW * 0.24;
-			ctx.strokeRect(frame.x + headerW - rightBoxW + mmToPx(2), headerY + mmToPx(2), rightBoxW - mmToPx(4), headerHeight - mmToPx(4));
+			// Banda superior: logo + caja de código + meta
+			ctx.strokeRect(frame.x + innerPadding, topY, topW, topBandHeight);
+			const centerBoxW = topW * 0.42;
+			const centerBoxX = frame.x + topW * 0.32;
+			ctx.lineWidth = Math.max(1.5, mmToPx(0.5));
+			ctx.strokeRect(centerBoxX, topY + mmToPx(1.5), centerBoxW, topBandHeight - mmToPx(3));
 
-			ctx.fillStyle = '#1d4f91';
-			ctx.font = `bold ${Math.round(mmToPx(4.8))}px Inter, sans-serif`;
-			ctx.fillText('edenor', frame.x + mmToPx(6), headerY + mmToPx(10));
+			ctx.fillStyle = '#245999';
+			ctx.font = `bold ${Math.round(mmToPx(11))}px Inter, sans-serif`;
+			ctx.fillText('edenor', frame.x + mmToPx(8), topY + mmToPx(20));
 			ctx.fillStyle = '#22c55e';
 			ctx.beginPath();
-			ctx.arc(frame.x + mmToPx(36), headerY + mmToPx(4), mmToPx(1.4), 0, Math.PI * 2);
+			ctx.arc(frame.x + mmToPx(56), topY + mmToPx(6), mmToPx(2), 0, Math.PI * 2);
+			ctx.fill();
+			ctx.fillStyle = '#1e88e5';
+			ctx.beginPath();
+			ctx.arc(frame.x + mmToPx(58), topY + mmToPx(8), mmToPx(2), 0, Math.PI * 2);
 			ctx.fill();
 
 			ctx.fillStyle = '#111827';
-			ctx.font = `bold ${Math.round(mmToPx(3.8))}px Inter, sans-serif`;
-			ctx.fillText(pdfConfig.title || 'ESQUEMA UNIFILAR', frame.x + mmToPx(6), headerY + mmToPx(18));
+			ctx.font = `600 ${Math.round(mmToPx(2.3))}px Inter, sans-serif`;
+			ctx.fillText(pdfConfig.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°', centerBoxX + mmToPx(2), topY + mmToPx(5));
+			ctx.font = `bold ${Math.round(mmToPx(6))}px Inter, sans-serif`;
+			ctx.fillText(pdfConfig.planCode || 'CA-25-40959', centerBoxX + mmToPx(15), topY + mmToPx(15));
 
-			ctx.font = `${Math.round(mmToPx(2))}px Inter, sans-serif`;
-			ctx.fillText(pdfConfig.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°', frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(6));
-			ctx.font = `bold ${Math.round(mmToPx(3.2))}px Inter, sans-serif`;
-			ctx.fillText(pdfConfig.planCode || 'MA-25-40619', frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(14));
-			ctx.font = `${Math.round(mmToPx(2.2))}px Inter, sans-serif`;
-			ctx.fillText(`Rev: ${pdfConfig.revision || '-'}`, frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(20));
-			ctx.fillText(`Fecha: ${new Date().toLocaleDateString('es-AR')}`, frame.x + headerW - rightBoxW + mmToPx(32), headerY + mmToPx(20));
+			const metaX = centerBoxX + centerBoxW + mmToPx(2);
+			ctx.font = `${Math.round(mmToPx(4))}px Inter, sans-serif`;
+			ctx.fillText(`Código: NTO 6 - G`, metaX, topY + mmToPx(11));
+			ctx.fillText(`Revisión: ${pdfConfig.revision || '6'}`, metaX, topY + mmToPx(18));
+			ctx.font = `bold ${Math.round(mmToPx(4))}px Inter, sans-serif`;
+			ctx.fillText(`Fecha de Actualización: ${new Date().toLocaleDateString('es-AR')}`, metaX, topY + mmToPx(25));
+
+			// Banda Gerencia
+			const gerenciaY = topY + topBandHeight + mmToPx(2);
+			ctx.font = `italic bold ${Math.round(mmToPx(5.5))}px Inter, sans-serif`;
+			ctx.fillText(`Gerencia: Región 1 - Zona 1`, frame.x + mmToPx(8), gerenciaY + gerenciaBandHeight - mmToPx(2));
+
+			// Título principal
+			const titleY = gerenciaY + gerenciaBandHeight + mmToPx(1.5);
+			ctx.font = `bold ${Math.round(mmToPx(8))}px Inter, sans-serif`;
+			ctx.textAlign = 'center';
+			ctx.fillText((pdfConfig.title || 'ESQUEMAS UNIFILARES').toUpperCase(), frame.x + frame.width / 2, titleY + titleBandHeight - mmToPx(2));
+			ctx.textAlign = 'start';
+
+			// Banda de croquis
+			const croquisY = titleY + titleBandHeight + mmToPx(2);
+			ctx.strokeRect(frame.x + mmToPx(4), croquisY, frame.width - mmToPx(8), croquisBandHeight);
+			ctx.font = `bold ${Math.round(mmToPx(5.5))}px Inter, sans-serif`;
+			ctx.textAlign = 'center';
+			ctx.fillText('CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO', frame.x + frame.width / 2, croquisY + croquisBandHeight - mmToPx(2));
+			ctx.textAlign = 'start';
 
 			const diagramRect = {
 				x: frame.x + mmToPx(4),
-				y: headerY + headerHeight + mmToPx(4),
+				y: croquisY + croquisBandHeight + mmToPx(2),
 				width: frame.width - mmToPx(8),
-				height: frame.height - headerHeight - footerHeight - mmToPx(12)
+				height: frame.height - (croquisY - frame.y) - croquisBandHeight - footerHeight - mmToPx(6)
 			};
 			ctx.strokeStyle = '#9ca3af';
 			ctx.strokeRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
