@@ -320,20 +320,20 @@
 		<ul class="py-1"></ul>
 	</div>
 	
-	<div id="copy-image-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-5xl w-full">
-			<div class="flex justify-between items-center mb-4">
+	<div id="copy-image-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+		<div class="bg-white p-6 rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+			<div class="flex justify-between items-center mb-4 shrink-0">
 				<h3 class="text-lg font-bold">Exportar Imagen del Diagrama</h3>
 				<button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 			</div>
-			<p class="text-sm text-gray-600 mb-4">Elige formato, resolución y fondo antes de copiar o descargar la vista actual.</p>
-			<div class="grid md:grid-cols-3 gap-4">
-				<div class="md:col-span-2 space-y-3">
-					<div class="relative border rounded-md p-2 bg-gray-50 max-h-[60vh] overflow-auto flex items-center justify-center">
+			<p class="text-sm text-gray-600 mb-4 shrink-0">Elige formato, resolución y fondo antes de copiar o descargar la vista actual.</p>
+			<div class="grid md:grid-cols-3 gap-4 min-h-0">
+				<div class="md:col-span-2 space-y-3 min-h-0">
+					<div id="export-preview-viewport" class="relative border rounded-md p-2 bg-gray-50 max-h-[60vh] overflow-auto flex items-start justify-center">
 						<div id="export-preview-loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-md hidden">
 							<div class="loader"></div>
 						</div>
-						<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100">
+						<img id="image-to-copy" src="" alt="Vista previa del diagrama" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
 					</div>
 					<div class="flex items-center justify-between text-xs sm:text-sm text-gray-600">
 						<span id="export-dimensions-label">Dimensiones: --</span>
@@ -341,12 +341,13 @@
 					</div>
 					<p id="clipboard-notice" class="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-3 py-2 hidden">El navegador puede bloquear el acceso al portapapeles. Si ocurre, usa "Descargar" como alternativa.</p>
 				</div>
-				<div class="space-y-4">
+				<div class="space-y-4 pb-2 max-h-[70vh] overflow-y-auto pr-1">
 					<div>
 						<label for="export-format" class="block text-sm font-semibold text-gray-700 mb-1">Formato</label>
 						<select id="export-format" class="w-full border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
 							<option value="png">PNG</option>
 							<option value="svg">SVG</option>
+							<option value="pdf">PDF</option>
 						</select>
 					</div>
 					<div>
@@ -366,7 +367,59 @@
 							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
 						</div>
 					</div>
-					<div class="flex flex-col sm:flex-row gap-2 pt-1">
+					<div class="rounded-md border border-gray-200 bg-gray-50 p-3">
+						<label class="flex items-start gap-2 text-sm text-gray-700">
+							<input id="export-title-block" type="checkbox" class="mt-1" checked>
+							<span><strong>Incluir rótulo unifilar</strong> al exportar en PDF (encabezado con datos y fecha).</span>
+						</label>
+					</div>
+					<div id="pdf-layout-config" class="rounded-md border border-gray-200 bg-white p-3 space-y-2">
+						<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold">Configuración de plano (PDF)</p>
+						<div class="grid grid-cols-2 gap-2">
+							<div>
+								<label for="export-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
+								<select id="export-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+									<option value="a4">A4</option>
+									<option value="a3">A3</option>
+									<option value="letter">Letter</option>
+								</select>
+							</div>
+							<div>
+								<label for="export-page-orientation" class="block text-xs font-semibold text-gray-600 mb-1">Orientación</label>
+								<select id="export-page-orientation" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+									<option value="landscape">Horizontal</option>
+									<option value="portrait">Vertical</option>
+								</select>
+							</div>
+						</div>
+						<div>
+							<label for="export-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen de plano (mm)</label>
+							<input id="export-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="export-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
+							<input id="export-plan-title" type="text" value="ESQUEMA UNIFILAR" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="grid grid-cols-2 gap-2">
+							<div>
+								<label for="export-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
+								<input id="export-plan-code" type="text" value="MA-25-40619" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+							</div>
+							<div>
+								<label for="export-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
+								<input id="export-plan-revision" type="text" value="6" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+							</div>
+						</div>
+						<div>
+							<label for="export-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
+							<input id="export-plan-header-note" type="text" value="ANEXO A PEDIDO DE INSTALACIONES MT N°" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="export-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
+							<textarea id="export-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">IMPORTANTE: Se deben indicar la zona fuera de servicio solicitada al Despacho AT/MT, la zona inhibida y la zona de trabajo; consignando en cada caso los elementos de seguridad.</textarea>
+						</div>
+					</div>
+					<div class="flex flex-col sm:flex-row gap-2 pt-1 sticky bottom-0 bg-white">
 						<button id="copy-to-clipboard-btn" class="flex-1 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Copiar al portapapeles</button>
 						<button id="download-image-btn" class="flex-1 px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors text-sm font-semibold">Descargar</button>
 					</div>
@@ -912,6 +965,7 @@
 		// --- Por brevedad, se omite. El código es idéntico al que ya tienes. ---
 	</script>
     <script src="https://cdn.jsdelivr.net/npm/dxf-parser@1.1.2/dist/dxf-parser.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script>
     (function() {
         const dxfInput = document.getElementById('dxf-upload-input');
@@ -933,9 +987,20 @@
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
 		const imageToCopy = document.getElementById('image-to-copy');
+		const exportPreviewViewport = document.getElementById('export-preview-viewport');
 		const exportFormatSelect = document.getElementById('export-format');
 		const exportResolutionSelect = document.getElementById('export-resolution');
 		const exportBgColorInput = document.getElementById('export-bg-color');
+		const exportTitleBlockInput = document.getElementById('export-title-block');
+		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
+		const exportPaperSizeSelect = document.getElementById('export-paper-size');
+		const exportPageOrientationSelect = document.getElementById('export-page-orientation');
+		const exportPageMarginInput = document.getElementById('export-page-margin');
+		const exportPlanTitleInput = document.getElementById('export-plan-title');
+		const exportPlanCodeInput = document.getElementById('export-plan-code');
+		const exportPlanRevisionInput = document.getElementById('export-plan-revision');
+		const exportPlanHeaderNoteInput = document.getElementById('export-plan-header-note');
+		const exportPlanFooterInput = document.getElementById('export-plan-footer');
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1009,7 +1074,22 @@
 	        let snapLine = null; // To store the perpendicular connection line info
 			let activeMundoInternoIconType = 'half-f-circle';
 			let activeSeccionadorIconType = 'standard';
-			let exportOptions = { format: 'png', scale: 1, backgroundColor: '#f0f0f0' };
+			let exportOptions = {
+				format: 'png',
+				scale: 1,
+				backgroundColor: '#f0f0f0',
+				includeTitleBlock: true,
+				pdfConfig: {
+					paperSize: 'a4',
+					orientation: 'landscape',
+					marginMm: 8,
+					title: 'ESQUEMA UNIFILAR',
+					planCode: 'MA-25-40619',
+					revision: '6',
+					headerNote: 'ANEXO A PEDIDO DE INSTALACIONES MT N°',
+					footerText: 'IMPORTANTE: Se deben indicar la zona fuera de servicio solicitada al Despacho AT/MT, la zona inhibida y la zona de trabajo; consignando en cada caso los elementos de seguridad.'
+				}
+			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
 
@@ -1981,10 +2061,23 @@
 		function getSelectedExportOptions() {
 			const scaleValue = parseFloat((exportResolutionSelect && exportResolutionSelect.value) || exportOptions.scale || 1);
 			const sanitizedScale = isNaN(scaleValue) || scaleValue <= 0 ? 1 : scaleValue;
+			const marginValue = parseFloat((exportPageMarginInput && exportPageMarginInput.value) || exportOptions?.pdfConfig?.marginMm || 8);
+			const sanitizedMargin = isNaN(marginValue) ? 8 : Math.min(30, Math.max(3, marginValue));
 			return {
 				format: (exportFormatSelect && exportFormatSelect.value) || exportOptions.format || 'png',
 				scale: sanitizedScale,
-				backgroundColor: (exportBgColorInput && exportBgColorInput.value) || exportOptions.backgroundColor || '#f0f0f0'
+				backgroundColor: (exportBgColorInput && exportBgColorInput.value) || exportOptions.backgroundColor || '#f0f0f0',
+				includeTitleBlock: exportTitleBlockInput ? exportTitleBlockInput.checked : true,
+				pdfConfig: {
+					paperSize: (exportPaperSizeSelect && exportPaperSizeSelect.value) || exportOptions?.pdfConfig?.paperSize || 'a4',
+					orientation: (exportPageOrientationSelect && exportPageOrientationSelect.value) || exportOptions?.pdfConfig?.orientation || 'landscape',
+					marginMm: sanitizedMargin,
+					title: (exportPlanTitleInput && exportPlanTitleInput.value) || exportOptions?.pdfConfig?.title || 'ESQUEMA UNIFILAR',
+					planCode: (exportPlanCodeInput && exportPlanCodeInput.value) || exportOptions?.pdfConfig?.planCode || 'MA-25-40619',
+					revision: (exportPlanRevisionInput && exportPlanRevisionInput.value) || exportOptions?.pdfConfig?.revision || '6',
+					headerNote: (exportPlanHeaderNoteInput && exportPlanHeaderNoteInput.value) || exportOptions?.pdfConfig?.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°',
+					footerText: (exportPlanFooterInput && exportPlanFooterInput.value) || exportOptions?.pdfConfig?.footerText || ''
+				}
 			};
 		}
 
@@ -2005,38 +2098,225 @@
 			if (downloadImageBtn) downloadImageBtn.disabled = isLoading;
 		}
 
-		async function createDiagramImage(options = {}) {
-			const { format = 'png', scale = 1, backgroundColor = '#f0f0f0' } = options;
+		function syncExportControls() {
+			const isPdf = (exportOptions.format || '').toLowerCase() === 'pdf';
+			if (copyToClipboardBtn) {
+				copyToClipboardBtn.disabled = isPdf;
+				copyToClipboardBtn.classList.toggle('opacity-50', isPdf);
+				copyToClipboardBtn.title = isPdf ? 'El portapapeles no admite PDF. Usa Descargar.' : '';
+			}
+			if (exportTitleBlockInput) {
+				exportTitleBlockInput.disabled = !isPdf;
+				exportTitleBlockInput.parentElement.classList.toggle('opacity-60', !isPdf);
+			}
+			if (pdfLayoutConfig) {
+				pdfLayoutConfig.classList.toggle('opacity-60', !isPdf || !exportOptions.includeTitleBlock);
+			}
+			[
+				exportPaperSizeSelect,
+				exportPageOrientationSelect,
+				exportPageMarginInput,
+				exportPlanTitleInput,
+				exportPlanCodeInput,
+				exportPlanRevisionInput,
+				exportPlanHeaderNoteInput,
+				exportPlanFooterInput
+			].forEach((control) => {
+				if (!control) return;
+				control.disabled = !isPdf || !exportOptions.includeTitleBlock;
+			});
+		}
+
+		function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
+			const safeText = `${text || ''}`.trim();
+			if (!safeText) return y;
+			const words = safeText.split(/\s+/);
+			let line = '';
+			let currentY = y;
+			let linesDrawn = 0;
+			for (let i = 0; i < words.length; i++) {
+				const testLine = line ? `${line} ${words[i]}` : words[i];
+				if (ctx.measureText(testLine).width > maxWidth && line) {
+					ctx.fillText(line, x, currentY);
+					line = words[i];
+					currentY += lineHeight;
+					linesDrawn++;
+					if (linesDrawn >= maxLines) {
+						ctx.fillText(`${line}...`, x, currentY);
+						return currentY;
+					}
+				} else {
+					line = testLine;
+				}
+			}
+			if (line) {
+				ctx.fillText(line, x, currentY);
+			}
+			return currentY;
+		}
+
+		function getPaperDimensionsPx(paperSize = 'a4', orientation = 'landscape', scale = 1) {
+			const dpi = 150 * Math.max(1, scale);
+			const mmToPx = (mm) => (mm / 25.4) * dpi;
+			const sizesMm = {
+				a4: { w: 210, h: 297 },
+				a3: { w: 297, h: 420 },
+				letter: { w: 216, h: 279 }
+			};
+			const selected = sizesMm[paperSize] || sizesMm.a4;
+			let w = Math.round(mmToPx(selected.w));
+			let h = Math.round(mmToPx(selected.h));
+			if (orientation === 'landscape' && h > w) [w, h] = [h, w];
+			if (orientation === 'portrait' && w > h) [w, h] = [h, w];
+			return { width: w, height: h, mmToPx };
+		}
+
+		function drawTitleBlock(ctx, pageRect, pdfConfig = {}, mmToPx) {
+			const margin = mmToPx(pdfConfig.marginMm || 8);
+			const frame = {
+				x: margin,
+				y: margin,
+				width: pageRect.width - margin * 2,
+				height: pageRect.height - margin * 2
+			};
+			const headerHeight = Math.max(mmToPx(18), frame.height * 0.1);
+			const footerHeight = Math.max(mmToPx(8), frame.height * 0.06);
+			const headerY = frame.y + mmToPx(2);
+			const headerW = frame.width - mmToPx(4);
+
+			ctx.save();
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect(0, 0, pageRect.width, pageRect.height);
+			ctx.strokeStyle = '#111827';
+			ctx.lineWidth = Math.max(1, mmToPx(0.25));
+			ctx.strokeRect(frame.x, frame.y, frame.width, frame.height);
+
+			ctx.strokeRect(frame.x + mmToPx(2), headerY, headerW, headerHeight);
+			const rightBoxW = headerW * 0.24;
+			ctx.strokeRect(frame.x + headerW - rightBoxW + mmToPx(2), headerY + mmToPx(2), rightBoxW - mmToPx(4), headerHeight - mmToPx(4));
+
+			ctx.fillStyle = '#1d4f91';
+			ctx.font = `bold ${Math.round(mmToPx(4.8))}px Inter, sans-serif`;
+			ctx.fillText('edenor', frame.x + mmToPx(6), headerY + mmToPx(10));
+			ctx.fillStyle = '#22c55e';
+			ctx.beginPath();
+			ctx.arc(frame.x + mmToPx(36), headerY + mmToPx(4), mmToPx(1.4), 0, Math.PI * 2);
+			ctx.fill();
+
+			ctx.fillStyle = '#111827';
+			ctx.font = `bold ${Math.round(mmToPx(3.8))}px Inter, sans-serif`;
+			ctx.fillText(pdfConfig.title || 'ESQUEMA UNIFILAR', frame.x + mmToPx(6), headerY + mmToPx(18));
+
+			ctx.font = `${Math.round(mmToPx(2))}px Inter, sans-serif`;
+			ctx.fillText(pdfConfig.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°', frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(6));
+			ctx.font = `bold ${Math.round(mmToPx(3.2))}px Inter, sans-serif`;
+			ctx.fillText(pdfConfig.planCode || 'MA-25-40619', frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(14));
+			ctx.font = `${Math.round(mmToPx(2.2))}px Inter, sans-serif`;
+			ctx.fillText(`Rev: ${pdfConfig.revision || '-'}`, frame.x + headerW - rightBoxW + mmToPx(5), headerY + mmToPx(20));
+			ctx.fillText(`Fecha: ${new Date().toLocaleDateString('es-AR')}`, frame.x + headerW - rightBoxW + mmToPx(32), headerY + mmToPx(20));
+
+			const diagramRect = {
+				x: frame.x + mmToPx(4),
+				y: headerY + headerHeight + mmToPx(4),
+				width: frame.width - mmToPx(8),
+				height: frame.height - headerHeight - footerHeight - mmToPx(12)
+			};
+			ctx.strokeStyle = '#9ca3af';
+			ctx.strokeRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
+
+			ctx.font = `${Math.round(mmToPx(2.4))}px Inter, sans-serif`;
+			ctx.fillStyle = '#111827';
+			wrapCanvasText(
+				ctx,
+				pdfConfig.footerText || '',
+				frame.x + mmToPx(4),
+				frame.y + frame.height - footerHeight + mmToPx(6),
+				frame.width - mmToPx(8),
+				mmToPx(3.2),
+				4
+			);
+			ctx.restore();
+			return { frame, diagramRect };
+		}
+
+		async function buildExportCanvas(options = {}) {
+			const sourceCanvas = dxfCanvas;
+			const scale = Math.max(0.5, Number(options.scale) || 1);
+			const isPdf = options.format === 'pdf';
+			const includeTitleBlock = options.includeTitleBlock && isPdf;
+			const pdfConfig = options.pdfConfig || {};
+			const paper = getPaperDimensionsPx(pdfConfig.paperSize, pdfConfig.orientation, scale);
+			const outputWidth = isPdf ? paper.width : Math.max(1, Math.round(sourceCanvas.width * scale));
+			const outputHeight = isPdf ? paper.height : Math.max(1, Math.round(sourceCanvas.height * scale));
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
-
-			const sourceCanvas = dxfCanvas;
-			const outputWidth = Math.max(1, Math.round(sourceCanvas.width * scale));
-			const outputHeight = Math.max(1, Math.round(sourceCanvas.height * scale));
-
 			tempCanvas.width = outputWidth;
 			tempCanvas.height = outputHeight;
 
-            // Primero, rellenar el lienzo temporal con el mismo color de fondo que el lienzo principal.
-            // Esto asegura que el fondo sea correcto incluso si el origen tiene áreas transparentes.
-            tempCtx.fillStyle = backgroundColor || '#f0f0f0';
+            tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-			// Dibujar el lienzo principal sobre el temporal. Esta es una copia de píxeles 1:1.
-			tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
+			if (isPdf) {
+				let diagramRect = { x: 0, y: 0, width: outputWidth, height: outputHeight };
+				if (includeTitleBlock) {
+					const layout = drawTitleBlock(tempCtx, { width: outputWidth, height: outputHeight }, pdfConfig, paper.mmToPx);
+					diagramRect = layout.diagramRect;
+				}
+
+					const fitScale = Math.min(diagramRect.width / sourceCanvas.width, diagramRect.height / sourceCanvas.height);
+					const drawWidth = sourceCanvas.width * fitScale;
+					const drawHeight = sourceCanvas.height * fitScale;
+					const drawX = diagramRect.x + (diagramRect.width - drawWidth) / 2;
+					const drawY = diagramRect.y + (diagramRect.height - drawHeight) / 2;
+					tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
+					tempCtx.fillRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
+					tempCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, drawX, drawY, drawWidth, drawHeight);
+				} else {
+				tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
+			}
+			return { tempCanvas, outputWidth, outputHeight };
+		}
+
+		async function createDiagramImage(options = {}) {
+			const {
+				format = 'png',
+				scale = 1,
+				backgroundColor = '#f0f0f0',
+				includeTitleBlock = true,
+				pdfConfig = {}
+			} = options;
+			const normalizedOptions = { format, scale, backgroundColor, includeTitleBlock, pdfConfig };
+			const { tempCanvas, outputWidth, outputHeight } = await buildExportCanvas(normalizedOptions);
 
 			if (format === 'svg') {
 				const pngDataUrl = tempCanvas.toDataURL('image/png');
 				const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}"><rect width="100%" height="100%" fill="${backgroundColor}"/><image href="${pngDataUrl}" width="${outputWidth}" height="${outputHeight}" preserveAspectRatio="xMidYMid meet"/></svg>`;
 				const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' });
 				const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
-				return { dataUrl: svgDataUrl, blob: svgBlob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
+				return { dataUrl: svgDataUrl, previewDataUrl: pngDataUrl, blob: svgBlob, width: outputWidth, height: outputHeight, options: normalizedOptions };
 			}
 
-			const dataUrl = tempCanvas.toDataURL('image/png');
-			const blob = await (await fetch(dataUrl)).blob();
+			const previewDataUrl = tempCanvas.toDataURL('image/png');
 
-			return { dataUrl, blob, width: outputWidth, height: outputHeight, options: { format, scale, backgroundColor } };
+			if (format === 'pdf') {
+				if (!window.jspdf || !window.jspdf.jsPDF) {
+					throw new Error('La librería jsPDF no está disponible.');
+				}
+				const { jsPDF } = window.jspdf;
+				const orientation = outputWidth >= outputHeight ? 'landscape' : 'portrait';
+				const pdf = new jsPDF({
+					orientation,
+					unit: 'px',
+					format: [outputWidth, outputHeight]
+				});
+				pdf.addImage(previewDataUrl, 'PNG', 0, 0, outputWidth, outputHeight, undefined, 'FAST');
+				const pdfBlob = pdf.output('blob');
+				return { dataUrl: '', previewDataUrl, blob: pdfBlob, width: outputWidth, height: outputHeight, options: normalizedOptions };
+			}
+
+			const blob = await (await fetch(previewDataUrl)).blob();
+
+			return { dataUrl: previewDataUrl, previewDataUrl, blob, width: outputWidth, height: outputHeight, options: normalizedOptions };
 		}
 
 		function showCopyImageModal(exportData) {
@@ -2045,8 +2325,13 @@
 			currentExportBlob = exportData.blob;
 			exportOptions = { ...exportOptions, ...exportData.options, width: exportData.width, height: exportData.height };
 
-			imageToCopy.src = exportData.dataUrl;
+			imageToCopy.src = exportData.previewDataUrl || exportData.dataUrl;
+			if (exportPreviewViewport) {
+				exportPreviewViewport.scrollTop = 0;
+				exportPreviewViewport.scrollLeft = 0;
+			}
 			updateExportMeta(exportData.width, exportData.height, exportData.blob ? exportData.blob.size : 0);
+			syncExportControls();
 
 			copyImageModal.classList.remove('hidden');
 			copyImageModal.classList.add('flex');
@@ -2079,6 +2364,7 @@
 				copyImageModal.classList.remove('hidden');
 				copyImageModal.classList.add('flex');
 			}
+			syncExportControls();
 
 			toggleExportLoading(true);
 
@@ -2098,7 +2384,15 @@
 
 		async function copyImageToClipboard() {
 			if (!currentExportDataUrl) {
-				setClipboardNotice('Genera primero la vista previa para copiarla.', 'warning');
+				if (exportOptions.format === 'pdf') {
+					setClipboardNotice('El formato PDF no se puede copiar al portapapeles. Usa "Descargar".', 'warning');
+				} else {
+					setClipboardNotice('Genera primero la vista previa para copiarla.', 'warning');
+				}
+				return;
+			}
+			if (exportOptions.format === 'pdf') {
+				setClipboardNotice('El formato PDF no se puede copiar al portapapeles. Usa "Descargar".', 'warning');
 				return;
 			}
 
@@ -2121,12 +2415,13 @@
 		}
 
 		function downloadCurrentImage() {
-			if (!currentExportDataUrl) {
+			if (!currentExportDataUrl && !currentExportBlob) {
 				setClipboardNotice('Genera la vista previa antes de descargar.', 'warning');
 				return;
 			}
 
-			const extension = (exportOptions.format || 'png').toLowerCase() === 'svg' ? 'svg' : 'png';
+			const format = (exportOptions.format || 'png').toLowerCase();
+			const extension = format === 'svg' ? 'svg' : (format === 'pdf' ? 'pdf' : 'png');
 			const filename = `esquemapp.${extension}`;
 			const link = document.createElement('a');
 
@@ -2139,7 +2434,7 @@
 				document.body.removeChild(link);
 				URL.revokeObjectURL(blobUrl);
 			} else {
-				link.href = currentExportDataUrl;
+				link.href = currentExportDataUrl || URL.createObjectURL(currentExportBlob);
 				link.download = filename;
 				document.body.appendChild(link);
 				link.click();
@@ -4397,6 +4692,33 @@
 			if (exportBgColorInput) {
 				exportBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
 			}
+			if (exportTitleBlockInput) {
+				exportTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
+			}
+			if (exportPaperSizeSelect) {
+				exportPaperSizeSelect.value = exportOptions?.pdfConfig?.paperSize || 'a4';
+			}
+			if (exportPageOrientationSelect) {
+				exportPageOrientationSelect.value = exportOptions?.pdfConfig?.orientation || 'landscape';
+			}
+			if (exportPageMarginInput) {
+				exportPageMarginInput.value = exportOptions?.pdfConfig?.marginMm || 8;
+			}
+			if (exportPlanTitleInput) {
+				exportPlanTitleInput.value = exportOptions?.pdfConfig?.title || 'ESQUEMA UNIFILAR';
+			}
+			if (exportPlanCodeInput) {
+				exportPlanCodeInput.value = exportOptions?.pdfConfig?.planCode || 'MA-25-40619';
+			}
+			if (exportPlanRevisionInput) {
+				exportPlanRevisionInput.value = exportOptions?.pdfConfig?.revision || '6';
+			}
+			if (exportPlanHeaderNoteInput) {
+				exportPlanHeaderNoteInput.value = exportOptions?.pdfConfig?.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°';
+			}
+			if (exportPlanFooterInput) {
+				exportPlanFooterInput.value = exportOptions?.pdfConfig?.footerText || '';
+			}
 			refreshExportPreview(true);
 		});
 
@@ -4415,6 +4737,25 @@
 
 		if (exportBgColorInput) {
 			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
+		}
+		if (exportTitleBlockInput) {
+			exportTitleBlockInput.addEventListener('change', () => refreshExportPreview(false));
+		}
+		[
+			exportPaperSizeSelect,
+			exportPageOrientationSelect,
+			exportPageMarginInput,
+			exportPlanTitleInput,
+			exportPlanCodeInput,
+			exportPlanRevisionInput,
+			exportPlanHeaderNoteInput
+		].forEach((el) => {
+			if (!el) return;
+			el.addEventListener('input', () => refreshExportPreview(false));
+			el.addEventListener('change', () => refreshExportPreview(false));
+		});
+		if (exportPlanFooterInput) {
+			exportPlanFooterInput.addEventListener('input', () => refreshExportPreview(false));
 		}
 
 		closeModalBtn.addEventListener('click', () => {
