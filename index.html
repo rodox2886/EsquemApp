@@ -451,6 +451,114 @@
 		</div>
 	</div>
 
+	<section id="order-config-screen" class="hidden min-h-screen p-4 bg-gray-50 border-y border-gray-200">
+		<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+			<div>
+				<h3 class="text-xl font-bold text-gray-900">Configuración de pedido</h3>
+				<p class="text-sm text-gray-600">Completá la hoja actual con rótulo y además otras hojas del pedido en esta pantalla dedicada.</p>
+			</div>
+			<div class="flex gap-2">
+				<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold">Volver al dibujo</button>
+				<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">Guardar configuración</button>
+			</div>
+		</div>
+		<div class="grid lg:grid-cols-3 gap-4">
+			<div class="lg:col-span-2 space-y-4">
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
+							<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
+							<span><strong>Incluir rótulo unifilar</strong> en la hoja principal.</span>
+						</label>
+						<div>
+							<label for="sheet-layout-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
+							<select id="sheet-layout-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+								<option value="a4">A4</option>
+								<option value="a3">A3</option>
+								<option value="letter">Letter</option>
+							</select>
+						</div>
+						<div>
+							<label for="sheet-layout-page-orientation" class="block text-xs font-semibold text-gray-600 mb-1">Orientación</label>
+							<select id="sheet-layout-page-orientation" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+								<option value="landscape">Horizontal</option>
+								<option value="portrait">Vertical</option>
+							</select>
+						</div>
+						<div>
+							<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen (mm)</label>
+							<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
+							<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
+							<input id="sheet-layout-plan-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
+							<input id="sheet-layout-plan-revision" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-meta-code" class="block text-xs font-semibold text-gray-600 mb-1">Código lateral</label>
+							<input id="sheet-layout-plan-meta-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-update-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha actualización</label>
+							<input id="sheet-layout-plan-update-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
+							<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
+							<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
+							<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
+							<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+					</div>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet3-notes" rows="2" placeholder="Observaciones de la hoja 3" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja principal</p>
+				<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
+					<div class="loader"></div>
+				</div>
+				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
+			</div>
+		</div>
+	</section>
+
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
@@ -747,7 +855,7 @@
 	</div>
 
 
-	<div class="flex h-screen">
+	<div id="app-shell" class="flex h-screen">
 		<div id="tools-sidebar" class="flex flex-col items-center space-y-2 p-2 bg-white shadow-md z-20 border-r border-gray-200">
 			<button id="crop-btn" title="Recortar Vista" class="tool-btn p-2 text-gray-600 rounded-md transition-colors selection-tool-btn">
 				<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -907,6 +1015,13 @@
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
+							<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
+								</svg>
+							</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -1011,9 +1126,16 @@
 		const deleteBtn = document.getElementById('delete-btn');
 		const resizeTextBtn = document.getElementById('resize-text-btn');
 		const bulkChangeCtSymbolBtn = document.getElementById('bulk-change-ct-symbol-btn');
+		const appShell = document.getElementById('app-shell');
+		const orderConfigScreen = document.getElementById('order-config-screen');
 		const copyImageBtn = document.getElementById('copy-image-btn');
+		const orderConfigBtn = document.getElementById('order-config-btn');
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
+		const closeSheetLayoutModalBtn = document.getElementById('close-sheet-layout-modal-btn');
+		const sheetLayoutApplyBtn = document.getElementById('sheet-layout-apply-btn');
+		const sheetLayoutPreviewImage = document.getElementById('sheet-layout-preview-image');
+		const sheetLayoutPreviewLoading = document.getElementById('sheet-layout-preview-loading');
 		const imageToCopy = document.getElementById('image-to-copy');
 		const exportPreviewViewport = document.getElementById('export-preview-viewport');
 		const exportFormatSelect = document.getElementById('export-format');
@@ -1038,6 +1160,29 @@
 		const exportPlanCroquisTitleInput = document.getElementById('export-plan-croquis-title');
 		const exportPlanHeaderNoteInput = document.getElementById('export-plan-header-note');
 		const exportPlanFooterInput = document.getElementById('export-plan-footer');
+		const sheetLayoutTitleBlockInput = document.getElementById('sheet-layout-title-block');
+		const sheetLayoutPaperSizeSelect = document.getElementById('sheet-layout-paper-size');
+		const sheetLayoutPageOrientationSelect = document.getElementById('sheet-layout-page-orientation');
+		const sheetLayoutPageMarginInput = document.getElementById('sheet-layout-page-margin');
+		const sheetLayoutPlanTitleInput = document.getElementById('sheet-layout-plan-title');
+		const sheetLayoutPlanCodeInput = document.getElementById('sheet-layout-plan-code');
+		const sheetLayoutPlanRevisionInput = document.getElementById('sheet-layout-plan-revision');
+		const sheetLayoutPlanMetaCodeInput = document.getElementById('sheet-layout-plan-meta-code');
+		const sheetLayoutPlanUpdateDateInput = document.getElementById('sheet-layout-plan-update-date');
+		const sheetLayoutPlanGerenciaInput = document.getElementById('sheet-layout-plan-gerencia');
+		const sheetLayoutPlanCroquisTitleInput = document.getElementById('sheet-layout-plan-croquis-title');
+		const sheetLayoutPlanHeaderNoteInput = document.getElementById('sheet-layout-plan-header-note');
+		const sheetLayoutPlanFooterInput = document.getElementById('sheet-layout-plan-footer');
+		const orderSheet2TitleInput = document.getElementById('order-sheet2-title');
+		const orderSheet2CodeInput = document.getElementById('order-sheet2-code');
+		const orderSheet2ResponsibleInput = document.getElementById('order-sheet2-responsable');
+		const orderSheet2DateInput = document.getElementById('order-sheet2-date');
+		const orderSheet2NotesInput = document.getElementById('order-sheet2-notes');
+		const orderSheet3TitleInput = document.getElementById('order-sheet3-title');
+		const orderSheet3CodeInput = document.getElementById('order-sheet3-code');
+		const orderSheet3ResponsibleInput = document.getElementById('order-sheet3-responsable');
+		const orderSheet3DateInput = document.getElementById('order-sheet3-date');
+		const orderSheet3NotesInput = document.getElementById('order-sheet3-notes');
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1133,6 +1278,10 @@
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let orderSheetsData = {
+				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
+				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
+			};
 			let canvasBackgroundColor = '#f0f0f0';
 			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
@@ -2181,6 +2330,86 @@
 				if (!control) return;
 				control.disabled = !isPdf || !exportOptions.includeTitleBlock;
 			});
+		}
+
+		function toggleSheetLayoutLoading(isLoading) {
+			if (!sheetLayoutPreviewLoading) return;
+			sheetLayoutPreviewLoading.classList.toggle('hidden', !isLoading);
+			sheetLayoutPreviewLoading.classList.toggle('flex', isLoading);
+		}
+
+		function syncSheetLayoutEditorFromOptions() {
+			if (sheetLayoutTitleBlockInput) sheetLayoutTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
+			if (sheetLayoutPaperSizeSelect) sheetLayoutPaperSizeSelect.value = exportOptions?.pdfConfig?.paperSize || 'a4';
+			if (sheetLayoutPageOrientationSelect) sheetLayoutPageOrientationSelect.value = exportOptions?.pdfConfig?.orientation || 'landscape';
+			if (sheetLayoutPageMarginInput) sheetLayoutPageMarginInput.value = exportOptions?.pdfConfig?.marginMm || 8;
+			if (sheetLayoutPlanTitleInput) sheetLayoutPlanTitleInput.value = exportOptions?.pdfConfig?.title || 'ESQUEMA UNIFILAR';
+			if (sheetLayoutPlanCodeInput) sheetLayoutPlanCodeInput.value = exportOptions?.pdfConfig?.planCode || 'MA-25-40619';
+			if (sheetLayoutPlanRevisionInput) sheetLayoutPlanRevisionInput.value = exportOptions?.pdfConfig?.revision || '6';
+			if (sheetLayoutPlanMetaCodeInput) sheetLayoutPlanMetaCodeInput.value = exportOptions?.pdfConfig?.metaCode || 'NTO 6 - G';
+			if (sheetLayoutPlanUpdateDateInput) sheetLayoutPlanUpdateDateInput.value = exportOptions?.pdfConfig?.updateDate || '06/10/2020';
+			if (sheetLayoutPlanGerenciaInput) sheetLayoutPlanGerenciaInput.value = exportOptions?.pdfConfig?.gerencia || 'Región 1 - Zona 1';
+			if (sheetLayoutPlanCroquisTitleInput) sheetLayoutPlanCroquisTitleInput.value = exportOptions?.pdfConfig?.croquisTitle || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO';
+			if (sheetLayoutPlanHeaderNoteInput) sheetLayoutPlanHeaderNoteInput.value = exportOptions?.pdfConfig?.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°';
+			if (sheetLayoutPlanFooterInput) sheetLayoutPlanFooterInput.value = exportOptions?.pdfConfig?.footerText || '';
+		}
+
+		function getSheetLayoutOptions() {
+			const margin = parseFloat((sheetLayoutPageMarginInput && sheetLayoutPageMarginInput.value) || 8);
+			return {
+				format: 'pdf',
+				scale: Math.max(1, Number(exportOptions.scale) || 1),
+				backgroundColor: exportOptions.backgroundColor || '#f0f0f0',
+				includeTitleBlock: sheetLayoutTitleBlockInput ? sheetLayoutTitleBlockInput.checked : true,
+				pdfConfig: {
+					paperSize: (sheetLayoutPaperSizeSelect && sheetLayoutPaperSizeSelect.value) || 'a4',
+					orientation: (sheetLayoutPageOrientationSelect && sheetLayoutPageOrientationSelect.value) || 'landscape',
+					marginMm: isNaN(margin) ? 8 : Math.min(30, Math.max(3, margin)),
+					title: (sheetLayoutPlanTitleInput && sheetLayoutPlanTitleInput.value) || 'ESQUEMA UNIFILAR',
+					planCode: (sheetLayoutPlanCodeInput && sheetLayoutPlanCodeInput.value) || 'MA-25-40619',
+					revision: (sheetLayoutPlanRevisionInput && sheetLayoutPlanRevisionInput.value) || '6',
+					metaCode: (sheetLayoutPlanMetaCodeInput && sheetLayoutPlanMetaCodeInput.value) || 'NTO 6 - G',
+					updateDate: (sheetLayoutPlanUpdateDateInput && sheetLayoutPlanUpdateDateInput.value) || '06/10/2020',
+					gerencia: (sheetLayoutPlanGerenciaInput && sheetLayoutPlanGerenciaInput.value) || 'Región 1 - Zona 1',
+					croquisTitle: (sheetLayoutPlanCroquisTitleInput && sheetLayoutPlanCroquisTitleInput.value) || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO',
+					headerNote: (sheetLayoutPlanHeaderNoteInput && sheetLayoutPlanHeaderNoteInput.value) || 'ANEXO A PEDIDO DE INSTALACIONES MT N°',
+					footerText: (sheetLayoutPlanFooterInput && sheetLayoutPlanFooterInput.value) || ''
+				}
+			};
+		}
+
+		function applySheetLayoutValuesToExportForm(options) {
+			if (!options) return;
+			if (exportFormatSelect) exportFormatSelect.value = 'pdf';
+			if (exportTitleBlockInput) exportTitleBlockInput.checked = options.includeTitleBlock !== false;
+			if (exportPaperSizeSelect) exportPaperSizeSelect.value = options.pdfConfig.paperSize;
+			if (exportPageOrientationSelect) exportPageOrientationSelect.value = options.pdfConfig.orientation;
+			if (exportPageMarginInput) exportPageMarginInput.value = options.pdfConfig.marginMm;
+			if (exportPlanTitleInput) exportPlanTitleInput.value = options.pdfConfig.title;
+			if (exportPlanCodeInput) exportPlanCodeInput.value = options.pdfConfig.planCode;
+			if (exportPlanRevisionInput) exportPlanRevisionInput.value = options.pdfConfig.revision;
+			if (exportPlanMetaCodeInput) exportPlanMetaCodeInput.value = options.pdfConfig.metaCode;
+			if (exportPlanUpdateDateInput) exportPlanUpdateDateInput.value = options.pdfConfig.updateDate;
+			if (exportPlanGerenciaInput) exportPlanGerenciaInput.value = options.pdfConfig.gerencia;
+			if (exportPlanCroquisTitleInput) exportPlanCroquisTitleInput.value = options.pdfConfig.croquisTitle;
+			if (exportPlanHeaderNoteInput) exportPlanHeaderNoteInput.value = options.pdfConfig.headerNote;
+			if (exportPlanFooterInput) exportPlanFooterInput.value = options.pdfConfig.footerText;
+		}
+
+		async function refreshSheetLayoutPreview() {
+			if (!orderConfigScreen || orderConfigScreen.classList.contains('hidden')) return;
+			const previewOptions = getSheetLayoutOptions();
+			toggleSheetLayoutLoading(true);
+			try {
+				const exportData = await createDiagramImage(previewOptions);
+				if (sheetLayoutPreviewImage) {
+					sheetLayoutPreviewImage.src = exportData.previewDataUrl || '';
+				}
+			} catch (error) {
+				console.error('No se pudo actualizar la vista previa de hoja y rótulo', error);
+			} finally {
+				toggleSheetLayoutLoading(false);
+			}
 		}
 
 		function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
@@ -4931,6 +5160,48 @@
 			refreshExportPreview(true);
 		});
 
+		function syncAdditionalOrderSheetsToForm() {
+			if (orderSheet2TitleInput) orderSheet2TitleInput.value = orderSheetsData.sheet2.title || '';
+			if (orderSheet2CodeInput) orderSheet2CodeInput.value = orderSheetsData.sheet2.code || '';
+			if (orderSheet2ResponsibleInput) orderSheet2ResponsibleInput.value = orderSheetsData.sheet2.responsible || '';
+			if (orderSheet2DateInput) orderSheet2DateInput.value = orderSheetsData.sheet2.date || '';
+			if (orderSheet2NotesInput) orderSheet2NotesInput.value = orderSheetsData.sheet2.notes || '';
+			if (orderSheet3TitleInput) orderSheet3TitleInput.value = orderSheetsData.sheet3.title || '';
+			if (orderSheet3CodeInput) orderSheet3CodeInput.value = orderSheetsData.sheet3.code || '';
+			if (orderSheet3ResponsibleInput) orderSheet3ResponsibleInput.value = orderSheetsData.sheet3.responsible || '';
+			if (orderSheet3DateInput) orderSheet3DateInput.value = orderSheetsData.sheet3.date || '';
+			if (orderSheet3NotesInput) orderSheet3NotesInput.value = orderSheetsData.sheet3.notes || '';
+		}
+
+		function captureAdditionalOrderSheetsFromForm() {
+			orderSheetsData = {
+				sheet2: {
+					title: (orderSheet2TitleInput && orderSheet2TitleInput.value) || '',
+					code: (orderSheet2CodeInput && orderSheet2CodeInput.value) || '',
+					responsible: (orderSheet2ResponsibleInput && orderSheet2ResponsibleInput.value) || '',
+					date: (orderSheet2DateInput && orderSheet2DateInput.value) || '',
+					notes: (orderSheet2NotesInput && orderSheet2NotesInput.value) || ''
+				},
+				sheet3: {
+					title: (orderSheet3TitleInput && orderSheet3TitleInput.value) || '',
+					code: (orderSheet3CodeInput && orderSheet3CodeInput.value) || '',
+					responsible: (orderSheet3ResponsibleInput && orderSheet3ResponsibleInput.value) || '',
+					date: (orderSheet3DateInput && orderSheet3DateInput.value) || '',
+					notes: (orderSheet3NotesInput && orderSheet3NotesInput.value) || ''
+				}
+			};
+		}
+
+		if (orderConfigBtn) {
+			orderConfigBtn.addEventListener('click', () => {
+				syncSheetLayoutEditorFromOptions();
+				syncAdditionalOrderSheetsToForm();
+				if (appShell) appShell.classList.add('hidden');
+				if (orderConfigScreen) orderConfigScreen.classList.remove('hidden');
+				refreshSheetLayoutPreview();
+			});
+		}
+
 		if (downloadImageBtn) {
 			downloadImageBtn.addEventListener('click', downloadCurrentImage);
 		}
@@ -4992,12 +5263,53 @@
 			exportPlanFooterInput.addEventListener('input', () => refreshExportPreview(false));
 		}
 
+		[
+			sheetLayoutTitleBlockInput,
+			sheetLayoutPaperSizeSelect,
+			sheetLayoutPageOrientationSelect,
+			sheetLayoutPageMarginInput,
+			sheetLayoutPlanTitleInput,
+			sheetLayoutPlanCodeInput,
+			sheetLayoutPlanRevisionInput,
+			sheetLayoutPlanMetaCodeInput,
+			sheetLayoutPlanUpdateDateInput,
+			sheetLayoutPlanGerenciaInput,
+			sheetLayoutPlanCroquisTitleInput,
+			sheetLayoutPlanHeaderNoteInput,
+			sheetLayoutPlanFooterInput
+		].forEach((el) => {
+			if (!el) return;
+			el.addEventListener('input', refreshSheetLayoutPreview);
+			el.addEventListener('change', refreshSheetLayoutPreview);
+		});
+
 		closeModalBtn.addEventListener('click', () => {
 			copyImageModal.classList.add('hidden');
 			copyImageModal.classList.remove('flex');
 			toggleExportLoading(false);
 			clearClipboardNotice();
 		});
+
+		function closeSheetLayoutModal() {
+			if (orderConfigScreen) orderConfigScreen.classList.add('hidden');
+			if (appShell) appShell.classList.remove('hidden');
+			toggleSheetLayoutLoading(false);
+		}
+
+		if (closeSheetLayoutModalBtn) {
+			closeSheetLayoutModalBtn.addEventListener('click', closeSheetLayoutModal);
+		}
+		if (sheetLayoutApplyBtn) {
+			sheetLayoutApplyBtn.addEventListener('click', () => {
+				const sheetOptions = getSheetLayoutOptions();
+				applySheetLayoutValuesToExportForm(sheetOptions);
+				exportOptions = { ...exportOptions, ...getSelectedExportOptions() };
+				captureAdditionalOrderSheetsFromForm();
+				syncExportControls();
+				refreshExportPreview(false);
+				closeSheetLayoutModal();
+			});
+		}
 
 		clearDrawingsBtn.addEventListener('click', () => {
 			if (!dxfCanvas.classList.contains('hidden') && userDrawings.length > 0) {
