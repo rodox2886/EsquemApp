@@ -451,29 +451,26 @@
 		</div>
 	</div>
 
-	<div id="sheet-layout-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] flex flex-col overflow-hidden">
-			<div class="flex justify-between items-center mb-4 shrink-0">
-				<div>
-					<h3 class="text-lg font-bold">Editor de Hoja y Rótulo</h3>
-					<p class="text-xs text-gray-500">Esta pantalla te permite editar la hoja y el rótulo sin cambiar la vista actual del dibujo.</p>
-				</div>
-				<button id="close-sheet-layout-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+	<section id="order-config-screen" class="hidden min-h-screen p-4 bg-gray-50 border-y border-gray-200">
+		<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+			<div>
+				<h3 class="text-xl font-bold text-gray-900">Configuración de pedido</h3>
+				<p class="text-sm text-gray-600">Completá la hoja actual con rótulo y además otras hojas del pedido en esta pantalla dedicada.</p>
 			</div>
-			<div class="grid md:grid-cols-2 gap-4 min-h-0">
-				<div class="border rounded-md bg-gray-50 p-3 min-h-[320px] overflow-auto">
-					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja + rótulo</p>
-					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
-						<div class="loader"></div>
-					</div>
-					<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
-				</div>
-				<div class="space-y-3 pb-2 max-h-[72vh] overflow-y-auto pr-1">
-					<label class="flex items-start gap-2 text-sm text-gray-700">
-						<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
-						<span><strong>Incluir rótulo unifilar</strong> en la hoja.</span>
-					</label>
-					<div class="grid grid-cols-2 gap-2">
+			<div class="flex gap-2">
+				<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold">Volver al dibujo</button>
+				<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">Guardar configuración</button>
+			</div>
+		</div>
+		<div class="grid lg:grid-cols-3 gap-4">
+			<div class="lg:col-span-2 space-y-4">
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
+							<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
+							<span><strong>Incluir rótulo unifilar</strong> en la hoja principal.</span>
+						</label>
 						<div>
 							<label for="sheet-layout-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
 							<select id="sheet-layout-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
@@ -489,16 +486,14 @@
 								<option value="portrait">Vertical</option>
 							</select>
 						</div>
-					</div>
-					<div>
-						<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen de plano (mm)</label>
-						<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-					</div>
-					<div>
-						<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
-						<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-					</div>
-					<div class="grid grid-cols-2 gap-2">
+						<div>
+							<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen (mm)</label>
+							<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
+							<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
 						<div>
 							<label for="sheet-layout-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
 							<input id="sheet-layout-plan-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
@@ -507,8 +502,6 @@
 							<label for="sheet-layout-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
 							<input id="sheet-layout-plan-revision" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
 						</div>
-					</div>
-					<div class="grid grid-cols-2 gap-2">
 						<div>
 							<label for="sheet-layout-plan-meta-code" class="block text-xs font-semibold text-gray-600 mb-1">Código lateral</label>
 							<input id="sheet-layout-plan-meta-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
@@ -517,31 +510,54 @@
 							<label for="sheet-layout-plan-update-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha actualización</label>
 							<input id="sheet-layout-plan-update-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
 						</div>
+						<div>
+							<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
+							<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
+							<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
+							<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
+							<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+						</div>
 					</div>
-					<div>
-						<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
-						<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
 					</div>
-					<div>
-						<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
-						<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-					</div>
-					<div>
-						<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
-						<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-					</div>
-					<div>
-						<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
-						<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-					</div>
-					<div class="flex gap-2 pt-1 sticky bottom-0 bg-white">
-						<button id="sheet-layout-cancel-btn" class="flex-1 px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm font-semibold">Cerrar</button>
-						<button id="sheet-layout-apply-btn" class="flex-1 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Guardar cambios</button>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet3-notes" rows="2" placeholder="Observaciones de la hoja 3" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
 					</div>
 				</div>
 			</div>
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja principal</p>
+				<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
+					<div class="loader"></div>
+				</div>
+				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
+			</div>
 		</div>
-	</div>
+	</section>
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -839,7 +855,7 @@
 	</div>
 
 
-	<div class="flex h-screen">
+	<div id="app-shell" class="flex h-screen">
 		<div id="tools-sidebar" class="flex flex-col items-center space-y-2 p-2 bg-white shadow-md z-20 border-r border-gray-200">
 			<button id="crop-btn" title="Recortar Vista" class="tool-btn p-2 text-gray-600 rounded-md transition-colors selection-tool-btn">
 				<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -999,7 +1015,7 @@
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
-							<button id="sheet-layout-btn" title="Editar hoja y rótulo" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+							<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
 									<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
@@ -1110,13 +1126,13 @@
 		const deleteBtn = document.getElementById('delete-btn');
 		const resizeTextBtn = document.getElementById('resize-text-btn');
 		const bulkChangeCtSymbolBtn = document.getElementById('bulk-change-ct-symbol-btn');
+		const appShell = document.getElementById('app-shell');
+		const orderConfigScreen = document.getElementById('order-config-screen');
 		const copyImageBtn = document.getElementById('copy-image-btn');
-		const sheetLayoutBtn = document.getElementById('sheet-layout-btn');
+		const orderConfigBtn = document.getElementById('order-config-btn');
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
-		const sheetLayoutModal = document.getElementById('sheet-layout-modal');
 		const closeSheetLayoutModalBtn = document.getElementById('close-sheet-layout-modal-btn');
-		const sheetLayoutCancelBtn = document.getElementById('sheet-layout-cancel-btn');
 		const sheetLayoutApplyBtn = document.getElementById('sheet-layout-apply-btn');
 		const sheetLayoutPreviewImage = document.getElementById('sheet-layout-preview-image');
 		const sheetLayoutPreviewLoading = document.getElementById('sheet-layout-preview-loading');
@@ -1157,6 +1173,16 @@
 		const sheetLayoutPlanCroquisTitleInput = document.getElementById('sheet-layout-plan-croquis-title');
 		const sheetLayoutPlanHeaderNoteInput = document.getElementById('sheet-layout-plan-header-note');
 		const sheetLayoutPlanFooterInput = document.getElementById('sheet-layout-plan-footer');
+		const orderSheet2TitleInput = document.getElementById('order-sheet2-title');
+		const orderSheet2CodeInput = document.getElementById('order-sheet2-code');
+		const orderSheet2ResponsibleInput = document.getElementById('order-sheet2-responsable');
+		const orderSheet2DateInput = document.getElementById('order-sheet2-date');
+		const orderSheet2NotesInput = document.getElementById('order-sheet2-notes');
+		const orderSheet3TitleInput = document.getElementById('order-sheet3-title');
+		const orderSheet3CodeInput = document.getElementById('order-sheet3-code');
+		const orderSheet3ResponsibleInput = document.getElementById('order-sheet3-responsable');
+		const orderSheet3DateInput = document.getElementById('order-sheet3-date');
+		const orderSheet3NotesInput = document.getElementById('order-sheet3-notes');
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1252,6 +1278,10 @@
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let orderSheetsData = {
+				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
+				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
+			};
 			let canvasBackgroundColor = '#f0f0f0';
 			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
@@ -2367,7 +2397,7 @@
 		}
 
 		async function refreshSheetLayoutPreview() {
-			if (!sheetLayoutModal || sheetLayoutModal.classList.contains('hidden')) return;
+			if (!orderConfigScreen || orderConfigScreen.classList.contains('hidden')) return;
 			const previewOptions = getSheetLayoutOptions();
 			toggleSheetLayoutLoading(true);
 			try {
@@ -5130,11 +5160,44 @@
 			refreshExportPreview(true);
 		});
 
-		if (sheetLayoutBtn) {
-			sheetLayoutBtn.addEventListener('click', () => {
+		function syncAdditionalOrderSheetsToForm() {
+			if (orderSheet2TitleInput) orderSheet2TitleInput.value = orderSheetsData.sheet2.title || '';
+			if (orderSheet2CodeInput) orderSheet2CodeInput.value = orderSheetsData.sheet2.code || '';
+			if (orderSheet2ResponsibleInput) orderSheet2ResponsibleInput.value = orderSheetsData.sheet2.responsible || '';
+			if (orderSheet2DateInput) orderSheet2DateInput.value = orderSheetsData.sheet2.date || '';
+			if (orderSheet2NotesInput) orderSheet2NotesInput.value = orderSheetsData.sheet2.notes || '';
+			if (orderSheet3TitleInput) orderSheet3TitleInput.value = orderSheetsData.sheet3.title || '';
+			if (orderSheet3CodeInput) orderSheet3CodeInput.value = orderSheetsData.sheet3.code || '';
+			if (orderSheet3ResponsibleInput) orderSheet3ResponsibleInput.value = orderSheetsData.sheet3.responsible || '';
+			if (orderSheet3DateInput) orderSheet3DateInput.value = orderSheetsData.sheet3.date || '';
+			if (orderSheet3NotesInput) orderSheet3NotesInput.value = orderSheetsData.sheet3.notes || '';
+		}
+
+		function captureAdditionalOrderSheetsFromForm() {
+			orderSheetsData = {
+				sheet2: {
+					title: (orderSheet2TitleInput && orderSheet2TitleInput.value) || '',
+					code: (orderSheet2CodeInput && orderSheet2CodeInput.value) || '',
+					responsible: (orderSheet2ResponsibleInput && orderSheet2ResponsibleInput.value) || '',
+					date: (orderSheet2DateInput && orderSheet2DateInput.value) || '',
+					notes: (orderSheet2NotesInput && orderSheet2NotesInput.value) || ''
+				},
+				sheet3: {
+					title: (orderSheet3TitleInput && orderSheet3TitleInput.value) || '',
+					code: (orderSheet3CodeInput && orderSheet3CodeInput.value) || '',
+					responsible: (orderSheet3ResponsibleInput && orderSheet3ResponsibleInput.value) || '',
+					date: (orderSheet3DateInput && orderSheet3DateInput.value) || '',
+					notes: (orderSheet3NotesInput && orderSheet3NotesInput.value) || ''
+				}
+			};
+		}
+
+		if (orderConfigBtn) {
+			orderConfigBtn.addEventListener('click', () => {
 				syncSheetLayoutEditorFromOptions();
-				sheetLayoutModal.classList.remove('hidden');
-				sheetLayoutModal.classList.add('flex');
+				syncAdditionalOrderSheetsToForm();
+				if (appShell) appShell.classList.add('hidden');
+				if (orderConfigScreen) orderConfigScreen.classList.remove('hidden');
 				refreshSheetLayoutPreview();
 			});
 		}
@@ -5228,33 +5291,23 @@
 		});
 
 		function closeSheetLayoutModal() {
-			if (!sheetLayoutModal) return;
-			sheetLayoutModal.classList.add('hidden');
-			sheetLayoutModal.classList.remove('flex');
+			if (orderConfigScreen) orderConfigScreen.classList.add('hidden');
+			if (appShell) appShell.classList.remove('hidden');
 			toggleSheetLayoutLoading(false);
 		}
 
 		if (closeSheetLayoutModalBtn) {
 			closeSheetLayoutModalBtn.addEventListener('click', closeSheetLayoutModal);
 		}
-		if (sheetLayoutCancelBtn) {
-			sheetLayoutCancelBtn.addEventListener('click', closeSheetLayoutModal);
-		}
 		if (sheetLayoutApplyBtn) {
 			sheetLayoutApplyBtn.addEventListener('click', () => {
 				const sheetOptions = getSheetLayoutOptions();
 				applySheetLayoutValuesToExportForm(sheetOptions);
 				exportOptions = { ...exportOptions, ...getSelectedExportOptions() };
+				captureAdditionalOrderSheetsFromForm();
 				syncExportControls();
 				refreshExportPreview(false);
 				closeSheetLayoutModal();
-			});
-		}
-		if (sheetLayoutModal) {
-			sheetLayoutModal.addEventListener('click', (e) => {
-				if (e.target === sheetLayoutModal) {
-					closeSheetLayoutModal();
-				}
 			});
 		}
 
