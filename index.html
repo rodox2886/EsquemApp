@@ -2475,9 +2475,29 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			const previewOptions = getSheetLayoutOptions();
 			toggleSheetLayoutLoading(true);
 			try {
-				const exportData = await createDiagramImage(previewOptions);
+				const paper = getPaperDimensionsPx(
+					previewOptions?.pdfConfig?.paperSize,
+					previewOptions?.pdfConfig?.orientation,
+					1
+				);
+				const coverCanvas = document.createElement('canvas');
+				const coverCtx = coverCanvas.getContext('2d');
+				coverCanvas.width = paper.width;
+				coverCanvas.height = paper.height;
+				const logoImage = await loadEdenorLogo();
+				drawOrderCoverSheet(
+					coverCtx,
+					{ width: paper.width, height: paper.height },
+					{
+						...(previewOptions?.orderCoverConfig || {}),
+						metaCode: previewOptions?.pdfConfig?.metaCode,
+						updateDate: previewOptions?.pdfConfig?.updateDate
+					},
+					paper.mmToPx,
+					logoImage
+				);
 				if (sheetLayoutPreviewImage) {
-					sheetLayoutPreviewImage.src = exportData.previewDataUrl || '';
+					sheetLayoutPreviewImage.src = coverCanvas.toDataURL('image/png');
 				}
 			} catch (error) {
 				console.error('No se pudo actualizar la vista previa de hoja y rótulo', error);
@@ -2717,93 +2737,147 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
 		function drawOrderCoverSheet(ctx, pageRect, coverConfig = {}, mmToPx, logoImage = null) {
 			const margin = mmToPx(8);
-			const boxX = margin;
-			const boxY = margin;
-			const boxW = pageRect.width - margin * 2;
-			const boxH = pageRect.height - margin * 2;
-			const drawBox = (x, y, w, h, title = '') => {
+			const x = margin;
+			const y = margin;
+			const w = pageRect.width - margin * 2;
+			const h = pageRect.height - margin * 2;
+			const line = Math.max(1, mmToPx(0.2));
+			const pad = mmToPx(2);
+			const labelSize = 2.4;
+			const textSize = 2.8;
+			const titleSize = 3.2;
+			const drawBox = (bx, by, bw, bh) => {
 				ctx.strokeStyle = '#111827';
-				ctx.lineWidth = Math.max(1, mmToPx(0.2));
-				ctx.strokeRect(x, y, w, h);
-				if (title) {
-					ctx.font = `bold ${Math.round(mmToPx(2.6))}px Inter, sans-serif`;
-					ctx.fillStyle = '#111827';
-					ctx.fillText(title, x + mmToPx(1.5), y + mmToPx(4));
-				}
+				ctx.lineWidth = line;
+				ctx.strokeRect(bx, by, bw, bh);
 			};
-			const write = (text, x, y, size = 2.6, weight = 'normal') => {
+			const write = (text, tx, ty, size = textSize, weight = 'normal', align = 'left') => {
 				ctx.font = `${weight} ${Math.round(mmToPx(size))}px Inter, sans-serif`;
 				ctx.fillStyle = '#111827';
-				ctx.fillText(text || '', x, y);
+				ctx.textAlign = align;
+				ctx.fillText(text || '', tx, ty);
+				ctx.textAlign = 'left';
+			};
+			const sectionTitle = (text, bx, by, bw) => {
+				write(text, bx + bw / 2, by + mmToPx(4), 2.9, 'bold', 'center');
 			};
 
 			ctx.save();
 			ctx.fillStyle = '#ffffff';
 			ctx.fillRect(0, 0, pageRect.width, pageRect.height);
-			ctx.strokeStyle = '#111827';
-			ctx.lineWidth = Math.max(1, mmToPx(0.2));
-			ctx.strokeRect(boxX, boxY, boxW, boxH);
+			drawBox(x, y, w, h);
 
-			// Header similar to requested form
-			const headerH = mmToPx(18);
-			drawBox(boxX + mmToPx(2), boxY + mmToPx(2), boxW - mmToPx(4), headerH, '');
+			// Banda superior (rótulo estilo unifilar + pedido)
+			const headH = mmToPx(22);
+			drawBox(x, y, w, headH);
+			const logoW = w * 0.33;
+			const centerW = w * 0.37;
+			const rightW = w - logoW - centerW;
+			drawBox(x, y, logoW, headH);
+			drawBox(x + logoW, y, centerW, headH);
+			drawBox(x + logoW + centerW, y, rightW, headH);
 			if (logoImage) {
-				const logoH = mmToPx(9);
-				const logoW = logoH * (logoImage.width / logoImage.height);
-				ctx.drawImage(logoImage, boxX + mmToPx(6), boxY + mmToPx(5), logoW, logoH);
+				const logoH = mmToPx(10);
+				const logoDrawW = logoH * (logoImage.width / logoImage.height);
+				ctx.drawImage(logoImage, x + mmToPx(5), y + mmToPx(5), logoDrawW, logoH);
 			} else {
-				write('edenor', boxX + mmToPx(6), boxY + mmToPx(11), 6.5, 'bold');
+				write('edenor', x + mmToPx(5), y + mmToPx(12), 7, 'bold');
 			}
-			write('PEDIDO DE INSTALACIONES MT', boxX + mmToPx(58), boxY + mmToPx(10), 3.8, 'bold');
-			write(`Código: ${(coverConfig.metaCode || 'NTO-6 G')}`, boxX + boxW - mmToPx(50), boxY + mmToPx(8), 2.8, 'bold');
-			write(`Fecha de Actualización: ${(coverConfig.updateDate || '06/10/2020')}`, boxX + boxW - mmToPx(50), boxY + mmToPx(14), 2.8, 'bold');
-			write(`Gerencia: ${coverConfig.gerencia || ''}`, boxX + mmToPx(6), boxY + mmToPx(24), 4.2, 'bold italic');
+			write('PEDIDO DE INSTALACIONES MT', x + logoW + pad, y + mmToPx(9), titleSize, 'bold');
+			write(`Código: ${coverConfig.metaCode || 'NTO-6 G'}`, x + logoW + centerW + pad, y + mmToPx(8), textSize, 'bold');
+			write(`Revisión: 6`, x + logoW + centerW + pad, y + mmToPx(13), textSize, 'bold');
+			write(`Fecha de Actualización: ${coverConfig.updateDate || '06/10/2020'}`, x + logoW + centerW + pad, y + mmToPx(18), textSize, 'bold');
 
-			const firstBandY = boxY + mmToPx(28);
-			drawBox(boxX + mmToPx(2), firstBandY, boxW - mmToPx(4), mmToPx(20), '');
-			write(`Fecha de solicitud: ${coverConfig.requestDate || ''}`, boxX + mmToPx(6), firstBandY + mmToPx(6), 2.9, 'bold');
-			write(`Pedido: ${coverConfig.requestId || ''}`, boxX + mmToPx(6), firstBandY + mmToPx(14), 4, 'bold');
-			write(`Obra: ${coverConfig.workId || ''}`, boxX + mmToPx(92), firstBandY + mmToPx(6), 2.9, 'bold');
+			// Gerencia
+			const gerY = y + headH + mmToPx(2);
+			write('Gerencia:', x + pad, gerY + mmToPx(4), 4, 'bold italic');
+			write(coverConfig.gerencia || 'Región 1 - Zona 1', x + mmToPx(34), gerY + mmToPx(4), 4, 'bold italic');
 
-			const instY = firstBandY + mmToPx(24);
-			const instH = mmToPx(44);
-			drawBox(boxX + mmToPx(2), instY, boxW - mmToPx(4), instH, 'INSTALACIÓN SOLICITADA FUERA DE SERVICIO');
-			wrapCanvasText(
-				ctx,
-				coverConfig.installationText || '',
-				boxX + mmToPx(4),
-				instY + mmToPx(9),
-				boxW - mmToPx(8),
-				mmToPx(4.8),
-				7
-			);
+			// Datos solicitud
+			const reqY = gerY + mmToPx(6);
+			const reqH = mmToPx(18);
+			drawBox(x + pad, reqY, w - pad * 2, reqH);
+			const leftW = (w - pad * 2) * 0.55;
+			drawBox(x + pad, reqY, leftW, reqH);
+			drawBox(x + pad + leftW, reqY, (w - pad * 2) - leftW, reqH);
+			write('Fecha de solicitud:', x + mmToPx(4), reqY + mmToPx(5), labelSize, 'bold');
+			write(coverConfig.requestDate || '', x + mmToPx(35), reqY + mmToPx(5), textSize, 'bold');
+			write('Pedido de instalaciones N°:', x + mmToPx(4), reqY + mmToPx(11), labelSize, 'bold');
+			write(coverConfig.requestId || '', x + mmToPx(22), reqY + mmToPx(16), 4.2, 'bold');
+			write('Obra:', x + pad + leftW + mmToPx(4), reqY + mmToPx(5), labelSize, 'bold');
+			write(coverConfig.workId || '', x + pad + leftW + mmToPx(20), reqY + mmToPx(5), textSize, 'bold');
+			write('Fecha prevista para el trabajo', x + pad + leftW + mmToPx(4), reqY + mmToPx(10), labelSize, 'bold');
+			write('Día   Mes   Año', x + pad + leftW + mmToPx(4), reqY + mmToPx(15), labelSize, 'bold');
 
+			// Bloque solicitante / responsable
+			const staffY = reqY + reqH + mmToPx(2);
+			const staffH = mmToPx(28);
+			drawBox(x + pad, staffY, w - pad * 2, staffH);
+			sectionTitle('Solicitante del Pedido de Instalaciones', x + pad, staffY, w - pad * 2);
+			ctx.beginPath();
+			ctx.moveTo(x + pad, staffY + mmToPx(5));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(5));
+			ctx.moveTo(x + pad, staffY + mmToPx(12));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(12));
+			ctx.moveTo(x + pad, staffY + mmToPx(19));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(19));
+			ctx.stroke();
+			write('Departamento', x + mmToPx(6), staffY + mmToPx(10), labelSize, 'bold');
+			write('Teléfono', x + mmToPx(30), staffY + mmToPx(10), labelSize, 'bold');
+			write('Gestor', x + mmToPx(55), staffY + mmToPx(10), labelSize, 'bold');
+			write('Mantenimiento', x + mmToPx(6), staffY + mmToPx(17), textSize, 'bold');
+			write('4172', x + mmToPx(33), staffY + mmToPx(17), textSize, 'bold');
+			write('TAGLIAFERRO CLAUDIO', x + mmToPx(55), staffY + mmToPx(17), textSize, 'bold');
+			write('Responsable de Trabajo:', x + mmToPx(6), staffY + mmToPx(24), labelSize, 'bold');
+			write('SOSA MARTIN', x + mmToPx(34), staffY + mmToPx(24), textSize, 'bold');
+
+			// Instalación solicitada
+			const instY = staffY + staffH + mmToPx(2);
+			const instH = mmToPx(40);
+			drawBox(x + pad, instY, w - pad * 2, instH);
+			sectionTitle('INSTALACIÓN SOLICITADA FUERA DE SERVICIO', x + pad, instY, w - pad * 2);
+			wrapCanvasText(ctx, coverConfig.installationText || '', x + mmToPx(4), instY + mmToPx(9), w - mmToPx(8), mmToPx(4.6), 8);
+
+			// Descripción
 			const descY = instY + instH + mmToPx(2);
-			const descH = mmToPx(36);
-			drawBox(boxX + mmToPx(2), descY, boxW - mmToPx(4), descH, 'DESCRIPCIÓN DE LOS TRABAJOS A REALIZAR Y MOTIVO');
-			wrapCanvasText(
-				ctx,
-				coverConfig.jobDescription || '',
-				boxX + mmToPx(4),
-				descY + mmToPx(12),
-				boxW - mmToPx(8),
-				mmToPx(5.2),
-				6
-			);
+			const descH = mmToPx(30);
+			drawBox(x + pad, descY, w - pad * 2, descH);
+			sectionTitle('DESCRIPCIÓN DE LOS TRABAJOS A REALIZAR Y MOTIVO', x + pad, descY, w - pad * 2);
+			wrapCanvasText(ctx, coverConfig.jobDescription || '', x + mmToPx(4), descY + mmToPx(12), w - mmToPx(8), mmToPx(4.8), 5);
 
-			const obsY = descY + descH + mmToPx(2);
-			const obsH = mmToPx(18);
-			drawBox(boxX + mmToPx(2), obsY, boxW - mmToPx(4), obsH, 'OBSERVACIONES');
-			wrapCanvasText(
-				ctx,
-				coverConfig.observations || '',
-				boxX + mmToPx(4),
-				obsY + mmToPx(10),
-				boxW - mmToPx(8),
-				mmToPx(4.6),
-				3
-			);
-			write('Hoja 1 / 3', boxX + boxW - mmToPx(24), boxY + boxH - mmToPx(2), 2.8, 'bold');
+			// Horarios y despacho
+			const hourY = descY + descH + mmToPx(2);
+			const hourH = mmToPx(16);
+			drawBox(x + pad, hourY, w - pad * 2, hourH);
+			ctx.beginPath();
+			ctx.moveTo(x + (w * 0.62), hourY);
+			ctx.lineTo(x + (w * 0.62), hourY + hourH);
+			ctx.stroke();
+			write('Horarios previstos de recepción y devolución del RT:', x + mmToPx(22), hourY + mmToPx(5), labelSize, 'bold');
+			write('Recepción: 08:40', x + mmToPx(6), hourY + mmToPx(12), textSize, 'bold');
+			write('Devolución: 13:00', x + mmToPx(50), hourY + mmToPx(12), textSize, 'bold');
+			write('Para uso del Despacho AT/MT', x + (w * 0.67), hourY + mmToPx(5), labelSize, 'bold');
+			write('N° de Protocolo: __________', x + (w * 0.62) + mmToPx(4), hourY + mmToPx(12), textSize, 'bold');
+
+			// Observaciones
+			const obsY = hourY + hourH + mmToPx(2);
+			const obsH = mmToPx(13);
+			drawBox(x + pad, obsY, w - pad * 2, obsH);
+			write('Observaciones:', x + mmToPx(4), obsY + mmToPx(5), labelSize, 'bold');
+			wrapCanvasText(ctx, coverConfig.observations || '', x + mmToPx(4), obsY + mmToPx(10), w - mmToPx(8), mmToPx(3.8), 2);
+
+			// Firmas
+			const signY = obsY + obsH + mmToPx(8);
+			ctx.beginPath();
+			ctx.moveTo(x + mmToPx(15), signY);
+			ctx.lineTo(x + mmToPx(60), signY);
+			ctx.moveTo(x + w - mmToPx(60), signY);
+			ctx.lineTo(x + w - mmToPx(15), signY);
+			ctx.stroke();
+			write('Firma y Aclaración del solicitante', x + mmToPx(14), signY + mmToPx(5), labelSize, 'bold');
+			write('Firma y aclaración Asistencia Técnica', x + w - mmToPx(62), signY + mmToPx(5), labelSize, 'bold');
+			write('NT6 - Operación', x + mmToPx(2), y + h - mmToPx(1), labelSize, 'bold');
+			write('Hoja 1 / 3', x + w - mmToPx(22), y + h - mmToPx(1), labelSize, 'bold');
 			ctx.restore();
 		}
 
