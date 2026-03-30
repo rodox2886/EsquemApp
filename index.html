@@ -451,21 +451,26 @@
 		</div>
 	</div>
 
-	<section id="order-config-screen" class="hidden min-h-screen p-4 bg-gray-50 border-y border-gray-200">
-		<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-			<div>
-				<h3 class="text-xl font-bold text-gray-900">Configuración de pedido</h3>
-				<p class="text-sm text-gray-600">Completá la hoja actual con rótulo y además otras hojas del pedido en esta pantalla dedicada.</p>
-			</div>
-			<div class="flex gap-2">
-				<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-semibold">Volver al dibujo</button>
-				<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">Guardar configuración</button>
-			</div>
-		</div>
-		<div class="grid lg:grid-cols-3 gap-4">
-			<div class="lg:col-span-2 space-y-4">
-				<div class="rounded-lg border border-gray-200 bg-white p-4">
-					<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
+	<section id="order-config-screen" class="hidden min-h-screen bg-gray-100">
+		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
+			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
+				<div class="flex flex-wrap items-center justify-between gap-4">
+					<div>
+						<h1 class="text-2xl font-bold">
+							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
+						</h1>
+						<p class="text-sm text-gray-600 mt-1">Configuración de pedido y hojas del unifilar.</p>
+					</div>
+					<div class="flex gap-2">
+						<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
+						<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Guardar configuración</button>
+					</div>
+				</div>
+			</header>
+			<div class="grid xl:grid-cols-3 gap-6">
+				<div class="xl:col-span-2 space-y-4">
+					<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+						<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
 					<div class="grid md:grid-cols-2 gap-3">
 						<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
 							<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
@@ -528,7 +533,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
 					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
 					<div class="grid md:grid-cols-2 gap-3">
 						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
@@ -538,7 +543,7 @@
 						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
 					</div>
 				</div>
-				<div class="rounded-lg border border-gray-200 bg-white p-4">
+					<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
 					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
 					<div class="grid md:grid-cols-2 gap-3">
 						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
@@ -549,15 +554,16 @@
 					</div>
 				</div>
 			</div>
-			<div class="rounded-lg border border-gray-200 bg-white p-4">
-				<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja principal</p>
-				<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
-					<div class="loader"></div>
+				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm h-fit">
+					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja principal</p>
+					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
+						<div class="loader"></div>
 				</div>
 				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
 			</div>
-		</div>
-	</section>
+				</div>
+			</div>
+		</section>
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
