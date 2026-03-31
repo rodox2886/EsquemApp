@@ -451,6 +451,196 @@
 		</div>
 	</div>
 
+	<section id="order-config-screen" class="hidden min-h-screen bg-gray-100">
+		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
+			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
+				<div class="flex flex-wrap items-center justify-between gap-4">
+					<div>
+						<h1 class="text-2xl font-bold">
+							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
+						</h1>
+						<p class="text-sm text-gray-600 mt-1">Configuración de pedido y hojas del unifilar.</p>
+					</div>
+					<div class="flex gap-2">
+						<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
+						<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Guardar configuración</button>
+					</div>
+				</div>
+			</header>
+				<div class="grid xl:grid-cols-2 gap-6">
+					<div class="space-y-4">
+					<div id="general-sheet-settings" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+						<h4 class="font-semibold text-gray-800 mb-2">Configuración general de hojas</h4>
+						<div class="grid md:grid-cols-2 gap-3">
+							<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
+								<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
+								<span><strong>Incluir rótulo unifilar</strong> en la hoja del unifilar.</span>
+							</label>
+							<div>
+								<label for="sheet-layout-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
+								<select id="sheet-layout-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+									<option value="a4">A4</option>
+									<option value="a3">A3</option>
+									<option value="letter">Letter</option>
+								</select>
+							</div>
+							<div>
+								<label for="sheet-layout-page-orientation" class="block text-xs font-semibold text-gray-600 mb-1">Orientación</label>
+								<select id="sheet-layout-page-orientation" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+									<option value="landscape">Horizontal</option>
+									<option value="portrait">Vertical</option>
+								</select>
+							</div>
+							<div>
+								<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen (mm)</label>
+								<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+							</div>
+						</div>
+					</div>
+					<div id="form-sheet0" class="sheet-form-panel rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+						<h4 class="font-semibold text-gray-800 mb-2">Hoja 0 · Pedido de instalaciones (primera hoja)</h4>
+						<div class="grid md:grid-cols-2 gap-3">
+							<div>
+								<label for="order-cover-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
+								<input id="order-cover-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="Región 1 - Zona 1">
+							</div>
+							<div>
+								<label for="order-cover-request-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha de solicitud</label>
+								<input id="order-cover-request-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="19/09/2025">
+							</div>
+							<div>
+								<label for="order-cover-request-id" class="block text-xs font-semibold text-gray-600 mb-1">Pedido de instalaciones N°</label>
+								<input id="order-cover-request-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="CA-25-40573">
+							</div>
+							<div>
+								<label for="order-cover-work-id" class="block text-xs font-semibold text-gray-600 mb-1">Obra</label>
+								<input id="order-cover-work-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="79084">
+							</div>
+							<div class="md:col-span-2">
+								<label for="order-cover-installation" class="block text-xs font-semibold text-gray-600 mb-1">Instalación solicitada fuera de servicio</label>
+								<textarea id="order-cover-installation" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">Abierto: CT 79084 Lado CT 77334
+Abierto: CT 77334 Lado CT 79084</textarea>
+							</div>
+							<div class="md:col-span-2">
+								<label for="order-cover-job-description" class="block text-xs font-semibold text-gray-600 mb-1">Descripción de trabajos / motivo</label>
+								<textarea id="order-cover-job-description" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">EN CT 79084 SE REALIZARÁ MANTENIMIENTO DE TRAFO Y ADECUACIÓN DE ICC LADO CT 77334.</textarea>
+							</div>
+							<div class="md:col-span-2">
+								<label for="order-cover-observations" class="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
+								<textarea id="order-cover-observations" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">CT 79084 CON AVISO DE CORTE AL CLIENTE. REALIZAR MANIOBRAS PREVIAS CON GRTC.</textarea>
+							</div>
+						</div>
+					</div>
+							<div id="form-sheet1" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+						<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
+						<div class="grid md:grid-cols-2 gap-3">
+							<div>
+								<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
+								<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
+							<input id="sheet-layout-plan-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
+							<input id="sheet-layout-plan-revision" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-meta-code" class="block text-xs font-semibold text-gray-600 mb-1">Código lateral</label>
+							<input id="sheet-layout-plan-meta-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-update-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha actualización</label>
+							<input id="sheet-layout-plan-update-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
+							<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div>
+							<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
+							<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
+							<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						</div>
+						<div class="md:col-span-2">
+							<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
+							<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+						</div>
+					</div>
+				</div>
+							<div id="form-sheet2" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet2-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+					</div>
+				</div>
+						<div id="form-sheet3" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
+					<div class="grid md:grid-cols-2 gap-3">
+						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<input id="order-sheet3-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
+						<textarea id="order-sheet3-notes" rows="2" placeholder="Observaciones de la hoja 3" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
+					</div>
+				</div>
+			</div>
+				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:sticky xl:top-6 min-h-[70vh]">
+					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa de hojas configuradas</p>
+					<div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+						<button id="preview-sheet0-btn" class="preview-sheet-btn px-2 py-1 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">Hoja 1 Pedido</button>
+						<button id="preview-sheet1-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 2 Unifilar</button>
+						<button id="preview-sheet2-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 3</button>
+						<button id="preview-sheet3-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 4</button>
+					</div>
+					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
+						<div class="loader"></div>
+					</div>
+				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
+			</div>
+				</div>
+			</div>
+	</section>
+
+	<section id="geographic-screen" class="hidden min-h-screen bg-gray-100">
+		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
+			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
+				<div class="flex flex-wrap items-center justify-between gap-4">
+					<div>
+						<h1 class="text-2xl font-bold">
+							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
+						</h1>
+						<p class="text-sm text-gray-600 mt-1">Modo geográfico DXF (sin interpretación unifilar).</p>
+					</div>
+					<div class="flex gap-2">
+						<label for="geographic-dxf-input" class="cursor-pointer px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Cargar DXF geográfico</label>
+						<input id="geographic-dxf-input" type="file" class="hidden" accept=".dxf">
+						<button id="close-geographic-screen-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
+					</div>
+				</div>
+			</header>
+			<div class="grid xl:grid-cols-4 gap-4">
+				<aside class="xl:col-span-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+					<h4 class="font-semibold text-gray-800 mb-2">Capas detectadas</h4>
+					<div id="geographic-layer-filters" class="space-y-2 max-h-[70vh] overflow-y-auto text-sm text-gray-700">
+						<p class="text-gray-500 text-xs">Cargá un DXF para listar capas.</p>
+					</div>
+				</aside>
+				<div class="xl:col-span-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+					<canvas id="geographic-canvas" class="w-full h-[75vh] bg-gray-50 rounded border border-gray-100"></canvas>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
@@ -747,7 +937,7 @@
 	</div>
 
 
-	<div class="flex h-screen">
+	<div id="app-shell" class="flex h-screen">
 		<div id="tools-sidebar" class="flex flex-col items-center space-y-2 p-2 bg-white shadow-md z-20 border-r border-gray-200">
 			<button id="crop-btn" title="Recortar Vista" class="tool-btn p-2 text-gray-600 rounded-md transition-colors selection-tool-btn">
 				<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -907,6 +1097,19 @@
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
+								<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+									<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
+										<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
+									</svg>
+								</button>
+								<button id="geographic-mode-btn" title="Pantalla geográfica DXF" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/>
+										<path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 6v14"/>
+									</svg>
+								</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -1011,9 +1214,23 @@
 		const deleteBtn = document.getElementById('delete-btn');
 		const resizeTextBtn = document.getElementById('resize-text-btn');
 		const bulkChangeCtSymbolBtn = document.getElementById('bulk-change-ct-symbol-btn');
+		const appShell = document.getElementById('app-shell');
+		const orderConfigScreen = document.getElementById('order-config-screen');
+		const geographicScreen = document.getElementById('geographic-screen');
 		const copyImageBtn = document.getElementById('copy-image-btn');
+		const orderConfigBtn = document.getElementById('order-config-btn');
+		const geographicModeBtn = document.getElementById('geographic-mode-btn');
+		const closeGeographicScreenBtn = document.getElementById('close-geographic-screen-btn');
+		const geographicDxfInput = document.getElementById('geographic-dxf-input');
+		const geographicLayerFilters = document.getElementById('geographic-layer-filters');
+		const geographicCanvas = document.getElementById('geographic-canvas');
+		const geographicCtx = geographicCanvas ? geographicCanvas.getContext('2d') : null;
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
+		const closeSheetLayoutModalBtn = document.getElementById('close-sheet-layout-modal-btn');
+		const sheetLayoutApplyBtn = document.getElementById('sheet-layout-apply-btn');
+		const sheetLayoutPreviewImage = document.getElementById('sheet-layout-preview-image');
+		const sheetLayoutPreviewLoading = document.getElementById('sheet-layout-preview-loading');
 		const imageToCopy = document.getElementById('image-to-copy');
 		const exportPreviewViewport = document.getElementById('export-preview-viewport');
 		const exportFormatSelect = document.getElementById('export-format');
@@ -1038,6 +1255,51 @@
 		const exportPlanCroquisTitleInput = document.getElementById('export-plan-croquis-title');
 		const exportPlanHeaderNoteInput = document.getElementById('export-plan-header-note');
 		const exportPlanFooterInput = document.getElementById('export-plan-footer');
+		const sheetLayoutTitleBlockInput = document.getElementById('sheet-layout-title-block');
+		const sheetLayoutPaperSizeSelect = document.getElementById('sheet-layout-paper-size');
+		const sheetLayoutPageOrientationSelect = document.getElementById('sheet-layout-page-orientation');
+		const sheetLayoutPageMarginInput = document.getElementById('sheet-layout-page-margin');
+		const sheetLayoutPlanTitleInput = document.getElementById('sheet-layout-plan-title');
+		const sheetLayoutPlanCodeInput = document.getElementById('sheet-layout-plan-code');
+		const sheetLayoutPlanRevisionInput = document.getElementById('sheet-layout-plan-revision');
+		const sheetLayoutPlanMetaCodeInput = document.getElementById('sheet-layout-plan-meta-code');
+		const sheetLayoutPlanUpdateDateInput = document.getElementById('sheet-layout-plan-update-date');
+		const sheetLayoutPlanGerenciaInput = document.getElementById('sheet-layout-plan-gerencia');
+		const sheetLayoutPlanCroquisTitleInput = document.getElementById('sheet-layout-plan-croquis-title');
+		const sheetLayoutPlanHeaderNoteInput = document.getElementById('sheet-layout-plan-header-note');
+		const sheetLayoutPlanFooterInput = document.getElementById('sheet-layout-plan-footer');
+		const orderSheet2TitleInput = document.getElementById('order-sheet2-title');
+		const orderSheet2CodeInput = document.getElementById('order-sheet2-code');
+		const orderSheet2ResponsibleInput = document.getElementById('order-sheet2-responsable');
+		const orderSheet2DateInput = document.getElementById('order-sheet2-date');
+		const orderSheet2NotesInput = document.getElementById('order-sheet2-notes');
+		const orderSheet3TitleInput = document.getElementById('order-sheet3-title');
+		const orderSheet3CodeInput = document.getElementById('order-sheet3-code');
+		const orderSheet3ResponsibleInput = document.getElementById('order-sheet3-responsable');
+		const orderSheet3DateInput = document.getElementById('order-sheet3-date');
+		const orderSheet3NotesInput = document.getElementById('order-sheet3-notes');
+		const orderCoverGerenciaInput = document.getElementById('order-cover-gerencia');
+		const orderCoverRequestDateInput = document.getElementById('order-cover-request-date');
+		const orderCoverRequestIdInput = document.getElementById('order-cover-request-id');
+		const orderCoverWorkIdInput = document.getElementById('order-cover-work-id');
+		const orderCoverInstallationInput = document.getElementById('order-cover-installation');
+		const orderCoverJobDescriptionInput = document.getElementById('order-cover-job-description');
+		const orderCoverObservationsInput = document.getElementById('order-cover-observations');
+		const previewSheet0Btn = document.getElementById('preview-sheet0-btn');
+		const previewSheet1Btn = document.getElementById('preview-sheet1-btn');
+		const previewSheet2Btn = document.getElementById('preview-sheet2-btn');
+		const previewSheet3Btn = document.getElementById('preview-sheet3-btn');
+		const previewSheetBtns = document.querySelectorAll('.preview-sheet-btn');
+		const formSheet0 = document.getElementById('form-sheet0');
+		const formSheet1 = document.getElementById('form-sheet1');
+		const formSheet2 = document.getElementById('form-sheet2');
+		const formSheet3 = document.getElementById('form-sheet3');
+		const sheetFormPanels = {
+			sheet0: formSheet0,
+			sheet1: formSheet1,
+			sheet2: formSheet2,
+			sheet3: formSheet3
+		};
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1111,12 +1373,22 @@
 	        let snapLine = null; // To store the perpendicular connection line info
 			let activeMundoInternoIconType = 'half-f-circle';
 			let activeSeccionadorIconType = 'standard';
-			let exportOptions = {
-				format: 'png',
-				scale: 1,
-				backgroundColor: '#f0f0f0',
-				includeTitleBlock: true,
-				pdfConfig: {
+				let exportOptions = {
+					format: 'png',
+					scale: 1,
+					backgroundColor: '#f0f0f0',
+					includeTitleBlock: true,
+					includeOrderCover: true,
+					orderCoverConfig: {
+						gerencia: 'Región 1 - Zona 1',
+						requestDate: '19/09/2025',
+						requestId: 'CA-25-40573',
+						workId: '79084',
+						installationText: 'Abierto: CT 79084 Lado CT 77334\nAbierto: CT 77334 Lado CT 79084',
+						jobDescription: 'EN CT 79084 SE REALIZARÁ MANTENIMIENTO DE TRAFO Y ADECUACIÓN DE ICC LADO CT 77334.',
+						observations: 'CT 79084 CON AVISO DE CORTE AL CLIENTE. REALIZAR MANIOBRAS PREVIAS CON GRTC.'
+					},
+					pdfConfig: {
 					paperSize: 'a4',
 					orientation: 'landscape',
 					marginMm: 8,
@@ -1133,6 +1405,14 @@
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let activePreviewSheet = 'sheet0';
+			let geographicEntities = [];
+			let geographicView = { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+			let geographicLayerVisibility = {};
+			let orderSheetsData = {
+				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
+				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
+			};
 			let canvasBackgroundColor = '#f0f0f0';
 			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
@@ -2183,6 +2463,320 @@
 			});
 		}
 
+		function toggleSheetLayoutLoading(isLoading) {
+			if (!sheetLayoutPreviewLoading) return;
+			sheetLayoutPreviewLoading.classList.toggle('hidden', !isLoading);
+			sheetLayoutPreviewLoading.classList.toggle('flex', isLoading);
+		}
+
+		function syncSheetLayoutEditorFromOptions() {
+			if (orderCoverGerenciaInput) orderCoverGerenciaInput.value = exportOptions?.orderCoverConfig?.gerencia || 'Región 1 - Zona 1';
+			if (orderCoverRequestDateInput) orderCoverRequestDateInput.value = exportOptions?.orderCoverConfig?.requestDate || '19/09/2025';
+			if (orderCoverRequestIdInput) orderCoverRequestIdInput.value = exportOptions?.orderCoverConfig?.requestId || 'CA-25-40573';
+			if (orderCoverWorkIdInput) orderCoverWorkIdInput.value = exportOptions?.orderCoverConfig?.workId || '79084';
+			if (orderCoverInstallationInput) orderCoverInstallationInput.value = exportOptions?.orderCoverConfig?.installationText || '';
+			if (orderCoverJobDescriptionInput) orderCoverJobDescriptionInput.value = exportOptions?.orderCoverConfig?.jobDescription || '';
+			if (orderCoverObservationsInput) orderCoverObservationsInput.value = exportOptions?.orderCoverConfig?.observations || '';
+			if (sheetLayoutTitleBlockInput) sheetLayoutTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
+			if (sheetLayoutPaperSizeSelect) sheetLayoutPaperSizeSelect.value = exportOptions?.pdfConfig?.paperSize || 'a4';
+			if (sheetLayoutPageOrientationSelect) sheetLayoutPageOrientationSelect.value = exportOptions?.pdfConfig?.orientation || 'landscape';
+			if (sheetLayoutPageMarginInput) sheetLayoutPageMarginInput.value = exportOptions?.pdfConfig?.marginMm || 8;
+			if (sheetLayoutPlanTitleInput) sheetLayoutPlanTitleInput.value = exportOptions?.pdfConfig?.title || 'ESQUEMA UNIFILAR';
+			if (sheetLayoutPlanCodeInput) sheetLayoutPlanCodeInput.value = exportOptions?.pdfConfig?.planCode || 'MA-25-40619';
+			if (sheetLayoutPlanRevisionInput) sheetLayoutPlanRevisionInput.value = exportOptions?.pdfConfig?.revision || '6';
+			if (sheetLayoutPlanMetaCodeInput) sheetLayoutPlanMetaCodeInput.value = exportOptions?.pdfConfig?.metaCode || 'NTO 6 - G';
+			if (sheetLayoutPlanUpdateDateInput) sheetLayoutPlanUpdateDateInput.value = exportOptions?.pdfConfig?.updateDate || '06/10/2020';
+			if (sheetLayoutPlanGerenciaInput) sheetLayoutPlanGerenciaInput.value = exportOptions?.pdfConfig?.gerencia || 'Región 1 - Zona 1';
+			if (sheetLayoutPlanCroquisTitleInput) sheetLayoutPlanCroquisTitleInput.value = exportOptions?.pdfConfig?.croquisTitle || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO';
+			if (sheetLayoutPlanHeaderNoteInput) sheetLayoutPlanHeaderNoteInput.value = exportOptions?.pdfConfig?.headerNote || 'ANEXO A PEDIDO DE INSTALACIONES MT N°';
+			if (sheetLayoutPlanFooterInput) sheetLayoutPlanFooterInput.value = exportOptions?.pdfConfig?.footerText || '';
+		}
+
+		function getSheetLayoutOptions() {
+			const margin = parseFloat((sheetLayoutPageMarginInput && sheetLayoutPageMarginInput.value) || 8);
+			return {
+				format: 'pdf',
+				scale: Math.max(1, Number(exportOptions.scale) || 1),
+				backgroundColor: exportOptions.backgroundColor || '#f0f0f0',
+				includeOrderCover: true,
+				orderCoverConfig: {
+					gerencia: (orderCoverGerenciaInput && orderCoverGerenciaInput.value) || 'Región 1 - Zona 1',
+					requestDate: (orderCoverRequestDateInput && orderCoverRequestDateInput.value) || '',
+					requestId: (orderCoverRequestIdInput && orderCoverRequestIdInput.value) || '',
+					workId: (orderCoverWorkIdInput && orderCoverWorkIdInput.value) || '',
+					installationText: (orderCoverInstallationInput && orderCoverInstallationInput.value) || '',
+					jobDescription: (orderCoverJobDescriptionInput && orderCoverJobDescriptionInput.value) || '',
+					observations: (orderCoverObservationsInput && orderCoverObservationsInput.value) || ''
+				},
+				includeTitleBlock: sheetLayoutTitleBlockInput ? sheetLayoutTitleBlockInput.checked : true,
+				pdfConfig: {
+					paperSize: (sheetLayoutPaperSizeSelect && sheetLayoutPaperSizeSelect.value) || 'a4',
+					orientation: (sheetLayoutPageOrientationSelect && sheetLayoutPageOrientationSelect.value) || 'landscape',
+					marginMm: isNaN(margin) ? 8 : Math.min(30, Math.max(3, margin)),
+					title: (sheetLayoutPlanTitleInput && sheetLayoutPlanTitleInput.value) || 'ESQUEMA UNIFILAR',
+					planCode: (sheetLayoutPlanCodeInput && sheetLayoutPlanCodeInput.value) || 'MA-25-40619',
+					revision: (sheetLayoutPlanRevisionInput && sheetLayoutPlanRevisionInput.value) || '6',
+					metaCode: (sheetLayoutPlanMetaCodeInput && sheetLayoutPlanMetaCodeInput.value) || 'NTO 6 - G',
+					updateDate: (sheetLayoutPlanUpdateDateInput && sheetLayoutPlanUpdateDateInput.value) || '06/10/2020',
+					gerencia: (sheetLayoutPlanGerenciaInput && sheetLayoutPlanGerenciaInput.value) || 'Región 1 - Zona 1',
+					croquisTitle: (sheetLayoutPlanCroquisTitleInput && sheetLayoutPlanCroquisTitleInput.value) || 'CROQUIS DE LAS INSTALACIONES SOLICITADAS Y ZONA DE TRABAJO',
+					headerNote: (sheetLayoutPlanHeaderNoteInput && sheetLayoutPlanHeaderNoteInput.value) || 'ANEXO A PEDIDO DE INSTALACIONES MT N°',
+					footerText: (sheetLayoutPlanFooterInput && sheetLayoutPlanFooterInput.value) || ''
+				}
+			};
+		}
+
+		function applySheetLayoutValuesToExportForm(options) {
+			if (!options) return;
+			if (exportFormatSelect) exportFormatSelect.value = 'pdf';
+			if (exportTitleBlockInput) exportTitleBlockInput.checked = options.includeTitleBlock !== false;
+			if (exportPaperSizeSelect) exportPaperSizeSelect.value = options.pdfConfig.paperSize;
+			if (exportPageOrientationSelect) exportPageOrientationSelect.value = options.pdfConfig.orientation;
+			if (exportPageMarginInput) exportPageMarginInput.value = options.pdfConfig.marginMm;
+			if (exportPlanTitleInput) exportPlanTitleInput.value = options.pdfConfig.title;
+			if (exportPlanCodeInput) exportPlanCodeInput.value = options.pdfConfig.planCode;
+			if (exportPlanRevisionInput) exportPlanRevisionInput.value = options.pdfConfig.revision;
+			if (exportPlanMetaCodeInput) exportPlanMetaCodeInput.value = options.pdfConfig.metaCode;
+			if (exportPlanUpdateDateInput) exportPlanUpdateDateInput.value = options.pdfConfig.updateDate;
+			if (exportPlanGerenciaInput) exportPlanGerenciaInput.value = options.pdfConfig.gerencia;
+			if (exportPlanCroquisTitleInput) exportPlanCroquisTitleInput.value = options.pdfConfig.croquisTitle;
+			if (exportPlanHeaderNoteInput) exportPlanHeaderNoteInput.value = options.pdfConfig.headerNote;
+			if (exportPlanFooterInput) exportPlanFooterInput.value = options.pdfConfig.footerText;
+		}
+
+		function drawConfiguredTextSheet(ctx, pageRect, sheetTitle, sheetData = {}, mmToPx) {
+			const margin = mmToPx(8);
+			const frameX = margin;
+			const frameY = margin;
+			const frameW = pageRect.width - margin * 2;
+			const frameH = pageRect.height - margin * 2;
+			ctx.fillStyle = '#fff';
+			ctx.fillRect(0, 0, pageRect.width, pageRect.height);
+			ctx.strokeStyle = '#111827';
+			ctx.lineWidth = Math.max(1, mmToPx(0.2));
+			ctx.strokeRect(frameX, frameY, frameW, frameH);
+			ctx.fillStyle = '#111827';
+			ctx.font = `bold ${Math.round(mmToPx(4.2))}px Inter, sans-serif`;
+			ctx.fillText(sheetTitle, frameX + mmToPx(4), frameY + mmToPx(10));
+			ctx.font = `bold ${Math.round(mmToPx(2.8))}px Inter, sans-serif`;
+			ctx.fillText(`Código: ${sheetData.code || '---'}`, frameX + mmToPx(4), frameY + mmToPx(20));
+			ctx.fillText(`Responsable: ${sheetData.responsible || '---'}`, frameX + mmToPx(4), frameY + mmToPx(27));
+			ctx.fillText(`Fecha: ${sheetData.date || '---'}`, frameX + mmToPx(4), frameY + mmToPx(34));
+			ctx.strokeRect(frameX + mmToPx(4), frameY + mmToPx(40), frameW - mmToPx(8), frameH - mmToPx(48));
+			ctx.font = `${Math.round(mmToPx(2.7))}px Inter, sans-serif`;
+			wrapCanvasText(
+				ctx,
+				sheetData.notes || 'Sin observaciones cargadas.',
+				frameX + mmToPx(6),
+				frameY + mmToPx(48),
+				frameW - mmToPx(12),
+				mmToPx(5),
+				12
+			);
+		}
+
+		function updatePreviewSheetButtons() {
+			previewSheetBtns.forEach((btn) => {
+				const isActive = btn.id === `preview-${activePreviewSheet}-btn`;
+				btn.classList.toggle('bg-blue-50', isActive);
+				btn.classList.toggle('text-blue-700', isActive);
+				btn.classList.toggle('border-blue-200', isActive);
+				btn.classList.toggle('bg-gray-50', !isActive);
+				btn.classList.toggle('text-gray-700', !isActive);
+				btn.classList.toggle('border-gray-200', !isActive);
+			});
+		}
+
+		function updateActiveSheetFormPanels(shouldScroll = false) {
+			Object.entries(sheetFormPanels).forEach(([key, panel]) => {
+				if (!panel) return;
+				panel.classList.toggle('hidden', key !== activePreviewSheet);
+			});
+			if (shouldScroll) {
+				const activePanel = sheetFormPanels[activePreviewSheet];
+				if (activePanel) {
+					activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			}
+		}
+
+		function showGeographicScreen() {
+			if (appShell) appShell.classList.add('hidden');
+			if (orderConfigScreen) orderConfigScreen.classList.add('hidden');
+			if (geographicScreen) geographicScreen.classList.remove('hidden');
+			requestAnimationFrame(resizeGeographicCanvas);
+		}
+
+		function closeGeographicScreen() {
+			if (geographicScreen) geographicScreen.classList.add('hidden');
+			if (appShell) appShell.classList.remove('hidden');
+		}
+
+		function resizeGeographicCanvas() {
+			if (!geographicCanvas || !geographicCtx) return;
+			const dpr = window.devicePixelRatio || 1;
+			const rect = geographicCanvas.getBoundingClientRect();
+			geographicCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+			geographicCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+			geographicCtx.setTransform(1, 0, 0, 1, 0, 0);
+			geographicCtx.scale(dpr, dpr);
+			renderGeographicEntities();
+		}
+
+		function modelToGeoScreen(x, y, rect) {
+			const modelW = Math.max(1e-9, geographicView.maxX - geographicView.minX);
+			const modelH = Math.max(1e-9, geographicView.maxY - geographicView.minY);
+			const scale = Math.min(rect.width / modelW, rect.height / modelH) * 0.95;
+			const offsetX = (rect.width - modelW * scale) / 2;
+			const offsetY = (rect.height - modelH * scale) / 2;
+			return {
+				x: ((x - geographicView.minX) * scale) + offsetX,
+				y: ((geographicView.maxY - y) * scale) + offsetY
+			};
+		}
+
+		function computeGeographicExtents(entities) {
+			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+			entities.forEach((entity) => {
+				(entity.points || []).forEach((p) => {
+					minX = Math.min(minX, p.x);
+					minY = Math.min(minY, p.y);
+					maxX = Math.max(maxX, p.x);
+					maxY = Math.max(maxY, p.y);
+				});
+			});
+			if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+				return { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+			}
+			return { minX, minY, maxX, maxY };
+		}
+
+		function renderGeographicEntities() {
+			if (!geographicCanvas || !geographicCtx) return;
+			const rect = geographicCanvas.getBoundingClientRect();
+			geographicCtx.clearRect(0, 0, rect.width, rect.height);
+			geographicCtx.fillStyle = '#f8fafc';
+			geographicCtx.fillRect(0, 0, rect.width, rect.height);
+			geographicCtx.strokeStyle = '#334155';
+			geographicCtx.lineWidth = 1.1;
+			geographicEntities.forEach((entity) => {
+				if (geographicLayerVisibility[entity.layer] === false) return;
+				if (!entity.points || entity.points.length < 2) return;
+				geographicCtx.beginPath();
+				const start = modelToGeoScreen(entity.points[0].x, entity.points[0].y, rect);
+				geographicCtx.moveTo(start.x, start.y);
+				for (let i = 1; i < entity.points.length; i++) {
+					const p = modelToGeoScreen(entity.points[i].x, entity.points[i].y, rect);
+					geographicCtx.lineTo(p.x, p.y);
+				}
+				if (entity.closed) geographicCtx.closePath();
+				geographicCtx.stroke();
+			});
+		}
+
+		function buildGeographicLayerFilters() {
+			if (!geographicLayerFilters) return;
+			const layers = [...new Set(geographicEntities.map(e => e.layer || 'SIN_CAPA'))].sort();
+			if (!layers.length) {
+				geographicLayerFilters.innerHTML = '<p class="text-gray-500 text-xs">No se detectaron capas.</p>';
+				return;
+			}
+			geographicLayerFilters.innerHTML = '';
+			layers.forEach((layerName) => {
+				if (!(layerName in geographicLayerVisibility)) geographicLayerVisibility[layerName] = true;
+				const item = document.createElement('label');
+				item.className = 'flex items-center gap-2';
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.checked = geographicLayerVisibility[layerName] !== false;
+				checkbox.addEventListener('change', () => {
+					geographicLayerVisibility[layerName] = checkbox.checked;
+					renderGeographicEntities();
+				});
+				const span = document.createElement('span');
+				span.textContent = layerName;
+				item.appendChild(checkbox);
+				item.appendChild(span);
+				geographicLayerFilters.appendChild(item);
+			});
+		}
+
+		function parseGeographicEntities(dxf) {
+			const parsed = [];
+			(dxf.entities || []).forEach((entity) => {
+				const layer = entity.layer || 'SIN_CAPA';
+				if (entity.type === 'LINE' && entity.vertices?.length >= 2) {
+					parsed.push({ layer, points: [entity.vertices[0], entity.vertices[1]], closed: false });
+				} else if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && Array.isArray(entity.vertices) && entity.vertices.length >= 2) {
+					parsed.push({ layer, points: entity.vertices, closed: !!entity.shape || !!entity.closed });
+				}
+			});
+			return parsed;
+		}
+
+		async function refreshSheetLayoutPreview() {
+			if (!orderConfigScreen || orderConfigScreen.classList.contains('hidden')) return;
+			const previewOptions = getSheetLayoutOptions();
+			toggleSheetLayoutLoading(true);
+			try {
+				const paper = getPaperDimensionsPx(
+					previewOptions?.pdfConfig?.paperSize,
+					previewOptions?.pdfConfig?.orientation,
+					1
+				);
+				const coverCanvas = document.createElement('canvas');
+				const coverCtx = coverCanvas.getContext('2d');
+				coverCanvas.width = paper.width;
+				coverCanvas.height = paper.height;
+				if (activePreviewSheet === 'sheet0') {
+					const logoImage = await loadEdenorLogo();
+					drawOrderCoverSheet(
+						coverCtx,
+						{ width: paper.width, height: paper.height },
+						{
+							...(previewOptions?.orderCoverConfig || {}),
+							metaCode: previewOptions?.pdfConfig?.metaCode,
+							updateDate: previewOptions?.pdfConfig?.updateDate
+						},
+						paper.mmToPx,
+						logoImage
+					);
+				} else if (activePreviewSheet === 'sheet1') {
+					const { tempCanvas } = await buildExportCanvas({
+						format: 'pdf',
+						scale: 1,
+						backgroundColor: previewOptions.backgroundColor,
+						includeTitleBlock: previewOptions.includeTitleBlock,
+						pdfConfig: previewOptions.pdfConfig
+					});
+					coverCtx.drawImage(tempCanvas, 0, 0, paper.width, paper.height);
+				} else if (activePreviewSheet === 'sheet2') {
+					drawConfiguredTextSheet(coverCtx, { width: paper.width, height: paper.height }, orderSheet2TitleInput?.value || 'HOJA 3 - MANIOBRAS / SEGURIDAD', {
+						code: orderSheet2CodeInput?.value,
+						responsible: orderSheet2ResponsibleInput?.value,
+						date: orderSheet2DateInput?.value,
+						notes: orderSheet2NotesInput?.value
+					}, paper.mmToPx);
+				} else {
+					drawConfiguredTextSheet(coverCtx, { width: paper.width, height: paper.height }, orderSheet3TitleInput?.value || 'HOJA 4 - DATOS COMPLEMENTARIOS', {
+						code: orderSheet3CodeInput?.value,
+						responsible: orderSheet3ResponsibleInput?.value,
+						date: orderSheet3DateInput?.value,
+						notes: orderSheet3NotesInput?.value
+					}, paper.mmToPx);
+				}
+				if (sheetLayoutPreviewImage) {
+					sheetLayoutPreviewImage.src = coverCanvas.toDataURL('image/png');
+				}
+				updatePreviewSheetButtons();
+				updateActiveSheetFormPanels();
+			} catch (error) {
+				console.error('No se pudo actualizar la vista previa de hoja y rótulo', error);
+			} finally {
+				toggleSheetLayoutLoading(false);
+			}
+		}
+
 		function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
 			const safeText = `${text || ''}`.trim();
 			if (!safeText) return y;
@@ -2412,6 +3006,152 @@
 			return { frame, diagramRect };
 		}
 
+		function drawOrderCoverSheet(ctx, pageRect, coverConfig = {}, mmToPx, logoImage = null) {
+			const margin = mmToPx(8);
+			const x = margin;
+			const y = margin;
+			const w = pageRect.width - margin * 2;
+			const h = pageRect.height - margin * 2;
+			const line = Math.max(1, mmToPx(0.2));
+			const pad = mmToPx(2);
+			const labelSize = 2.4;
+			const textSize = 2.8;
+			const titleSize = 3.2;
+			const drawBox = (bx, by, bw, bh) => {
+				ctx.strokeStyle = '#111827';
+				ctx.lineWidth = line;
+				ctx.strokeRect(bx, by, bw, bh);
+			};
+			const write = (text, tx, ty, size = textSize, weight = 'normal', align = 'left') => {
+				ctx.font = `${weight} ${Math.round(mmToPx(size))}px Inter, sans-serif`;
+				ctx.fillStyle = '#111827';
+				ctx.textAlign = align;
+				ctx.fillText(text || '', tx, ty);
+				ctx.textAlign = 'left';
+			};
+			const sectionTitle = (text, bx, by, bw) => {
+				write(text, bx + bw / 2, by + mmToPx(4), 2.9, 'bold', 'center');
+			};
+
+			ctx.save();
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect(0, 0, pageRect.width, pageRect.height);
+			drawBox(x, y, w, h);
+
+			// Banda superior (rótulo estilo unifilar + pedido)
+			const headH = mmToPx(22);
+			drawBox(x, y, w, headH);
+			const logoW = w * 0.33;
+			const centerW = w * 0.37;
+			const rightW = w - logoW - centerW;
+			drawBox(x, y, logoW, headH);
+			drawBox(x + logoW, y, centerW, headH);
+			drawBox(x + logoW + centerW, y, rightW, headH);
+			if (logoImage) {
+				const logoH = mmToPx(10);
+				const logoDrawW = logoH * (logoImage.width / logoImage.height);
+				ctx.drawImage(logoImage, x + mmToPx(5), y + mmToPx(5), logoDrawW, logoH);
+			} else {
+				write('edenor', x + mmToPx(5), y + mmToPx(12), 7, 'bold');
+			}
+			write('PEDIDO DE INSTALACIONES MT', x + logoW + pad, y + mmToPx(9), titleSize, 'bold');
+			write(`Código: ${coverConfig.metaCode || 'NTO-6 G'}`, x + logoW + centerW + pad, y + mmToPx(8), textSize, 'bold');
+			write(`Revisión: 6`, x + logoW + centerW + pad, y + mmToPx(13), textSize, 'bold');
+			write(`Fecha de Actualización: ${coverConfig.updateDate || '06/10/2020'}`, x + logoW + centerW + pad, y + mmToPx(18), textSize, 'bold');
+
+			// Gerencia
+			const gerY = y + headH + mmToPx(2);
+			write('Gerencia:', x + pad, gerY + mmToPx(4), 4, 'bold italic');
+			write(coverConfig.gerencia || 'Región 1 - Zona 1', x + mmToPx(34), gerY + mmToPx(4), 4, 'bold italic');
+
+			// Datos solicitud
+			const reqY = gerY + mmToPx(6);
+			const reqH = mmToPx(18);
+			drawBox(x + pad, reqY, w - pad * 2, reqH);
+			const leftW = (w - pad * 2) * 0.55;
+			drawBox(x + pad, reqY, leftW, reqH);
+			drawBox(x + pad + leftW, reqY, (w - pad * 2) - leftW, reqH);
+			write('Fecha de solicitud:', x + mmToPx(4), reqY + mmToPx(5), labelSize, 'bold');
+			write(coverConfig.requestDate || '', x + mmToPx(35), reqY + mmToPx(5), textSize, 'bold');
+			write('Pedido de instalaciones N°:', x + mmToPx(4), reqY + mmToPx(11), labelSize, 'bold');
+			write(coverConfig.requestId || '', x + mmToPx(22), reqY + mmToPx(16), 4.2, 'bold');
+			write('Obra:', x + pad + leftW + mmToPx(4), reqY + mmToPx(5), labelSize, 'bold');
+			write(coverConfig.workId || '', x + pad + leftW + mmToPx(20), reqY + mmToPx(5), textSize, 'bold');
+			write('Fecha prevista para el trabajo', x + pad + leftW + mmToPx(4), reqY + mmToPx(10), labelSize, 'bold');
+			write('Día   Mes   Año', x + pad + leftW + mmToPx(4), reqY + mmToPx(15), labelSize, 'bold');
+
+			// Bloque solicitante / responsable
+			const staffY = reqY + reqH + mmToPx(2);
+			const staffH = mmToPx(28);
+			drawBox(x + pad, staffY, w - pad * 2, staffH);
+			sectionTitle('Solicitante del Pedido de Instalaciones', x + pad, staffY, w - pad * 2);
+			ctx.beginPath();
+			ctx.moveTo(x + pad, staffY + mmToPx(5));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(5));
+			ctx.moveTo(x + pad, staffY + mmToPx(12));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(12));
+			ctx.moveTo(x + pad, staffY + mmToPx(19));
+			ctx.lineTo(x + w - pad, staffY + mmToPx(19));
+			ctx.stroke();
+			write('Departamento', x + mmToPx(6), staffY + mmToPx(10), labelSize, 'bold');
+			write('Teléfono', x + mmToPx(30), staffY + mmToPx(10), labelSize, 'bold');
+			write('Gestor', x + mmToPx(55), staffY + mmToPx(10), labelSize, 'bold');
+			write('Mantenimiento', x + mmToPx(6), staffY + mmToPx(17), textSize, 'bold');
+			write('4172', x + mmToPx(33), staffY + mmToPx(17), textSize, 'bold');
+			write('TAGLIAFERRO CLAUDIO', x + mmToPx(55), staffY + mmToPx(17), textSize, 'bold');
+			write('Responsable de Trabajo:', x + mmToPx(6), staffY + mmToPx(24), labelSize, 'bold');
+			write('SOSA MARTIN', x + mmToPx(34), staffY + mmToPx(24), textSize, 'bold');
+
+			// Instalación solicitada
+			const instY = staffY + staffH + mmToPx(2);
+			const instH = mmToPx(40);
+			drawBox(x + pad, instY, w - pad * 2, instH);
+			sectionTitle('INSTALACIÓN SOLICITADA FUERA DE SERVICIO', x + pad, instY, w - pad * 2);
+			wrapCanvasText(ctx, coverConfig.installationText || '', x + mmToPx(4), instY + mmToPx(9), w - mmToPx(8), mmToPx(4.6), 8);
+
+			// Descripción
+			const descY = instY + instH + mmToPx(2);
+			const descH = mmToPx(30);
+			drawBox(x + pad, descY, w - pad * 2, descH);
+			sectionTitle('DESCRIPCIÓN DE LOS TRABAJOS A REALIZAR Y MOTIVO', x + pad, descY, w - pad * 2);
+			wrapCanvasText(ctx, coverConfig.jobDescription || '', x + mmToPx(4), descY + mmToPx(12), w - mmToPx(8), mmToPx(4.8), 5);
+
+			// Horarios y despacho
+			const hourY = descY + descH + mmToPx(2);
+			const hourH = mmToPx(16);
+			drawBox(x + pad, hourY, w - pad * 2, hourH);
+			ctx.beginPath();
+			ctx.moveTo(x + (w * 0.62), hourY);
+			ctx.lineTo(x + (w * 0.62), hourY + hourH);
+			ctx.stroke();
+			write('Horarios previstos de recepción y devolución del RT:', x + mmToPx(22), hourY + mmToPx(5), labelSize, 'bold');
+			write('Recepción: 08:40', x + mmToPx(6), hourY + mmToPx(12), textSize, 'bold');
+			write('Devolución: 13:00', x + mmToPx(50), hourY + mmToPx(12), textSize, 'bold');
+			write('Para uso del Despacho AT/MT', x + (w * 0.67), hourY + mmToPx(5), labelSize, 'bold');
+			write('N° de Protocolo: __________', x + (w * 0.62) + mmToPx(4), hourY + mmToPx(12), textSize, 'bold');
+
+			// Observaciones
+			const obsY = hourY + hourH + mmToPx(2);
+			const obsH = mmToPx(13);
+			drawBox(x + pad, obsY, w - pad * 2, obsH);
+			write('Observaciones:', x + mmToPx(4), obsY + mmToPx(5), labelSize, 'bold');
+			wrapCanvasText(ctx, coverConfig.observations || '', x + mmToPx(4), obsY + mmToPx(10), w - mmToPx(8), mmToPx(3.8), 2);
+
+			// Firmas
+			const signY = obsY + obsH + mmToPx(8);
+			ctx.beginPath();
+			ctx.moveTo(x + mmToPx(15), signY);
+			ctx.lineTo(x + mmToPx(60), signY);
+			ctx.moveTo(x + w - mmToPx(60), signY);
+			ctx.lineTo(x + w - mmToPx(15), signY);
+			ctx.stroke();
+			write('Firma y Aclaración del solicitante', x + mmToPx(14), signY + mmToPx(5), labelSize, 'bold');
+			write('Firma y aclaración Asistencia Técnica', x + w - mmToPx(62), signY + mmToPx(5), labelSize, 'bold');
+			write('NT6 - Operación', x + mmToPx(2), y + h - mmToPx(1), labelSize, 'bold');
+			write('Hoja 1 / 3', x + w - mmToPx(22), y + h - mmToPx(1), labelSize, 'bold');
+			ctx.restore();
+		}
+
 		async function buildExportCanvas(options = {}) {
 			const sourceCanvas = dxfCanvas;
 			const scale = Math.max(0.5, Number(options.scale) || 1);
@@ -2457,9 +3197,11 @@
 				scale = 1,
 				backgroundColor = '#f0f0f0',
 				includeTitleBlock = true,
+				includeOrderCover = true,
+				orderCoverConfig = {},
 				pdfConfig = {}
 			} = options;
-			const normalizedOptions = { format, scale, backgroundColor, includeTitleBlock, pdfConfig };
+			const normalizedOptions = { format, scale, backgroundColor, includeTitleBlock, includeOrderCover, orderCoverConfig, pdfConfig };
 			const { tempCanvas, outputWidth, outputHeight } = await buildExportCanvas(normalizedOptions);
 
 			if (format === 'svg') {
@@ -2483,6 +3225,33 @@
 					unit: 'px',
 					format: [outputWidth, outputHeight]
 				});
+				const shouldIncludeOrderCover = normalizedOptions.includeOrderCover !== false;
+				if (shouldIncludeOrderCover) {
+					const coverCanvas = document.createElement('canvas');
+					const coverCtx = coverCanvas.getContext('2d');
+					coverCanvas.width = outputWidth;
+					coverCanvas.height = outputHeight;
+					const paper = getPaperDimensionsPx(
+						normalizedOptions?.pdfConfig?.paperSize,
+						normalizedOptions?.pdfConfig?.orientation,
+						normalizedOptions?.scale
+					);
+					const logoImage = await loadEdenorLogo();
+					drawOrderCoverSheet(
+						coverCtx,
+						{ width: outputWidth, height: outputHeight },
+						{
+							...(normalizedOptions?.orderCoverConfig || {}),
+							metaCode: normalizedOptions?.pdfConfig?.metaCode,
+							updateDate: normalizedOptions?.pdfConfig?.updateDate
+						},
+						paper.mmToPx,
+						logoImage
+					);
+					const coverDataUrl = coverCanvas.toDataURL('image/png');
+					pdf.addImage(coverDataUrl, 'PNG', 0, 0, outputWidth, outputHeight, undefined, 'FAST');
+					pdf.addPage([outputWidth, outputHeight], orientation);
+				}
 				pdf.addImage(previewDataUrl, 'PNG', 0, 0, outputWidth, outputHeight, undefined, 'FAST');
 				const pdfBlob = pdf.output('blob');
 				return { dataUrl: '', previewDataUrl, blob: pdfBlob, width: outputWidth, height: outputHeight, options: normalizedOptions };
@@ -4931,6 +5700,82 @@
 			refreshExportPreview(true);
 		});
 
+		function syncAdditionalOrderSheetsToForm() {
+			if (orderSheet2TitleInput) orderSheet2TitleInput.value = orderSheetsData.sheet2.title || '';
+			if (orderSheet2CodeInput) orderSheet2CodeInput.value = orderSheetsData.sheet2.code || '';
+			if (orderSheet2ResponsibleInput) orderSheet2ResponsibleInput.value = orderSheetsData.sheet2.responsible || '';
+			if (orderSheet2DateInput) orderSheet2DateInput.value = orderSheetsData.sheet2.date || '';
+			if (orderSheet2NotesInput) orderSheet2NotesInput.value = orderSheetsData.sheet2.notes || '';
+			if (orderSheet3TitleInput) orderSheet3TitleInput.value = orderSheetsData.sheet3.title || '';
+			if (orderSheet3CodeInput) orderSheet3CodeInput.value = orderSheetsData.sheet3.code || '';
+			if (orderSheet3ResponsibleInput) orderSheet3ResponsibleInput.value = orderSheetsData.sheet3.responsible || '';
+			if (orderSheet3DateInput) orderSheet3DateInput.value = orderSheetsData.sheet3.date || '';
+			if (orderSheet3NotesInput) orderSheet3NotesInput.value = orderSheetsData.sheet3.notes || '';
+		}
+
+		function captureAdditionalOrderSheetsFromForm() {
+			orderSheetsData = {
+				sheet2: {
+					title: (orderSheet2TitleInput && orderSheet2TitleInput.value) || '',
+					code: (orderSheet2CodeInput && orderSheet2CodeInput.value) || '',
+					responsible: (orderSheet2ResponsibleInput && orderSheet2ResponsibleInput.value) || '',
+					date: (orderSheet2DateInput && orderSheet2DateInput.value) || '',
+					notes: (orderSheet2NotesInput && orderSheet2NotesInput.value) || ''
+				},
+				sheet3: {
+					title: (orderSheet3TitleInput && orderSheet3TitleInput.value) || '',
+					code: (orderSheet3CodeInput && orderSheet3CodeInput.value) || '',
+					responsible: (orderSheet3ResponsibleInput && orderSheet3ResponsibleInput.value) || '',
+					date: (orderSheet3DateInput && orderSheet3DateInput.value) || '',
+					notes: (orderSheet3NotesInput && orderSheet3NotesInput.value) || ''
+				}
+			};
+		}
+
+		if (orderConfigBtn) {
+			orderConfigBtn.addEventListener('click', () => {
+				syncSheetLayoutEditorFromOptions();
+				syncAdditionalOrderSheetsToForm();
+				activePreviewSheet = 'sheet0';
+				if (appShell) appShell.classList.add('hidden');
+				if (orderConfigScreen) orderConfigScreen.classList.remove('hidden');
+				updateActiveSheetFormPanels(false);
+				refreshSheetLayoutPreview();
+			});
+		}
+
+		if (geographicModeBtn) {
+			geographicModeBtn.addEventListener('click', showGeographicScreen);
+		}
+		if (closeGeographicScreenBtn) {
+			closeGeographicScreenBtn.addEventListener('click', closeGeographicScreen);
+		}
+		if (geographicDxfInput) {
+			geographicDxfInput.addEventListener('change', (event) => {
+				const file = event.target.files && event.target.files[0];
+				if (!file) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					try {
+						const parser = new DxfParser();
+						const dxf = parser.parseSync(e.target.result);
+						geographicEntities = parseGeographicEntities(dxf);
+						geographicView = computeGeographicExtents(geographicEntities);
+						buildGeographicLayerFilters();
+						renderGeographicEntities();
+					} catch (error) {
+						console.error('No se pudo leer DXF geográfico', error);
+					}
+				};
+				reader.readAsText(file);
+			});
+		}
+		window.addEventListener('resize', () => {
+			if (geographicScreen && !geographicScreen.classList.contains('hidden')) {
+				resizeGeographicCanvas();
+			}
+		});
+
 		if (downloadImageBtn) {
 			downloadImageBtn.addEventListener('click', downloadCurrentImage);
 		}
@@ -4992,12 +5837,79 @@
 			exportPlanFooterInput.addEventListener('input', () => refreshExportPreview(false));
 		}
 
+		[
+			orderCoverGerenciaInput,
+			orderCoverRequestDateInput,
+			orderCoverRequestIdInput,
+			orderCoverWorkIdInput,
+			orderCoverInstallationInput,
+			orderCoverJobDescriptionInput,
+			orderCoverObservationsInput,
+			sheetLayoutTitleBlockInput,
+			sheetLayoutPaperSizeSelect,
+			sheetLayoutPageOrientationSelect,
+			sheetLayoutPageMarginInput,
+			sheetLayoutPlanTitleInput,
+			sheetLayoutPlanCodeInput,
+			sheetLayoutPlanRevisionInput,
+			sheetLayoutPlanMetaCodeInput,
+			sheetLayoutPlanUpdateDateInput,
+			sheetLayoutPlanGerenciaInput,
+			sheetLayoutPlanCroquisTitleInput,
+			sheetLayoutPlanHeaderNoteInput,
+			sheetLayoutPlanFooterInput
+		].forEach((el) => {
+			if (!el) return;
+			el.addEventListener('input', refreshSheetLayoutPreview);
+			el.addEventListener('change', refreshSheetLayoutPreview);
+		});
+
+		[
+			['sheet0', previewSheet0Btn],
+			['sheet1', previewSheet1Btn],
+			['sheet2', previewSheet2Btn],
+			['sheet3', previewSheet3Btn]
+		].forEach(([sheetKey, btn]) => {
+			if (!btn) return;
+			btn.addEventListener('click', () => {
+				activePreviewSheet = sheetKey;
+				updateActiveSheetFormPanels(true);
+				refreshSheetLayoutPreview();
+			});
+		});
+
 		closeModalBtn.addEventListener('click', () => {
 			copyImageModal.classList.add('hidden');
 			copyImageModal.classList.remove('flex');
 			toggleExportLoading(false);
 			clearClipboardNotice();
 		});
+
+		function closeSheetLayoutModal() {
+			if (orderConfigScreen) orderConfigScreen.classList.add('hidden');
+			if (appShell) appShell.classList.remove('hidden');
+			toggleSheetLayoutLoading(false);
+		}
+
+		if (closeSheetLayoutModalBtn) {
+			closeSheetLayoutModalBtn.addEventListener('click', closeSheetLayoutModal);
+		}
+			if (sheetLayoutApplyBtn) {
+				sheetLayoutApplyBtn.addEventListener('click', () => {
+					const sheetOptions = getSheetLayoutOptions();
+					applySheetLayoutValuesToExportForm(sheetOptions);
+					exportOptions = {
+						...exportOptions,
+						includeOrderCover: sheetOptions.includeOrderCover !== false,
+						orderCoverConfig: { ...(sheetOptions.orderCoverConfig || {}) },
+						...getSelectedExportOptions()
+					};
+					captureAdditionalOrderSheetsFromForm();
+				syncExportControls();
+				refreshExportPreview(false);
+				closeSheetLayoutModal();
+			});
+		}
 
 		clearDrawingsBtn.addEventListener('click', () => {
 			if (!dxfCanvas.classList.contains('hidden') && userDrawings.length > 0) {
