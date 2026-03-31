@@ -608,7 +608,38 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			</div>
 				</div>
 			</div>
-		</section>
+	</section>
+
+	<section id="geographic-screen" class="hidden min-h-screen bg-gray-100">
+		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
+			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
+				<div class="flex flex-wrap items-center justify-between gap-4">
+					<div>
+						<h1 class="text-2xl font-bold">
+							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
+						</h1>
+						<p class="text-sm text-gray-600 mt-1">Modo geográfico DXF (sin interpretación unifilar).</p>
+					</div>
+					<div class="flex gap-2">
+						<label for="geographic-dxf-input" class="cursor-pointer px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Cargar DXF geográfico</label>
+						<input id="geographic-dxf-input" type="file" class="hidden" accept=".dxf">
+						<button id="close-geographic-screen-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
+					</div>
+				</div>
+			</header>
+			<div class="grid xl:grid-cols-4 gap-4">
+				<aside class="xl:col-span-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+					<h4 class="font-semibold text-gray-800 mb-2">Capas detectadas</h4>
+					<div id="geographic-layer-filters" class="space-y-2 max-h-[70vh] overflow-y-auto text-sm text-gray-700">
+						<p class="text-gray-500 text-xs">Cargá un DXF para listar capas.</p>
+					</div>
+				</aside>
+				<div class="xl:col-span-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+					<canvas id="geographic-canvas" class="w-full h-[75vh] bg-gray-50 rounded border border-gray-100"></canvas>
+				</div>
+			</div>
+		</div>
+	</section>
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -1066,13 +1097,19 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
-							<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
-									<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
-									<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
-								</svg>
-							</button>
+								<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+									<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
+										<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
+									</svg>
+								</button>
+								<button id="geographic-mode-btn" title="Pantalla geográfica DXF" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/>
+										<path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 6v14"/>
+									</svg>
+								</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -1179,8 +1216,15 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		const bulkChangeCtSymbolBtn = document.getElementById('bulk-change-ct-symbol-btn');
 		const appShell = document.getElementById('app-shell');
 		const orderConfigScreen = document.getElementById('order-config-screen');
+		const geographicScreen = document.getElementById('geographic-screen');
 		const copyImageBtn = document.getElementById('copy-image-btn');
 		const orderConfigBtn = document.getElementById('order-config-btn');
+		const geographicModeBtn = document.getElementById('geographic-mode-btn');
+		const closeGeographicScreenBtn = document.getElementById('close-geographic-screen-btn');
+		const geographicDxfInput = document.getElementById('geographic-dxf-input');
+		const geographicLayerFilters = document.getElementById('geographic-layer-filters');
+		const geographicCanvas = document.getElementById('geographic-canvas');
+		const geographicCtx = geographicCanvas ? geographicCanvas.getContext('2d') : null;
 		const copyImageModal = document.getElementById('copy-image-modal');
 		const closeModalBtn = document.getElementById('close-modal-btn');
 		const closeSheetLayoutModalBtn = document.getElementById('close-sheet-layout-modal-btn');
@@ -1362,6 +1406,9 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
 			let activePreviewSheet = 'sheet0';
+			let geographicEntities = [];
+			let geographicView = { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+			let geographicLayerVisibility = {};
 			let orderSheetsData = {
 				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
 				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
@@ -2551,6 +2598,120 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 					activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}
 			}
+		}
+
+		function showGeographicScreen() {
+			if (appShell) appShell.classList.add('hidden');
+			if (orderConfigScreen) orderConfigScreen.classList.add('hidden');
+			if (geographicScreen) geographicScreen.classList.remove('hidden');
+			requestAnimationFrame(resizeGeographicCanvas);
+		}
+
+		function closeGeographicScreen() {
+			if (geographicScreen) geographicScreen.classList.add('hidden');
+			if (appShell) appShell.classList.remove('hidden');
+		}
+
+		function resizeGeographicCanvas() {
+			if (!geographicCanvas || !geographicCtx) return;
+			const dpr = window.devicePixelRatio || 1;
+			const rect = geographicCanvas.getBoundingClientRect();
+			geographicCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+			geographicCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+			geographicCtx.setTransform(1, 0, 0, 1, 0, 0);
+			geographicCtx.scale(dpr, dpr);
+			renderGeographicEntities();
+		}
+
+		function modelToGeoScreen(x, y, rect) {
+			const modelW = Math.max(1e-9, geographicView.maxX - geographicView.minX);
+			const modelH = Math.max(1e-9, geographicView.maxY - geographicView.minY);
+			const scale = Math.min(rect.width / modelW, rect.height / modelH) * 0.95;
+			const offsetX = (rect.width - modelW * scale) / 2;
+			const offsetY = (rect.height - modelH * scale) / 2;
+			return {
+				x: ((x - geographicView.minX) * scale) + offsetX,
+				y: ((geographicView.maxY - y) * scale) + offsetY
+			};
+		}
+
+		function computeGeographicExtents(entities) {
+			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+			entities.forEach((entity) => {
+				(entity.points || []).forEach((p) => {
+					minX = Math.min(minX, p.x);
+					minY = Math.min(minY, p.y);
+					maxX = Math.max(maxX, p.x);
+					maxY = Math.max(maxY, p.y);
+				});
+			});
+			if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+				return { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+			}
+			return { minX, minY, maxX, maxY };
+		}
+
+		function renderGeographicEntities() {
+			if (!geographicCanvas || !geographicCtx) return;
+			const rect = geographicCanvas.getBoundingClientRect();
+			geographicCtx.clearRect(0, 0, rect.width, rect.height);
+			geographicCtx.fillStyle = '#f8fafc';
+			geographicCtx.fillRect(0, 0, rect.width, rect.height);
+			geographicCtx.strokeStyle = '#334155';
+			geographicCtx.lineWidth = 1.1;
+			geographicEntities.forEach((entity) => {
+				if (geographicLayerVisibility[entity.layer] === false) return;
+				if (!entity.points || entity.points.length < 2) return;
+				geographicCtx.beginPath();
+				const start = modelToGeoScreen(entity.points[0].x, entity.points[0].y, rect);
+				geographicCtx.moveTo(start.x, start.y);
+				for (let i = 1; i < entity.points.length; i++) {
+					const p = modelToGeoScreen(entity.points[i].x, entity.points[i].y, rect);
+					geographicCtx.lineTo(p.x, p.y);
+				}
+				if (entity.closed) geographicCtx.closePath();
+				geographicCtx.stroke();
+			});
+		}
+
+		function buildGeographicLayerFilters() {
+			if (!geographicLayerFilters) return;
+			const layers = [...new Set(geographicEntities.map(e => e.layer || 'SIN_CAPA'))].sort();
+			if (!layers.length) {
+				geographicLayerFilters.innerHTML = '<p class="text-gray-500 text-xs">No se detectaron capas.</p>';
+				return;
+			}
+			geographicLayerFilters.innerHTML = '';
+			layers.forEach((layerName) => {
+				if (!(layerName in geographicLayerVisibility)) geographicLayerVisibility[layerName] = true;
+				const item = document.createElement('label');
+				item.className = 'flex items-center gap-2';
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.checked = geographicLayerVisibility[layerName] !== false;
+				checkbox.addEventListener('change', () => {
+					geographicLayerVisibility[layerName] = checkbox.checked;
+					renderGeographicEntities();
+				});
+				const span = document.createElement('span');
+				span.textContent = layerName;
+				item.appendChild(checkbox);
+				item.appendChild(span);
+				geographicLayerFilters.appendChild(item);
+			});
+		}
+
+		function parseGeographicEntities(dxf) {
+			const parsed = [];
+			(dxf.entities || []).forEach((entity) => {
+				const layer = entity.layer || 'SIN_CAPA';
+				if (entity.type === 'LINE' && entity.vertices?.length >= 2) {
+					parsed.push({ layer, points: [entity.vertices[0], entity.vertices[1]], closed: false });
+				} else if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && Array.isArray(entity.vertices) && entity.vertices.length >= 2) {
+					parsed.push({ layer, points: entity.vertices, closed: !!entity.shape || !!entity.closed });
+				}
+			});
+			return parsed;
 		}
 
 		async function refreshSheetLayoutPreview() {
@@ -5582,6 +5743,38 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				refreshSheetLayoutPreview();
 			});
 		}
+
+		if (geographicModeBtn) {
+			geographicModeBtn.addEventListener('click', showGeographicScreen);
+		}
+		if (closeGeographicScreenBtn) {
+			closeGeographicScreenBtn.addEventListener('click', closeGeographicScreen);
+		}
+		if (geographicDxfInput) {
+			geographicDxfInput.addEventListener('change', (event) => {
+				const file = event.target.files && event.target.files[0];
+				if (!file) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					try {
+						const parser = new DxfParser();
+						const dxf = parser.parseSync(e.target.result);
+						geographicEntities = parseGeographicEntities(dxf);
+						geographicView = computeGeographicExtents(geographicEntities);
+						buildGeographicLayerFilters();
+						renderGeographicEntities();
+					} catch (error) {
+						console.error('No se pudo leer DXF geográfico', error);
+					}
+				};
+				reader.readAsText(file);
+			});
+		}
+		window.addEventListener('resize', () => {
+			if (geographicScreen && !geographicScreen.classList.contains('hidden')) {
+				resizeGeographicCanvas();
+			}
+		});
 
 		if (downloadImageBtn) {
 			downloadImageBtn.addEventListener('click', downloadCurrentImage);
