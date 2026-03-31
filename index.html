@@ -1409,6 +1409,9 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			let geographicEntities = [];
 			let geographicView = { minX: 0, minY: 0, maxX: 1, maxY: 1 };
 			let geographicLayerVisibility = {};
+			let geographicCamera = { scale: 1, offsetX: 0, offsetY: 0 };
+			let isGeographicPanning = false;
+			let lastGeographicPointer = { x: 0, y: 0 };
 			let orderSheetsData = {
 				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
 				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
@@ -2626,13 +2629,18 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		function modelToGeoScreen(x, y, rect) {
 			const modelW = Math.max(1e-9, geographicView.maxX - geographicView.minX);
 			const modelH = Math.max(1e-9, geographicView.maxY - geographicView.minY);
-			const scale = Math.min(rect.width / modelW, rect.height / modelH) * 0.95;
-			const offsetX = (rect.width - modelW * scale) / 2;
-			const offsetY = (rect.height - modelH * scale) / 2;
+			const fitScale = Math.min(rect.width / modelW, rect.height / modelH) * 0.95;
+			const scale = fitScale * (geographicCamera.scale || 1);
+			const offsetX = ((rect.width - modelW * fitScale) / 2) + (geographicCamera.offsetX || 0);
+			const offsetY = ((rect.height - modelH * fitScale) / 2) + (geographicCamera.offsetY || 0);
 			return {
 				x: ((x - geographicView.minX) * scale) + offsetX,
 				y: ((geographicView.maxY - y) * scale) + offsetY
 			};
+		}
+
+		function resetGeographicCamera() {
+			geographicCamera = { scale: 1, offsetX: 0, offsetY: 0 };
 		}
 
 		function computeGeographicExtents(entities) {
@@ -2705,10 +2713,39 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			const parsed = [];
 			(dxf.entities || []).forEach((entity) => {
 				const layer = entity.layer || 'SIN_CAPA';
-				if (entity.type === 'LINE' && entity.vertices?.length >= 2) {
-					parsed.push({ layer, points: [entity.vertices[0], entity.vertices[1]], closed: false });
+				if (entity.type === 'LINE') {
+					const start = entity.start || entity.startPoint || entity.vertices?.[0];
+					const end = entity.end || entity.endPoint || entity.vertices?.[1];
+					if (start && end) {
+						parsed.push({ layer, points: [start, end], closed: false });
+					}
 				} else if ((entity.type === 'LWPOLYLINE' || entity.type === 'POLYLINE') && Array.isArray(entity.vertices) && entity.vertices.length >= 2) {
 					parsed.push({ layer, points: entity.vertices, closed: !!entity.shape || !!entity.closed });
+				} else if (entity.type === 'CIRCLE' && entity.center && entity.radius) {
+					const segments = 48;
+					const points = [];
+					for (let i = 0; i <= segments; i++) {
+						const a = (i / segments) * Math.PI * 2;
+						points.push({
+							x: entity.center.x + Math.cos(a) * entity.radius,
+							y: entity.center.y + Math.sin(a) * entity.radius
+						});
+					}
+					parsed.push({ layer, points, closed: true });
+				} else if (entity.type === 'ARC' && entity.center && entity.radius) {
+					const segments = 32;
+					const startAngle = ((entity.startAngle || 0) * Math.PI) / 180;
+					const endAngle = ((entity.endAngle || 0) * Math.PI) / 180;
+					const sweep = endAngle >= startAngle ? endAngle - startAngle : (Math.PI * 2 - startAngle + endAngle);
+					const points = [];
+					for (let i = 0; i <= segments; i++) {
+						const a = startAngle + (sweep * i / segments);
+						points.push({
+							x: entity.center.x + Math.cos(a) * entity.radius,
+							y: entity.center.y + Math.sin(a) * entity.radius
+						});
+					}
+					parsed.push({ layer, points, closed: false });
 				}
 			});
 			return parsed;
@@ -5757,14 +5794,16 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				const reader = new FileReader();
 				reader.onload = (e) => {
 					try {
-						const parser = new DxfParser();
-						const dxf = parser.parseSync(e.target.result);
-						geographicEntities = parseGeographicEntities(dxf);
-						geographicView = computeGeographicExtents(geographicEntities);
-						buildGeographicLayerFilters();
-						renderGeographicEntities();
-					} catch (error) {
-						console.error('No se pudo leer DXF geográfico', error);
+							const parser = new DxfParser();
+							const dxf = parser.parseSync(e.target.result);
+							geographicEntities = parseGeographicEntities(dxf);
+							geographicView = computeGeographicExtents(geographicEntities);
+							resetGeographicCamera();
+							buildGeographicLayerFilters();
+							resizeGeographicCanvas();
+							renderGeographicEntities();
+						} catch (error) {
+							console.error('No se pudo leer DXF geográfico', error);
 					}
 				};
 				reader.readAsText(file);
@@ -5775,6 +5814,37 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				resizeGeographicCanvas();
 			}
 		});
+		if (geographicCanvas) {
+			geographicCanvas.addEventListener('wheel', (event) => {
+				event.preventDefault();
+				const zoomFactor = event.deltaY < 0 ? 1.12 : 0.9;
+				const rect = geographicCanvas.getBoundingClientRect();
+				const mouseX = event.clientX - rect.left;
+				const mouseY = event.clientY - rect.top;
+				const prevScale = geographicCamera.scale;
+				geographicCamera.scale = Math.min(20, Math.max(0.2, geographicCamera.scale * zoomFactor));
+				const ratio = geographicCamera.scale / prevScale;
+				geographicCamera.offsetX = mouseX - (mouseX - geographicCamera.offsetX) * ratio;
+				geographicCamera.offsetY = mouseY - (mouseY - geographicCamera.offsetY) * ratio;
+				renderGeographicEntities();
+			}, { passive: false });
+			geographicCanvas.addEventListener('mousedown', (event) => {
+				isGeographicPanning = true;
+				lastGeographicPointer = { x: event.clientX, y: event.clientY };
+			});
+			geographicCanvas.addEventListener('mousemove', (event) => {
+				if (!isGeographicPanning) return;
+				const dx = event.clientX - lastGeographicPointer.x;
+				const dy = event.clientY - lastGeographicPointer.y;
+				lastGeographicPointer = { x: event.clientX, y: event.clientY };
+				geographicCamera.offsetX += dx;
+				geographicCamera.offsetY += dy;
+				renderGeographicEntities();
+			});
+			['mouseup', 'mouseleave'].forEach((evtName) => {
+				geographicCanvas.addEventListener(evtName, () => { isGeographicPanning = false; });
+			});
+		}
 
 		if (downloadImageBtn) {
 			downloadImageBtn.addEventListener('click', downloadCurrentImage);
