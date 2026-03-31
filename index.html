@@ -590,9 +590,15 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			</div>
 				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm h-fit">
 					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa hoja principal</p>
+					<div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+						<button id="preview-sheet0-btn" class="preview-sheet-btn px-2 py-1 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">Hoja 1 Pedido</button>
+						<button id="preview-sheet1-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 2 Unifilar</button>
+						<button id="preview-sheet2-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 3</button>
+						<button id="preview-sheet3-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 4</button>
+					</div>
 					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
 						<div class="loader"></div>
-				</div>
+					</div>
 				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
 			</div>
 				</div>
@@ -1230,6 +1236,11 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		const orderCoverInstallationInput = document.getElementById('order-cover-installation');
 		const orderCoverJobDescriptionInput = document.getElementById('order-cover-job-description');
 		const orderCoverObservationsInput = document.getElementById('order-cover-observations');
+		const previewSheet0Btn = document.getElementById('preview-sheet0-btn');
+		const previewSheet1Btn = document.getElementById('preview-sheet1-btn');
+		const previewSheet2Btn = document.getElementById('preview-sheet2-btn');
+		const previewSheet3Btn = document.getElementById('preview-sheet3-btn');
+		const previewSheetBtns = document.querySelectorAll('.preview-sheet-btn');
 		const exportPreviewLoading = document.getElementById('export-preview-loading');
 		const exportDimensionsLabel = document.getElementById('export-dimensions-label');
 		const exportSizeLabel = document.getElementById('export-size-label');
@@ -1335,6 +1346,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			};
 			let currentExportDataUrl = '';
 			let currentExportBlob = null;
+			let activePreviewSheet = 'sheet0';
 			let orderSheetsData = {
 				sheet2: { title: '', code: '', responsible: '', date: '', notes: '' },
 				sheet3: { title: '', code: '', responsible: '', date: '', notes: '' }
@@ -2470,6 +2482,49 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			if (exportPlanFooterInput) exportPlanFooterInput.value = options.pdfConfig.footerText;
 		}
 
+		function drawConfiguredTextSheet(ctx, pageRect, sheetTitle, sheetData = {}, mmToPx) {
+			const margin = mmToPx(8);
+			const frameX = margin;
+			const frameY = margin;
+			const frameW = pageRect.width - margin * 2;
+			const frameH = pageRect.height - margin * 2;
+			ctx.fillStyle = '#fff';
+			ctx.fillRect(0, 0, pageRect.width, pageRect.height);
+			ctx.strokeStyle = '#111827';
+			ctx.lineWidth = Math.max(1, mmToPx(0.2));
+			ctx.strokeRect(frameX, frameY, frameW, frameH);
+			ctx.fillStyle = '#111827';
+			ctx.font = `bold ${Math.round(mmToPx(4.2))}px Inter, sans-serif`;
+			ctx.fillText(sheetTitle, frameX + mmToPx(4), frameY + mmToPx(10));
+			ctx.font = `bold ${Math.round(mmToPx(2.8))}px Inter, sans-serif`;
+			ctx.fillText(`Código: ${sheetData.code || '---'}`, frameX + mmToPx(4), frameY + mmToPx(20));
+			ctx.fillText(`Responsable: ${sheetData.responsible || '---'}`, frameX + mmToPx(4), frameY + mmToPx(27));
+			ctx.fillText(`Fecha: ${sheetData.date || '---'}`, frameX + mmToPx(4), frameY + mmToPx(34));
+			ctx.strokeRect(frameX + mmToPx(4), frameY + mmToPx(40), frameW - mmToPx(8), frameH - mmToPx(48));
+			ctx.font = `${Math.round(mmToPx(2.7))}px Inter, sans-serif`;
+			wrapCanvasText(
+				ctx,
+				sheetData.notes || 'Sin observaciones cargadas.',
+				frameX + mmToPx(6),
+				frameY + mmToPx(48),
+				frameW - mmToPx(12),
+				mmToPx(5),
+				12
+			);
+		}
+
+		function updatePreviewSheetButtons() {
+			previewSheetBtns.forEach((btn) => {
+				const isActive = btn.id === `preview-${activePreviewSheet}-btn`;
+				btn.classList.toggle('bg-blue-50', isActive);
+				btn.classList.toggle('text-blue-700', isActive);
+				btn.classList.toggle('border-blue-200', isActive);
+				btn.classList.toggle('bg-gray-50', !isActive);
+				btn.classList.toggle('text-gray-700', !isActive);
+				btn.classList.toggle('border-gray-200', !isActive);
+			});
+		}
+
 		async function refreshSheetLayoutPreview() {
 			if (!orderConfigScreen || orderConfigScreen.classList.contains('hidden')) return;
 			const previewOptions = getSheetLayoutOptions();
@@ -2484,21 +2539,47 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				const coverCtx = coverCanvas.getContext('2d');
 				coverCanvas.width = paper.width;
 				coverCanvas.height = paper.height;
-				const logoImage = await loadEdenorLogo();
-				drawOrderCoverSheet(
-					coverCtx,
-					{ width: paper.width, height: paper.height },
-					{
-						...(previewOptions?.orderCoverConfig || {}),
-						metaCode: previewOptions?.pdfConfig?.metaCode,
-						updateDate: previewOptions?.pdfConfig?.updateDate
-					},
-					paper.mmToPx,
-					logoImage
-				);
+				if (activePreviewSheet === 'sheet0') {
+					const logoImage = await loadEdenorLogo();
+					drawOrderCoverSheet(
+						coverCtx,
+						{ width: paper.width, height: paper.height },
+						{
+							...(previewOptions?.orderCoverConfig || {}),
+							metaCode: previewOptions?.pdfConfig?.metaCode,
+							updateDate: previewOptions?.pdfConfig?.updateDate
+						},
+						paper.mmToPx,
+						logoImage
+					);
+				} else if (activePreviewSheet === 'sheet1') {
+					const { tempCanvas } = await buildExportCanvas({
+						format: 'pdf',
+						scale: 1,
+						backgroundColor: previewOptions.backgroundColor,
+						includeTitleBlock: previewOptions.includeTitleBlock,
+						pdfConfig: previewOptions.pdfConfig
+					});
+					coverCtx.drawImage(tempCanvas, 0, 0, paper.width, paper.height);
+				} else if (activePreviewSheet === 'sheet2') {
+					drawConfiguredTextSheet(coverCtx, { width: paper.width, height: paper.height }, orderSheet2TitleInput?.value || 'HOJA 3 - MANIOBRAS / SEGURIDAD', {
+						code: orderSheet2CodeInput?.value,
+						responsible: orderSheet2ResponsibleInput?.value,
+						date: orderSheet2DateInput?.value,
+						notes: orderSheet2NotesInput?.value
+					}, paper.mmToPx);
+				} else {
+					drawConfiguredTextSheet(coverCtx, { width: paper.width, height: paper.height }, orderSheet3TitleInput?.value || 'HOJA 4 - DATOS COMPLEMENTARIOS', {
+						code: orderSheet3CodeInput?.value,
+						responsible: orderSheet3ResponsibleInput?.value,
+						date: orderSheet3DateInput?.value,
+						notes: orderSheet3NotesInput?.value
+					}, paper.mmToPx);
+				}
 				if (sheetLayoutPreviewImage) {
 					sheetLayoutPreviewImage.src = coverCanvas.toDataURL('image/png');
 				}
+				updatePreviewSheetButtons();
 			} catch (error) {
 				console.error('No se pudo actualizar la vista previa de hoja y rótulo', error);
 			} finally {
@@ -5465,6 +5546,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			orderConfigBtn.addEventListener('click', () => {
 				syncSheetLayoutEditorFromOptions();
 				syncAdditionalOrderSheetsToForm();
+				activePreviewSheet = 'sheet0';
 				if (appShell) appShell.classList.add('hidden');
 				if (orderConfigScreen) orderConfigScreen.classList.remove('hidden');
 				refreshSheetLayoutPreview();
@@ -5557,6 +5639,19 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			if (!el) return;
 			el.addEventListener('input', refreshSheetLayoutPreview);
 			el.addEventListener('change', refreshSheetLayoutPreview);
+		});
+
+		[
+			['sheet0', previewSheet0Btn],
+			['sheet1', previewSheet1Btn],
+			['sheet2', previewSheet2Btn],
+			['sheet3', previewSheet3Btn]
+		].forEach(([sheetKey, btn]) => {
+			if (!btn) return;
+			btn.addEventListener('click', () => {
+				activePreviewSheet = sheetKey;
+				refreshSheetLayoutPreview();
+			});
 		});
 
 		closeModalBtn.addEventListener('click', () => {
