@@ -842,6 +842,12 @@
 								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Aplicar</button>
 								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Restaurar</button>
 							</div>
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Colores">
+								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
+								<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color selección</button>
+								<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color global de líneas">
+								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color líneas</button>
+							</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
 							</button>
@@ -1039,6 +1045,10 @@
 		const appBgColorInput = document.getElementById('app-bg-color-input');
 		const appApplyBgBtn = document.getElementById('app-apply-bg-btn');
 		const appResetBgBtn = document.getElementById('app-reset-bg-btn');
+		const selectionColorInput = document.getElementById('selection-color-input');
+		const applySelectionColorBtn = document.getElementById('apply-selection-color-btn');
+		const lineColorInput = document.getElementById('line-color-input');
+		const applyLineColorBtn = document.getElementById('apply-line-color-btn');
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -1136,7 +1146,7 @@
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
         const CT_COVER_FACTOR = 1.1;
-        const LINE_COLOR = '#1f2937';
+        let lineColor = '#1f2937';
         const SYMBOL_STROKE_COLOR = '#1f2937';
 	        const CT_FILL_COLOR = '#d4d4d8';
 	        const SECCIONADOR_FILL_COLOR = '#4ade80';
@@ -3551,7 +3561,8 @@
 
         function drawSymbol(ent) {
             dxfCtx.save();
-            dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+            const symbolStrokeColor = ent.color || SYMBOL_STROKE_COLOR;
+            dxfCtx.strokeStyle = symbolStrokeColor;
             dxfCtx.lineWidth = 1.5;
 
             // This block draws the symbol in its "closed" or default state.
@@ -3561,7 +3572,7 @@
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
                 const radius = size * 0.075; // Círculo pequeño (reducido a la mitad)
 
-                dxfCtx.fillStyle = SYMBOL_STROKE_COLOR; // Relleno sólido ("a fondo de escala")
+                dxfCtx.fillStyle = symbolStrokeColor; // Relleno sólido ("a fondo de escala")
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
                 dxfCtx.fill();
@@ -3632,7 +3643,7 @@
                             dxfCtx.moveTo(s.x, s.y);
                             dxfCtx.lineTo(e.x, e.y);
                         }
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.stroke();
                     });
                 }
@@ -3644,7 +3655,7 @@
 				if (ent.isOpen) {
                     // Cuando está abierto: círculo blanco con borde negro
                     dxfCtx.fillStyle = '#ffffff';
-                    dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                    dxfCtx.strokeStyle = symbolStrokeColor;
                     dxfCtx.beginPath();
                     dxfCtx.arc(pos.x, pos.y, outerRadius, 0, 2 * Math.PI);
                     dxfCtx.fill();
@@ -3670,7 +3681,7 @@
                     const rhombusGeom = geometries.find(g => g.type === 'POLYLINE' && g.vertices && g.vertices.length > 0);
                     if (rhombusGeom) {
                         dxfCtx.fillStyle = '#1f2937';
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.beginPath();
                         const pts = rhombusGeom.vertices.map(v => transformPoint(v, ent));
                         dxfCtx.moveTo(pts[0].x, pts[0].y);
@@ -3687,7 +3698,7 @@
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, innerRadius, 0, 2 * Math.PI);
                 dxfCtx.fill();
-                dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                dxfCtx.strokeStyle = symbolStrokeColor;
                 dxfCtx.stroke();
             } else if (ent.symbolType === 'seccionador' && ent.connection === 'SECZ') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
@@ -3852,7 +3863,7 @@
 
 			dxfCtx.lineWidth = 1.5;
 			linesAndPolylines.forEach(ent => {
-				dxfCtx.strokeStyle = LINE_COLOR;
+				dxfCtx.strokeStyle = ent.color || lineColor;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
 				const dashPattern = getDashPatternForLinetype(ent.linetype);
@@ -5121,6 +5132,7 @@
 						changeCtIconBtn.addEventListener('click', () => {
 							if (selectedEntity && selectedEntity.symbolType === 'ct') {
 								saveHistoryState();
+									const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
 								const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo', 'ct-circle-diagonal', 'ct-double-circle', 'ct-double-circle-diagonal', 'ct-circle-double-slash', 'ct-split-coupled', 'ct-split-coupled-arrow', 'ct-provisional-lines'];
 								const currentIndex = iconTypes.indexOf(selectedEntity.ctIconType || 'plain');
 								const nextIndex = (currentIndex + 1) % iconTypes.length;
@@ -5853,6 +5865,75 @@
 				draw();
 			}
 		});
+
+		function getCurrentSelectionItems() {
+			if (multiSelection.length > 0) return [...multiSelection];
+
+			const items = [];
+			if (selectedDrawingId) {
+				const drawing = userDrawings.find(d => d.id === selectedDrawingId);
+				if (drawing) items.push(drawing);
+			}
+			if (selectedEntity) items.push(selectedEntity);
+			return items;
+		}
+
+		function applyColorToItem(item, color) {
+			if (!item || !color) return false;
+
+			if (item.id && userDrawings.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (linesAndPolylines.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (symbols.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			return false;
+		}
+
+		if (lineColorInput) {
+			lineColorInput.value = lineColor;
+		}
+
+		if (applySelectionColorBtn && selectionColorInput) {
+			applySelectionColorBtn.addEventListener('click', () => {
+				const items = getCurrentSelectionItems();
+				if (items.length === 0) {
+					showAlert('No hay elementos seleccionados.');
+					return;
+				}
+
+				const chosenColor = selectionColorInput.value || '#1f2937';
+				saveHistoryState();
+				let changed = false;
+				items.forEach(item => {
+					if (applyColorToItem(item, chosenColor)) changed = true;
+				});
+
+				if (!changed) {
+					showAlert('La selección actual no admite cambio de color.');
+					return;
+				}
+				draw();
+			});
+		}
+
+		if (applyLineColorBtn && lineColorInput) {
+			applyLineColorBtn.addEventListener('click', () => {
+				const chosenColor = lineColorInput.value || '#1f2937';
+				saveHistoryState();
+				lineColor = chosenColor;
+				linesAndPolylines.forEach(ent => {
+					ent.color = chosenColor;
+				});
+				draw();
+			});
+		}
 		
         deleteBtn.addEventListener('click', () => {
             // If there is a selection (multiple or single), present a choice to the user.
