@@ -905,7 +905,7 @@
 								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
 								<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color selección</button>
 								<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color global de líneas">
-								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color líneas</button>
+								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color líneas/cables</button>
 							</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
@@ -5986,8 +5986,17 @@
 				const chosenColor = lineColorInput.value || '#1f2937';
 				saveHistoryState();
 				lineColor = chosenColor;
+
+				// DXF lines/cables
 				linesAndPolylines.forEach(ent => {
 					ent.color = chosenColor;
+				});
+
+				// Manual lines/cables dibujadas por el usuario
+				userDrawings.forEach(d => {
+					if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
+						d.color = chosenColor;
+					}
 				});
 				draw();
 			});
