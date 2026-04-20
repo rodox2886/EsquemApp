@@ -451,6 +451,65 @@
 		</div>
 	</div>
 
+	<!-- Legacy hidden stubs (mantener JS estable sin exponer pantallas eliminadas) -->
+	<div id="legacy-hidden-stubs" class="hidden">
+		<section id="order-config-screen"></section>
+		<section id="geographic-screen"></section>
+		<button id="order-config-btn" type="button"></button>
+		<button id="geographic-mode-btn" type="button"></button>
+		<button id="close-geographic-screen-btn" type="button"></button>
+		<input id="geographic-dxf-input" type="file" accept=".dxf">
+		<div id="geographic-layer-filters"></div>
+		<canvas id="geographic-canvas"></canvas>
+
+		<button id="close-sheet-layout-modal-btn" type="button"></button>
+		<button id="sheet-layout-apply-btn" type="button"></button>
+		<img id="sheet-layout-preview-image" alt="">
+		<div id="sheet-layout-preview-loading"></div>
+
+		<input id="sheet-layout-title-block" type="checkbox">
+		<select id="sheet-layout-paper-size"><option value="a4">A4</option></select>
+		<select id="sheet-layout-page-orientation"><option value="landscape">Horizontal</option></select>
+		<input id="sheet-layout-page-margin" type="number" value="8">
+		<input id="sheet-layout-plan-title" type="text">
+		<input id="sheet-layout-plan-code" type="text">
+		<input id="sheet-layout-plan-revision" type="text">
+		<input id="sheet-layout-plan-meta-code" type="text">
+		<input id="sheet-layout-plan-update-date" type="text">
+		<input id="sheet-layout-plan-gerencia" type="text">
+		<input id="sheet-layout-plan-croquis-title" type="text">
+		<input id="sheet-layout-plan-header-note" type="text">
+		<textarea id="sheet-layout-plan-footer"></textarea>
+
+		<input id="order-sheet2-title" type="text">
+		<input id="order-sheet2-code" type="text">
+		<input id="order-sheet2-responsable" type="text">
+		<input id="order-sheet2-date" type="text">
+		<textarea id="order-sheet2-notes"></textarea>
+		<input id="order-sheet3-title" type="text">
+		<input id="order-sheet3-code" type="text">
+		<input id="order-sheet3-responsable" type="text">
+		<input id="order-sheet3-date" type="text">
+		<textarea id="order-sheet3-notes"></textarea>
+
+		<input id="order-cover-gerencia" type="text">
+		<input id="order-cover-request-date" type="text">
+		<input id="order-cover-request-id" type="text">
+		<input id="order-cover-work-id" type="text">
+		<textarea id="order-cover-installation"></textarea>
+		<textarea id="order-cover-job-description"></textarea>
+		<textarea id="order-cover-observations"></textarea>
+
+		<button id="preview-sheet0-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet1-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet2-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet3-btn" type="button" class="preview-sheet-btn"></button>
+		<div id="form-sheet0"></div>
+		<div id="form-sheet1"></div>
+		<div id="form-sheet2"></div>
+		<div id="form-sheet3"></div>
+	</div>
+
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -5133,7 +5192,6 @@
 							if (selectedEntity && selectedEntity.symbolType === 'ct') {
 								saveHistoryState();
 									const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
-								const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo', 'ct-circle-diagonal', 'ct-double-circle', 'ct-double-circle-diagonal', 'ct-circle-double-slash', 'ct-split-coupled', 'ct-split-coupled-arrow', 'ct-provisional-lines'];
 								const currentIndex = iconTypes.indexOf(selectedEntity.ctIconType || 'plain');
 								const nextIndex = (currentIndex + 1) % iconTypes.length;
 								selectedEntity.ctIconType = iconTypes[nextIndex];
