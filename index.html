@@ -868,21 +868,21 @@
 		<div class="flex-grow flex flex-col">
 			<div class="p-4 md:p-6 lg:p-8 flex-grow flex flex-col w-full">
 				<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-					<div class="flex justify-between items-start mb-4">
+					<div class="flex flex-wrap justify-between items-start gap-3 mb-4">
 						<div>
 							<h1 class="text-2xl font-bold">
 								<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
 							</h1>
 						</div>
-						<div class="flex items-center gap-2">
-							<div id="toggle-manual-mode-container" class="flex items-center px-1" title="Habilitar Movimiento">
+						<div class="flex flex-wrap items-center justify-end gap-2 max-w-full">
+							<div id="toggle-manual-mode-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Habilitar Movimiento">
 								<span class="text-sm font-medium text-gray-700 mr-2">Movimiento</span>
 								<label for="manual-mode-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="manual-mode-toggle" class="sr-only peer">
 									<div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 								</label>
 							</div>
-							<div id="toggle-grid-container" class="flex items-center px-1" title="Mostrar Cuadrícula">
+							<div id="toggle-grid-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Mostrar Cuadrícula">
 								<span class="text-sm font-medium text-gray-700 mr-2">Cuadrícula</span>
 								<label for="grid-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="grid-toggle" class="sr-only peer">
@@ -895,11 +895,17 @@
 									<option value="120">120x120</option>
 								</select>
 							</div>
-							<div id="app-bg-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
+							<div id="app-bg-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
 								<span class="text-xs font-semibold text-gray-700">Fondo</span>
 								<input id="app-bg-color-input" type="color" value="#f0f0f0" class="h-7 w-10 border rounded cursor-pointer">
-								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Aplicar</button>
-								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Restaurar</button>
+								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
+								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
+							</div>
+							<div id="color-tools-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Colores">
+								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
+								<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Selección</button>
+								<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color global de líneas">
+								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Líneas/cables</button>
 							</div>
 							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Colores">
 								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
@@ -937,7 +943,7 @@
 							</button>
 						</div>
 					</div>
-					<div class="flex flex-wrap items-center justify-between gap-2">
+					<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="flex items-center bg-gray-100 rounded-full px-3 py-1 ml-2">
 								<svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
