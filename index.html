@@ -360,12 +360,12 @@
 						</select>
 						<p class="text-xs text-gray-500 mt-1">Escala relativa al tamaño visible del lienzo.</p>
 					</div>
-					<div>
-						<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
-						<div class="flex items-center gap-3">
-							<input id="export-bg-color" type="color" value="#f0f0f0" class="h-10 w-16 border rounded cursor-pointer">
-							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
-						</div>
+						<div>
+							<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
+							<div class="flex items-center gap-3">
+								<select id="export-bg-color" class="h-10 w-44 border rounded px-2 text-sm text-gray-700 bg-white" aria-label="Color de fondo de exportación"></select>
+								<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
+							</div>
 						<div class="mt-2 flex gap-2">
 							<button id="apply-bg-before-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Aplicar al lienzo</button>
 							<button id="restore-bg-after-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Restaurar fondo</button>
@@ -895,12 +895,12 @@
 									<option value="120">120x120</option>
 								</select>
 							</div>
-							<div id="app-bg-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
-								<span class="text-xs font-semibold text-gray-700">Fondo</span>
-								<input id="app-bg-color-input" type="color" value="#f0f0f0" class="h-7 w-10 border rounded cursor-pointer">
-								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
-								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
-							</div>
+								<div id="app-bg-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
+									<span class="text-xs font-semibold text-gray-700">Fondo</span>
+									<select id="app-bg-color-input" class="h-7 w-28 border rounded px-1 text-xs text-gray-700 bg-white" aria-label="Color de fondo del lienzo"></select>
+									<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
+									<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
+								</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
 							</button>
@@ -985,10 +985,10 @@
 									<span>Restablecer</span>
 								</button>
 						</div>
-						 <div class="flex items-center flex-wrap justify-end gap-2">
-							<div id="color-tools-controls" class="relative flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Pintar red">
-								<input id="paint-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color de pintura">
-								<button id="paint-tools-btn" title="Opciones de pintado" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+							 <div class="flex items-center flex-wrap justify-end gap-2">
+								<div id="color-tools-controls" class="relative flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Pintar red">
+									<select id="paint-color-input" class="h-7 w-28 border rounded px-1 text-xs text-gray-700 bg-white" aria-label="Color de pintura"></select>
+									<button id="paint-tools-btn" title="Opciones de pintado" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
 									<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
 										<path d="M3 21h6"></path>
 										<path d="M14.5 3.5a2.12 2.12 0 1 1 3 3L8 16l-4 1 1-4 9.5-9.5z"></path>
@@ -1118,6 +1118,17 @@
 		const paintSelectedBtn = document.getElementById('paint-selected-btn');
 		const paintLinesBtn = document.getElementById('paint-lines-btn');
 		const paintNetworkBtn = document.getElementById('paint-network-btn');
+		const FIXED_COLOR_PALETTE = [
+			{ hex: '#1f2937', name: 'Gris carbón' }, { hex: '#000000', name: 'Negro' }, { hex: '#ffffff', name: 'Blanco' },
+			{ hex: '#ef4444', name: 'Rojo' }, { hex: '#f97316', name: 'Naranja' }, { hex: '#f59e0b', name: 'Ámbar' },
+			{ hex: '#eab308', name: 'Amarillo' }, { hex: '#84cc16', name: 'Lima' }, { hex: '#22c55e', name: 'Verde' },
+			{ hex: '#10b981', name: 'Esmeralda' }, { hex: '#14b8a6', name: 'Turquesa' }, { hex: '#06b6d4', name: 'Cian' },
+			{ hex: '#0ea5e9', name: 'Celeste' }, { hex: '#3b82f6', name: 'Azul' }, { hex: '#6366f1', name: 'Índigo' },
+			{ hex: '#8b5cf6', name: 'Violeta' }, { hex: '#a855f7', name: 'Púrpura' }, { hex: '#d946ef', name: 'Fucsia' },
+			{ hex: '#ec4899', name: 'Rosa' }, { hex: '#f43f5e', name: 'Rosado intenso' }, { hex: '#a16207', name: 'Marrón' },
+			{ hex: '#78716c', name: 'Piedra' }, { hex: '#6b7280', name: 'Gris medio' }, { hex: '#94a3b8', name: 'Gris claro' },
+			{ hex: '#f0f0f0', name: 'Gris fondo' }
+		];
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -1299,8 +1310,11 @@
 			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
 			let edenorLogoPromise = null;
+			populateFixedColorSelect(exportBgColorInput, exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+			populateFixedColorSelect(appBgColorInput, exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+			populateFixedColorSelect(paintColorInput, lineColor, '#1f2937');
 			if (appBgColorInput) {
-				appBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
+				appBgColorInput.value = normalizePaletteColor(exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
 			}
 
 
@@ -3273,20 +3287,42 @@
 			clipboardNotice.classList.add(...(toneClasses[tone] || toneClasses.warning));
 		}
 
-		function clearClipboardNotice() {
-			if (!clipboardNotice) return;
-			clipboardNotice.classList.add('hidden');
-		}
+			function clearClipboardNotice() {
+				if (!clipboardNotice) return;
+				clipboardNotice.classList.add('hidden');
+			}
 
-		function applyCanvasBackgroundColor(colorValue) {
-			if (!colorValue) return;
-			canvasBackgroundColor = colorValue;
-			exportOptions.backgroundColor = colorValue;
-			if (exportBgColorInput) exportBgColorInput.value = colorValue;
-			if (appBgColorInput) appBgColorInput.value = colorValue;
-			draw();
-			refreshExportPreview(false);
-		}
+			function normalizePaletteColor(colorValue, fallback = '#1f2937') {
+				if (!colorValue) return fallback;
+				const normalized = colorValue.toLowerCase();
+				return FIXED_COLOR_PALETTE.some(c => c.hex === normalized) ? normalized : fallback;
+			}
+
+			function getFixedColorOptionsHtml(selectedColor) {
+				const chosen = normalizePaletteColor(selectedColor, '#1f2937');
+				return FIXED_COLOR_PALETTE.map(color => {
+					const isSelected = color.hex === chosen ? 'selected' : '';
+					return `<option value="${color.hex}" ${isSelected}>${color.name} (${color.hex})</option>`;
+				}).join('');
+			}
+
+			function populateFixedColorSelect(selectElement, selectedColor, fallback = '#1f2937') {
+				if (!selectElement) return;
+				const chosen = normalizePaletteColor(selectedColor, fallback);
+				selectElement.innerHTML = getFixedColorOptionsHtml(chosen);
+				selectElement.value = chosen;
+			}
+
+			function applyCanvasBackgroundColor(colorValue) {
+				if (!colorValue) return;
+				const normalizedColor = normalizePaletteColor(colorValue, defaultCanvasBackgroundColor);
+				canvasBackgroundColor = normalizedColor;
+				exportOptions.backgroundColor = normalizedColor;
+				if (exportBgColorInput) exportBgColorInput.value = normalizedColor;
+				if (appBgColorInput) appBgColorInput.value = normalizedColor;
+				draw();
+				refreshExportPreview(false);
+			}
 
 		function restoreCanvasBackgroundColor() {
 			canvasBackgroundColor = defaultCanvasBackgroundColor;
@@ -4794,7 +4830,9 @@
 			// Color Picker
 			contentHtml += `<div>
 								<label for="drawing-color" class="font-semibold text-gray-600 block mb-1">Color</label>
-								<input type="color" id="drawing-color" value="${drawing.color || DEFAULT_DRAW_COLOR}" class="w-full h-8 p-0 border-none rounded cursor-pointer">
+								<select id="drawing-color" class="w-full h-9 border rounded px-2 text-sm text-gray-700 bg-white">
+									${getFixedColorOptionsHtml(drawing.color || DEFAULT_DRAW_COLOR)}
+								</select>
 							</div>`;
 
 			if (drawing.type === 'draw-rect' || drawing.type === 'draw-ellipse') {
@@ -4912,11 +4950,12 @@
 
 			const colorInput = document.getElementById('drawing-color');
 			if (colorInput) {
-				colorInput.addEventListener('input', (e) => {
+				colorInput.value = normalizePaletteColor(drawing.color || DEFAULT_DRAW_COLOR, DEFAULT_DRAW_COLOR);
+				colorInput.addEventListener('change', (e) => {
+					saveHistoryState();
 					drawing.color = e.target.value;
 					draw();
 				});
-				colorInput.addEventListener('change', () => saveHistoryState());
 			}
 
 			const fillToggle = document.getElementById('drawing-fill-toggle');
@@ -5640,16 +5679,16 @@
             ctPickerModal.classList.add('flex');
         });
 
-		copyImageBtn.addEventListener('click', () => {
+			copyImageBtn.addEventListener('click', () => {
 			if (exportFormatSelect) {
 				exportFormatSelect.value = exportOptions.format || 'png';
 			}
 			if (exportResolutionSelect) {
 				exportResolutionSelect.value = (exportOptions.scale || 1).toString();
 			}
-			if (exportBgColorInput) {
-				exportBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
-			}
+				if (exportBgColorInput) {
+					exportBgColorInput.value = normalizePaletteColor(exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+				}
 			if (exportTitleBlockInput) {
 				exportTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
 			}
@@ -5814,9 +5853,9 @@
 			el.addEventListener('change', () => refreshExportPreview(false));
 		});
 
-		if (exportBgColorInput) {
-			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
-		}
+			if (exportBgColorInput) {
+				exportBgColorInput.addEventListener('change', () => refreshExportPreview(false));
+			}
 		if (applyBgBeforeBtn) {
 			applyBgBeforeBtn.addEventListener('click', () => {
 				applyCanvasBackgroundColor((exportBgColorInput && exportBgColorInput.value) || '#f0f0f0');
@@ -5833,11 +5872,11 @@
 		if (appResetBgBtn) {
 			appResetBgBtn.addEventListener('click', restoreCanvasBackgroundColor);
 		}
-		if (appBgColorInput) {
-			appBgColorInput.addEventListener('input', () => {
-				if (exportBgColorInput) exportBgColorInput.value = appBgColorInput.value;
-			});
-		}
+			if (appBgColorInput) {
+				appBgColorInput.addEventListener('change', () => {
+					if (exportBgColorInput) exportBgColorInput.value = appBgColorInput.value;
+				});
+			}
 		if (exportTitleBlockInput) {
 			exportTitleBlockInput.addEventListener('change', () => refreshExportPreview(false));
 		}
@@ -5999,7 +6038,7 @@
 		}
 
 		if (paintColorInput) {
-			paintColorInput.value = lineColor;
+			paintColorInput.value = normalizePaletteColor(lineColor, '#1f2937');
 		}
 
 		if (paintToolsBtn && paintToolsMenu) {
