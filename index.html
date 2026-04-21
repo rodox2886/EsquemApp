@@ -5372,9 +5372,38 @@
 				return userDrawings.find(d => d.id === symbolId) || symbols.find(s => s.id === symbolId) || null;
 			}
 
+			function findAutoConnectedItem(item) {
+				if (!item || item.autoConnectionDetached) return null;
+				if (item.associatedSeccionadorId) return findSymbolByIdInProject(item.associatedSeccionadorId);
+				if (item.associatedCtId) return findSymbolByIdInProject(item.associatedCtId);
+
+				const pool = [...symbols, ...userDrawings];
+				if (item.symbolType === 'ct' && item.label) {
+					return pool.find(candidate =>
+						candidate !== item &&
+						candidate.symbolType === 'seccionador' &&
+						!candidate.autoConnectionDetached &&
+						typeof candidate.label === 'string' &&
+						candidate.label.startsWith(`${item.label}-`)
+					) || null;
+				}
+				if (item.symbolType === 'seccionador' && typeof item.label === 'string') {
+					const parts = item.label.split('-');
+					const ctLabel = parts[0];
+					return pool.find(candidate =>
+						candidate !== item &&
+						candidate.symbolType === 'ct' &&
+						!candidate.autoConnectionDetached &&
+						candidate.label === ctLabel
+					) || null;
+				}
+				return null;
+			}
+
 			function detachAutomaticConnectionForItem(item) {
 				if (!item) return false;
 				let detached = false;
+				const inferredLinkedItem = findAutoConnectedItem(item);
 				if (item.associatedSeccionadorId) {
 					const relatedSeccionador = findSymbolByIdInProject(item.associatedSeccionadorId);
 					if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
@@ -5386,6 +5415,13 @@
 					if (relatedCt) delete relatedCt.associatedSeccionadorId;
 					delete item.associatedCtId;
 					detached = true;
+				}
+				if (!detached && inferredLinkedItem) {
+					detached = true;
+				}
+				if (detached) {
+					item.autoConnectionDetached = true;
+					if (inferredLinkedItem) inferredLinkedItem.autoConnectionDetached = true;
 				}
 				return detached;
 			}
@@ -6637,30 +6673,20 @@
                         }
 
 					}
-					else if (isDraggingDrawing) {
-						const selected = userDrawings.find(d => d.id === selectedDrawingId);
-						if (selected) { 
-                            selected.start.x += modelDx; selected.start.y += modelDy; 
-                            if (selected.end) { selected.end.x += modelDx; selected.end.y += modelDy; }
-
-							if (selected.associatedSeccionadorId) {
-								const seccionador = userDrawings.find(d => d.id === selected.associatedSeccionadorId);
-								if (seccionador) {
-									seccionador.start.x += modelDx;
-									seccionador.start.y += modelDy;
+						else if (isDraggingDrawing) {
+							const selected = userDrawings.find(d => d.id === selectedDrawingId);
+							if (selected) { 
+	                            selected.start.x += modelDx; selected.start.y += modelDy; 
+	                            if (selected.end) { selected.end.x += modelDx; selected.end.y += modelDy; }
+								const linkedItem = findAutoConnectedItem(selected);
+								if (linkedItem && linkedItem.start) {
+									linkedItem.start.x += modelDx;
+									linkedItem.start.y += modelDy;
 								}
-							}
-							if (selected.associatedCtId) {
-								const ct = userDrawings.find(d => d.id === selected.associatedCtId);
-								if (ct) {
-									ct.start.x += modelDx;
-									ct.start.y += modelDy;
-								}
-							}
-                            draggedItemForSnap = selected;
-                        }
-					} else if (isDraggingGroup) {
-						symbols.forEach(s => { if (s.groupId === selectedGroupId) { s.position.x += modelDx; s.position.y += modelDy; } });
+	                            draggedItemForSnap = selected;
+	                        }
+						} else if (isDraggingGroup) {
+							symbols.forEach(s => { if (s.groupId === selectedGroupId) { s.position.x += modelDx; s.position.y += modelDy; } });
 						linesAndPolylines.forEach(l => { 
 							if (l.groupId === selectedGroupId) { 
 								if(l.vertices) l.vertices.forEach(v => { if(v) { v.x += modelDx; v.y += modelDy; } }); 
@@ -6668,11 +6694,21 @@
 								if(l.start) { l.start.x += modelDx; l.start.y += modelDy; } 
 								if(l.end) { l.end.x += modelDx; l.end.y += modelDy; } 
 							} 
-						});
-                        const firstSymbolInGroup = symbols.find(s => s.groupId === selectedGroupId);
-                        if(firstSymbolInGroup) draggedItemForSnap = firstSymbolInGroup.position;
+							});
+	                        const firstSymbolInGroup = symbols.find(s => s.groupId === selectedGroupId);
+	                        if(firstSymbolInGroup) draggedItemForSnap = firstSymbolInGroup.position;
+							if (selectedEntity && selectedEntity.position) {
+								const linkedItem = findAutoConnectedItem(selectedEntity);
+								if (linkedItem && linkedItem.position && linkedItem !== selectedEntity) {
+									const sameGroup = selectedEntity.groupId && linkedItem.groupId && selectedEntity.groupId === linkedItem.groupId;
+									if (!sameGroup) {
+										linkedItem.position.x += modelDx;
+										linkedItem.position.y += modelDy;
+									}
+								}
+							}
 
-					} else if (isPanning) {
+						} else if (isPanning) {
 						view.offsetX += screenDx; view.offsetY += screenDy;
                         snapLine = null;
 					}
