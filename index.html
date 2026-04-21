@@ -901,6 +901,18 @@
 								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
 								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
 							</div>
+							<div id="color-tools-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Colores">
+								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
+								<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Selección</button>
+								<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color global de líneas">
+								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Líneas/cables</button>
+							</div>
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Colores">
+								<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color de selección">
+								<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color selección</button>
+								<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-10 border rounded cursor-pointer" aria-label="Color global de líneas">
+								<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Color líneas/cables</button>
+							</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
 							</button>
@@ -1005,6 +1017,15 @@
 											<line x1="7" y1="21" x2="19" y2="9"></line>
 										</svg>
 									</button>
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 shadow-sm" title="Colores">
+								<div class="flex items-center gap-1">
+									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-9 border rounded cursor-pointer" aria-label="Color de selección">
+									<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap">Selección</button>
+								</div>
+								<div class="h-6 w-px bg-slate-200"></div>
+								<div class="flex items-center gap-1">
+									<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-9 border rounded cursor-pointer" aria-label="Color global de líneas">
+									<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap">Líneas</button>
 								</div>
 							</div>
 							<label for="upload-sketch-file" title="Subir Croquis (.json)" class="cursor-pointer px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
@@ -2076,6 +2097,71 @@
 					ctx.lineTo(pos.x, pos.y + yOffset + radiusCR); // Bottom
 					ctx.lineTo(pos.x - radiusCR, pos.y + yOffset); // Left
 					ctx.closePath();
+					ctx.stroke();
+					break;
+				case 'ct-circle-diagonal':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.95, pos.y + yOffset - size * 0.95);
+					ctx.lineTo(pos.x + size * 0.95, pos.y + yOffset + size * 0.95);
+					ctx.stroke();
+					break;
+				case 'ct-double-circle':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x + size * 0.5, pos.y + yOffset);
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.5, 0, 2 * Math.PI);
+					ctx.stroke();
+					break;
+				case 'ct-double-circle-diagonal':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x + size * 0.5, pos.y + yOffset);
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.5, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.75, pos.y + yOffset - size * 0.75);
+					ctx.lineTo(pos.x + size * 0.75, pos.y + yOffset + size * 0.75);
+					ctx.stroke();
+					break;
+				case 'ct-circle-double-slash':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.55, pos.y + yOffset + size * 0.55);
+					ctx.lineTo(pos.x - size * 0.95, pos.y + yOffset + size * 0.95);
+					ctx.moveTo(pos.x - size * 0.35, pos.y + yOffset + size * 0.75);
+					ctx.lineTo(pos.x - size * 0.75, pos.y + yOffset + size * 1.15);
+					ctx.stroke();
+					break;
+				case 'ct-split-coupled': {
+					const leftCx = pos.x - size * 0.45;
+					const rightCx = pos.x + size * 0.45;
+					const r = size * 0.58;
+					ctx.beginPath();
+					ctx.arc(leftCx, pos.y + yOffset, r, Math.PI / 2, Math.PI * 1.5);
+					ctx.arc(rightCx, pos.y + yOffset, r, -Math.PI / 2, Math.PI / 2);
+					ctx.stroke();
+					break;
+				}
+				case 'ct-split-coupled-arrow': {
+					const leftCx = pos.x - size * 0.45;
+					const rightCx = pos.x + size * 0.45;
+					const r = size * 0.58;
+					ctx.beginPath();
+					ctx.arc(leftCx, pos.y + yOffset, r, Math.PI / 2, Math.PI * 1.5);
+					ctx.arc(rightCx, pos.y + yOffset, r, -Math.PI / 2, Math.PI / 2);
+					ctx.moveTo(pos.x - size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.lineTo(pos.x + size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.moveTo(pos.x - size * 0.2, pos.y + yOffset + size * 0.84);
+					ctx.lineTo(pos.x - size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.lineTo(pos.x - size * 0.2, pos.y + yOffset + size * 1.16);
+					ctx.stroke();
+					break;
+				}
+				case 'ct-provisional-lines':
+					ctx.beginPath();
+					ctx.moveTo(pos.x - size * 0.7, pos.y + yOffset - size * 0.2);
+					ctx.lineTo(pos.x + size * 0.7, pos.y + yOffset - size * 0.2);
+					ctx.moveTo(pos.x - size * 0.7, pos.y + yOffset + size * 0.2);
+					ctx.lineTo(pos.x + size * 0.7, pos.y + yOffset + size * 0.2);
 					ctx.stroke();
 					break;
 				case 'triangle':
@@ -7310,7 +7396,7 @@
 		function populateCtSymbolPicker() {
 			const grid = document.getElementById('ct-symbol-grid');
 			grid.innerHTML = '';
-                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
+                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo', 'ct-circle-diagonal', 'ct-double-circle', 'ct-double-circle-diagonal', 'ct-circle-double-slash', 'ct-split-coupled', 'ct-split-coupled-arrow', 'ct-provisional-lines'];
 
 			const iconNames = {
                 'plain': 'CT Genérico',
@@ -7325,7 +7411,14 @@
                 'circle-rhombus': 'CM Nivel Acc. Vía Pública',
                 'hexagon': 'CT Sumergible',
                 'switch': 'Caja Seccionadora',
-                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública'
+                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública',
+                'ct-circle-diagonal': 'CT círculo con diagonal (C663/C691)',
+                'ct-double-circle': 'CT doble círculo (C665)',
+                'ct-double-circle-diagonal': 'CT doble círculo con diagonal (C666/C683/C684)',
+                'ct-circle-double-slash': 'CT círculo con doble marca (C667/C668/C669)',
+                'ct-split-coupled': 'CT barra MT dividida (C685)',
+                'ct-split-coupled-arrow': 'CT acoplamiento BT (C686)',
+                'ct-provisional-lines': 'UNI CT provisorio (C1458)'
             };
 
 			iconTypes.forEach(type => {
