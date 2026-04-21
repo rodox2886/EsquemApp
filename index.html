@@ -998,6 +998,25 @@
 								</button>
 						</div>
 						 <div class="flex items-center flex-wrap justify-end gap-2">
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Herramientas de color">
+								<div class="flex items-center gap-1">
+									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color de selección">
+									<button id="apply-selection-color-btn" title="Aplicar color a selección" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+										<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+											<circle cx="12" cy="12" r="3"></circle>
+											<circle cx="12" cy="12" r="9"></circle>
+										</svg>
+									</button>
+								</div>
+								<div class="h-5 w-px bg-gray-300"></div>
+								<div class="flex items-center gap-1">
+									<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color global de líneas">
+									<button id="apply-line-color-btn" title="Aplicar color a líneas/cables" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+										<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+											<line x1="4" y1="19" x2="20" y2="5"></line>
+											<line x1="7" y1="21" x2="19" y2="9"></line>
+										</svg>
+									</button>
 							<div id="color-tools-controls" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 shadow-sm" title="Colores">
 								<div class="flex items-center gap-1">
 									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-9 border rounded cursor-pointer" aria-label="Color de selección">
