@@ -998,6 +998,17 @@
 								</button>
 						</div>
 						 <div class="flex items-center flex-wrap justify-end gap-2">
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 shadow-sm" title="Colores">
+								<div class="flex items-center gap-1">
+									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-9 border rounded cursor-pointer" aria-label="Color de selección">
+									<button id="apply-selection-color-btn" class="text-xs px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap">Selección</button>
+								</div>
+								<div class="h-6 w-px bg-slate-200"></div>
+								<div class="flex items-center gap-1">
+									<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-9 border rounded cursor-pointer" aria-label="Color global de líneas">
+									<button id="apply-line-color-btn" class="text-xs px-2 py-1 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap">Líneas</button>
+								</div>
+							</div>
 							<label for="upload-sketch-file" title="Subir Croquis (.json)" class="cursor-pointer px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
 								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
