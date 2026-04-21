@@ -998,6 +998,18 @@
 								</button>
 						</div>
 						 <div class="flex items-center flex-wrap justify-end gap-2">
+							<div id="color-tools-controls" class="relative flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Pintar red">
+								<input id="paint-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color de pintura">
+								<button id="paint-tools-btn" title="Opciones de pintado" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+									<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M3 21h6"></path>
+										<path d="M14.5 3.5a2.12 2.12 0 1 1 3 3L8 16l-4 1 1-4 9.5-9.5z"></path>
+									</svg>
+								</button>
+								<div id="paint-tools-menu" class="hidden absolute right-0 top-10 w-48 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-1">
+									<button id="paint-selected-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar selección</button>
+									<button id="paint-lines-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar líneas/cables</button>
+									<button id="paint-network-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar toda la red</button>
 							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Herramientas de color">
 								<div class="flex items-center gap-1">
 									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color de selección">
@@ -1140,10 +1152,12 @@
 		const appBgColorInput = document.getElementById('app-bg-color-input');
 		const appApplyBgBtn = document.getElementById('app-apply-bg-btn');
 		const appResetBgBtn = document.getElementById('app-reset-bg-btn');
-		const selectionColorInput = document.getElementById('selection-color-input');
-		const applySelectionColorBtn = document.getElementById('apply-selection-color-btn');
-		const lineColorInput = document.getElementById('line-color-input');
-		const applyLineColorBtn = document.getElementById('apply-line-color-btn');
+		const paintColorInput = document.getElementById('paint-color-input');
+		const paintToolsBtn = document.getElementById('paint-tools-btn');
+		const paintToolsMenu = document.getElementById('paint-tools-menu');
+		const paintSelectedBtn = document.getElementById('paint-selected-btn');
+		const paintLinesBtn = document.getElementById('paint-lines-btn');
+		const paintNetworkBtn = document.getElementById('paint-network-btn');
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -5990,50 +6004,82 @@
 			return false;
 		}
 
-		if (lineColorInput) {
-			lineColorInput.value = lineColor;
+		function paintLinesAndCables(chosenColor) {
+			lineColor = chosenColor;
+			linesAndPolylines.forEach(ent => {
+				ent.color = chosenColor;
+			});
+			userDrawings.forEach(d => {
+				if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
+					d.color = chosenColor;
+				}
+			});
 		}
 
-		if (applySelectionColorBtn && selectionColorInput) {
-			applySelectionColorBtn.addEventListener('click', () => {
+		function paintWholeNetwork(chosenColor) {
+			paintLinesAndCables(chosenColor);
+			symbols.forEach(s => { s.color = chosenColor; });
+			userDrawings.forEach(d => {
+				if (d.type !== 'draw-line' && d.type !== 'draw-dashed-line') {
+					d.color = chosenColor;
+				}
+			});
+		}
+
+		if (paintColorInput) {
+			paintColorInput.value = lineColor;
+		}
+
+		if (paintToolsBtn && paintToolsMenu) {
+			paintToolsBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				paintToolsMenu.classList.toggle('hidden');
+			});
+			document.addEventListener('click', (e) => {
+				if (!paintToolsMenu.classList.contains('hidden') && !paintToolsMenu.contains(e.target) && e.target !== paintToolsBtn) {
+					paintToolsMenu.classList.add('hidden');
+				}
+			});
+		}
+
+		if (paintSelectedBtn && paintColorInput) {
+			paintSelectedBtn.addEventListener('click', () => {
 				const items = getCurrentSelectionItems();
 				if (items.length === 0) {
-					showAlert('No hay elementos seleccionados.');
+					window.alert('No hay elementos seleccionados.');
 					return;
 				}
-
-				const chosenColor = selectionColorInput.value || '#1f2937';
+				const chosenColor = paintColorInput.value || '#1f2937';
 				saveHistoryState();
 				let changed = false;
 				items.forEach(item => {
 					if (applyColorToItem(item, chosenColor)) changed = true;
 				});
-
 				if (!changed) {
-					showAlert('La selección actual no admite cambio de color.');
+					window.alert('La selección actual no admite cambio de color.');
 					return;
 				}
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
 				draw();
 			});
 		}
 
-		if (applyLineColorBtn && lineColorInput) {
-			applyLineColorBtn.addEventListener('click', () => {
-				const chosenColor = lineColorInput.value || '#1f2937';
+		if (paintLinesBtn && paintColorInput) {
+			paintLinesBtn.addEventListener('click', () => {
+				const chosenColor = paintColorInput.value || '#1f2937';
 				saveHistoryState();
-				lineColor = chosenColor;
+				paintLinesAndCables(chosenColor);
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
+				draw();
+			});
+		}
 
-				// DXF lines/cables
-				linesAndPolylines.forEach(ent => {
-					ent.color = chosenColor;
-				});
-
-				// Manual lines/cables dibujadas por el usuario
-				userDrawings.forEach(d => {
-					if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
-						d.color = chosenColor;
-					}
-				});
+		if (paintNetworkBtn && paintColorInput) {
+			paintNetworkBtn.addEventListener('click', () => {
+				const chosenColor = paintColorInput.value || '#1f2937';
+				saveHistoryState();
+				paintWholeNetwork(chosenColor);
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
 				draw();
 			});
 		}
