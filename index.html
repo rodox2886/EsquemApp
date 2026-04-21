@@ -4991,16 +4991,7 @@
 				detachAutoConnectionBtn.addEventListener('click', () => {
 					if (!drawing) return;
 					saveHistoryState();
-					if (drawing.associatedSeccionadorId) {
-						const relatedSeccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
-						if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
-						delete drawing.associatedSeccionadorId;
-					}
-					if (drawing.associatedCtId) {
-						const relatedCt = userDrawings.find(d => d.id === drawing.associatedCtId);
-						if (relatedCt) delete relatedCt.associatedSeccionadorId;
-						delete drawing.associatedCtId;
-					}
+					detachAutomaticConnectionForItem(drawing);
 					updateInfoPanelForDrawing(drawing);
 					draw();
 				});
@@ -5188,6 +5179,7 @@
 				} 
 				// Handle other entities (symbols)
 				else {
+					const hasAutoConnection = !!entity.associatedCtId || !!entity.associatedSeccionadorId;
 					if (entity.symbolType === 'ct' || entity.symbolType === 'seccionador') {
 						 contentHtml += `
 							<div>
@@ -5234,8 +5226,8 @@
 						`;
 					}
 					
-					if (entity.symbolType === 'seccionador') {
-						contentHtml += `
+						if (entity.symbolType === 'seccionador') {
+							contentHtml += `
 							<div class="mt-4 pt-4 border-t border-gray-200">
 								<label for="seccionador-toggle" class="flex items-center justify-between cursor-pointer">
 									<span class="font-semibold text-gray-600">Estado: <span id="seccionador-status-text" class="font-normal text-gray-800">${entity.isOpen ? 'Abierto' : 'Cerrado'}</span></span>
@@ -5248,9 +5240,16 @@
 							<div class="mt-3">
 								<button id="change-seccionador-icon-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar símbolo de seccionador</button>
 							</div>
-						`;
+							`;
+						}
+						if (hasAutoConnection) {
+							contentHtml += `
+								<div class="mt-3">
+									<button id="detach-entity-auto-connection-btn" class="w-full px-3 py-2 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-semibold">Sacar conexión automática</button>
+								</div>
+							`;
+						}
 					}
-				}
 
                 contentHtml += `</div>`;
                 infoContent.innerHTML = contentHtml;
@@ -5312,7 +5311,7 @@
 					}
 				}
 
-				if (entity.symbolType === 'seccionador') {
+					if (entity.symbolType === 'seccionador') {
 					const toggle = document.getElementById('seccionador-toggle');
 					const statusText = document.getElementById('seccionador-status-text');
 					const changeSeccionadorIconBtn = document.getElementById('change-seccionador-icon-btn');
@@ -5334,10 +5333,20 @@
 								seccionadorPickerModal.classList.add('flex');
 							}
 						});
+						}
 					}
-				}
+					const detachEntityAutoConnectionBtn = document.getElementById('detach-entity-auto-connection-btn');
+					if (detachEntityAutoConnectionBtn) {
+						detachEntityAutoConnectionBtn.addEventListener('click', () => {
+							if (!selectedEntity) return;
+							saveHistoryState();
+							detachAutomaticConnectionForItem(selectedEntity);
+							updateInfoPanel(selectedEntity);
+							draw();
+						});
+					}
 
-            } else {
+	            } else {
                 infoPanel.classList.add('translate-x-full');
             }
         }
@@ -5346,18 +5355,41 @@
 			manualModeToggleContainer.title = isManualModeEnabled ? "Bloquear Movimiento" : "Habilitar Movimiento";
 		}
 
-		function updateGridOverlay() {
-			const isGridEnabled = gridToggle.checked;
-			const gridSize = Number(gridSizeSelect.value) || 40;
-			gridOverlay.style.setProperty('--grid-size', `${gridSize}px`);
-			gridOverlay.classList.toggle('hidden', !isGridEnabled);
-			gridSizeSelect.disabled = !isGridEnabled;
-			gridSizeSelect.classList.toggle('opacity-50', !isGridEnabled);
-			gridSizeSelect.classList.toggle('cursor-not-allowed', !isGridEnabled);
-			gridToggleContainer.title = isGridEnabled ? "Ocultar Cuadrícula" : "Mostrar Cuadrícula";
-		}
+			function updateGridOverlay() {
+				const isGridEnabled = gridToggle.checked;
+				const gridSize = Number(gridSizeSelect.value) || 40;
+				gridOverlay.style.setProperty('--grid-size', `${gridSize}px`);
+				gridOverlay.classList.toggle('hidden', !isGridEnabled);
+				gridSizeSelect.disabled = !isGridEnabled;
+				gridSizeSelect.classList.toggle('opacity-50', !isGridEnabled);
+				gridSizeSelect.classList.toggle('cursor-not-allowed', !isGridEnabled);
+				gridToggleContainer.title = isGridEnabled ? "Ocultar Cuadrícula" : "Mostrar Cuadrícula";
+			}
 
-                /**
+			function findSymbolByIdInProject(symbolId) {
+				if (!symbolId) return null;
+				return userDrawings.find(d => d.id === symbolId) || symbols.find(s => s.id === symbolId) || null;
+			}
+
+			function detachAutomaticConnectionForItem(item) {
+				if (!item) return false;
+				let detached = false;
+				if (item.associatedSeccionadorId) {
+					const relatedSeccionador = findSymbolByIdInProject(item.associatedSeccionadorId);
+					if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
+					delete item.associatedSeccionadorId;
+					detached = true;
+				}
+				if (item.associatedCtId) {
+					const relatedCt = findSymbolByIdInProject(item.associatedCtId);
+					if (relatedCt) delete relatedCt.associatedSeccionadorId;
+					delete item.associatedCtId;
+					detached = true;
+				}
+				return detached;
+			}
+
+	                /**
                  * Compress the layout by moving symbols and scaling inter‑connecting lines.
                  *
                  * @param {string} mode            'all' | 'horizontal' | 'vertical'
