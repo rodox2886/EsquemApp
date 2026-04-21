@@ -3298,12 +3298,35 @@
 				return FIXED_COLOR_PALETTE.some(c => c.hex === normalized) ? normalized : fallback;
 			}
 
+			function getPaletteMeta(colorValue) {
+				const normalized = normalizePaletteColor(colorValue, '#1f2937');
+				return FIXED_COLOR_PALETTE.find(c => c.hex === normalized) || FIXED_COLOR_PALETTE[0];
+			}
+
+			function getContrastTextColor(hexColor) {
+				const hex = hexColor.replace('#', '');
+				const r = parseInt(hex.substring(0, 2), 16);
+				const g = parseInt(hex.substring(2, 4), 16);
+				const b = parseInt(hex.substring(4, 6), 16);
+				const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+				return luminance > 160 ? '#111827' : '#ffffff';
+			}
+
 			function getFixedColorOptionsHtml(selectedColor) {
 				const chosen = normalizePaletteColor(selectedColor, '#1f2937');
 				return FIXED_COLOR_PALETTE.map(color => {
 					const isSelected = color.hex === chosen ? 'selected' : '';
-					return `<option value="${color.hex}" ${isSelected}>${color.name} (${color.hex})</option>`;
+					const textColor = getContrastTextColor(color.hex);
+					return `<option value="${color.hex}" ${isSelected} title="${color.name}" style="background-color:${color.hex};color:${textColor};">${color.name}</option>`;
 				}).join('');
+			}
+
+			function updateColorSelectVisual(selectElement) {
+				if (!selectElement) return;
+				const meta = getPaletteMeta(selectElement.value);
+				selectElement.style.backgroundColor = meta.hex;
+				selectElement.style.color = getContrastTextColor(meta.hex);
+				selectElement.title = meta.name;
 			}
 
 			function populateFixedColorSelect(selectElement, selectedColor, fallback = '#1f2937') {
@@ -3311,6 +3334,7 @@
 				const chosen = normalizePaletteColor(selectedColor, fallback);
 				selectElement.innerHTML = getFixedColorOptionsHtml(chosen);
 				selectElement.value = chosen;
+				updateColorSelectVisual(selectElement);
 			}
 
 			function applyCanvasBackgroundColor(colorValue) {
@@ -3318,8 +3342,14 @@
 				const normalizedColor = normalizePaletteColor(colorValue, defaultCanvasBackgroundColor);
 				canvasBackgroundColor = normalizedColor;
 				exportOptions.backgroundColor = normalizedColor;
-				if (exportBgColorInput) exportBgColorInput.value = normalizedColor;
-				if (appBgColorInput) appBgColorInput.value = normalizedColor;
+				if (exportBgColorInput) {
+					exportBgColorInput.value = normalizedColor;
+					updateColorSelectVisual(exportBgColorInput);
+				}
+				if (appBgColorInput) {
+					appBgColorInput.value = normalizedColor;
+					updateColorSelectVisual(appBgColorInput);
+				}
 				draw();
 				refreshExportPreview(false);
 			}
@@ -3327,12 +3357,14 @@
 		function restoreCanvasBackgroundColor() {
 			canvasBackgroundColor = defaultCanvasBackgroundColor;
 			exportOptions.backgroundColor = defaultCanvasBackgroundColor;
-			if (exportBgColorInput) {
-				exportBgColorInput.value = defaultCanvasBackgroundColor;
-			}
-			if (appBgColorInput) {
-				appBgColorInput.value = defaultCanvasBackgroundColor;
-			}
+				if (exportBgColorInput) {
+					exportBgColorInput.value = defaultCanvasBackgroundColor;
+					updateColorSelectVisual(exportBgColorInput);
+				}
+				if (appBgColorInput) {
+					appBgColorInput.value = defaultCanvasBackgroundColor;
+					updateColorSelectVisual(appBgColorInput);
+				}
 			draw();
 			refreshExportPreview(false);
 		}
@@ -4813,19 +4845,25 @@
 			let contentHtml = `<h3 class="text-lg font-bold mb-4 border-b pb-2">Editar Dibujo</h3>
 						   <div class="space-y-4 text-sm">`;
 
-            if (drawing && (drawing.type === 'draw-ct' || drawing.type === 'draw-seccionador')) {
-                const labelTitle = drawing.type === 'draw-ct' ? 'Nombre CT' : 'Nombre Seccionador';
-                contentHtml += `<div>
-								<label for="drawing-label-edit" class="font-semibold text-gray-600 block mb-1">${labelTitle}</label>
-								<input type="text" id="drawing-label-edit" value="${drawing.label || ''}" class="w-full p-2 border border-gray-300 rounded-md">
-							</div>`;
-                if(drawing.type === 'draw-ct') {
+	            if (drawing && (drawing.type === 'draw-ct' || drawing.type === 'draw-seccionador')) {
+	                const labelTitle = drawing.type === 'draw-ct' ? 'Nombre CT' : 'Nombre Seccionador';
+					const hasAutoConnection = !!drawing.associatedCtId || !!drawing.associatedSeccionadorId;
+	                contentHtml += `<div>
+									<label for="drawing-label-edit" class="font-semibold text-gray-600 block mb-1">${labelTitle}</label>
+									<input type="text" id="drawing-label-edit" value="${drawing.label || ''}" class="w-full p-2 border border-gray-300 rounded-md">
+								</div>`;
+	                if(drawing.type === 'draw-ct') {
                     contentHtml += `<div class="mt-4">
-                        <button id="change-manual-ct-symbol-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar Símbolo de CT</button>
-                    </div>`;
-                }
-                contentHtml += `<hr class="my-4">`;
-            }
+	                        <button id="change-manual-ct-symbol-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar Símbolo de CT</button>
+	                    </div>`;
+	                }
+					if (hasAutoConnection) {
+						contentHtml += `<div class="mt-3">
+	                        <button id="detach-auto-connection-btn" class="w-full px-3 py-2 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-semibold">Sacar conexión automática</button>
+	                    </div>`;
+					}
+	                contentHtml += `<hr class="my-4">`;
+	            }
 
 			// Color Picker
 			contentHtml += `<div>
@@ -4937,23 +4975,45 @@
                 });
             }
 
-            const changeManualCtSymbolBtn = document.getElementById('change-manual-ct-symbol-btn');
-            if (changeManualCtSymbolBtn) {
-                changeManualCtSymbolBtn.addEventListener('click', () => {
-                    if (drawing) {
-                        ctPickerModal.dataset.editingDrawingId = drawing.id;
+	            const changeManualCtSymbolBtn = document.getElementById('change-manual-ct-symbol-btn');
+	            if (changeManualCtSymbolBtn) {
+	                changeManualCtSymbolBtn.addEventListener('click', () => {
+	                    if (drawing) {
+	                        ctPickerModal.dataset.editingDrawingId = drawing.id;
                         ctPickerModal.classList.remove('hidden');
                         ctPickerModal.classList.add('flex');
                     }
-                });
-            }
+	                });
+	            }
+
+			const detachAutoConnectionBtn = document.getElementById('detach-auto-connection-btn');
+			if (detachAutoConnectionBtn) {
+				detachAutoConnectionBtn.addEventListener('click', () => {
+					if (!drawing) return;
+					saveHistoryState();
+					if (drawing.associatedSeccionadorId) {
+						const relatedSeccionador = userDrawings.find(d => d.id === drawing.associatedSeccionadorId);
+						if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
+						delete drawing.associatedSeccionadorId;
+					}
+					if (drawing.associatedCtId) {
+						const relatedCt = userDrawings.find(d => d.id === drawing.associatedCtId);
+						if (relatedCt) delete relatedCt.associatedSeccionadorId;
+						delete drawing.associatedCtId;
+					}
+					updateInfoPanelForDrawing(drawing);
+					draw();
+				});
+			}
 
 			const colorInput = document.getElementById('drawing-color');
 			if (colorInput) {
 				colorInput.value = normalizePaletteColor(drawing.color || DEFAULT_DRAW_COLOR, DEFAULT_DRAW_COLOR);
+				updateColorSelectVisual(colorInput);
 				colorInput.addEventListener('change', (e) => {
 					saveHistoryState();
 					drawing.color = e.target.value;
+					updateColorSelectVisual(colorInput);
 					draw();
 				});
 			}
@@ -5688,6 +5748,7 @@
 			}
 				if (exportBgColorInput) {
 					exportBgColorInput.value = normalizePaletteColor(exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+					updateColorSelectVisual(exportBgColorInput);
 				}
 			if (exportTitleBlockInput) {
 				exportTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
@@ -5854,7 +5915,10 @@
 		});
 
 			if (exportBgColorInput) {
-				exportBgColorInput.addEventListener('change', () => refreshExportPreview(false));
+				exportBgColorInput.addEventListener('change', () => {
+					updateColorSelectVisual(exportBgColorInput);
+					refreshExportPreview(false);
+				});
 			}
 		if (applyBgBeforeBtn) {
 			applyBgBeforeBtn.addEventListener('click', () => {
@@ -5875,6 +5939,8 @@
 			if (appBgColorInput) {
 				appBgColorInput.addEventListener('change', () => {
 					if (exportBgColorInput) exportBgColorInput.value = appBgColorInput.value;
+					updateColorSelectVisual(appBgColorInput);
+					if (exportBgColorInput) updateColorSelectVisual(exportBgColorInput);
 				});
 			}
 		if (exportTitleBlockInput) {
@@ -6039,6 +6105,8 @@
 
 		if (paintColorInput) {
 			paintColorInput.value = normalizePaletteColor(lineColor, '#1f2937');
+			updateColorSelectVisual(paintColorInput);
+			paintColorInput.addEventListener('change', () => updateColorSelectVisual(paintColorInput));
 		}
 
 		if (paintToolsBtn && paintToolsMenu) {
