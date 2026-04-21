@@ -451,195 +451,65 @@
 		</div>
 	</div>
 
-	<section id="order-config-screen" class="hidden min-h-screen bg-gray-100">
-		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
-			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-				<div class="flex flex-wrap items-center justify-between gap-4">
-					<div>
-						<h1 class="text-2xl font-bold">
-							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
-						</h1>
-						<p class="text-sm text-gray-600 mt-1">Configuración de pedido y hojas del unifilar.</p>
-					</div>
-					<div class="flex gap-2">
-						<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
-						<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Guardar configuración</button>
-					</div>
-				</div>
-			</header>
-				<div class="grid xl:grid-cols-2 gap-6">
-					<div class="space-y-4">
-					<div id="general-sheet-settings" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Configuración general de hojas</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
-								<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
-								<span><strong>Incluir rótulo unifilar</strong> en la hoja del unifilar.</span>
-							</label>
-							<div>
-								<label for="sheet-layout-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
-								<select id="sheet-layout-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-									<option value="a4">A4</option>
-									<option value="a3">A3</option>
-									<option value="letter">Letter</option>
-								</select>
-							</div>
-							<div>
-								<label for="sheet-layout-page-orientation" class="block text-xs font-semibold text-gray-600 mb-1">Orientación</label>
-								<select id="sheet-layout-page-orientation" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-									<option value="landscape">Horizontal</option>
-									<option value="portrait">Vertical</option>
-								</select>
-							</div>
-							<div>
-								<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen (mm)</label>
-								<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-							</div>
-						</div>
-					</div>
-					<div id="form-sheet0" class="sheet-form-panel rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Hoja 0 · Pedido de instalaciones (primera hoja)</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<div>
-								<label for="order-cover-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
-								<input id="order-cover-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="Región 1 - Zona 1">
-							</div>
-							<div>
-								<label for="order-cover-request-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha de solicitud</label>
-								<input id="order-cover-request-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="19/09/2025">
-							</div>
-							<div>
-								<label for="order-cover-request-id" class="block text-xs font-semibold text-gray-600 mb-1">Pedido de instalaciones N°</label>
-								<input id="order-cover-request-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="CA-25-40573">
-							</div>
-							<div>
-								<label for="order-cover-work-id" class="block text-xs font-semibold text-gray-600 mb-1">Obra</label>
-								<input id="order-cover-work-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="79084">
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-installation" class="block text-xs font-semibold text-gray-600 mb-1">Instalación solicitada fuera de servicio</label>
-								<textarea id="order-cover-installation" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">Abierto: CT 79084 Lado CT 77334
-Abierto: CT 77334 Lado CT 79084</textarea>
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-job-description" class="block text-xs font-semibold text-gray-600 mb-1">Descripción de trabajos / motivo</label>
-								<textarea id="order-cover-job-description" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">EN CT 79084 SE REALIZARÁ MANTENIMIENTO DE TRAFO Y ADECUACIÓN DE ICC LADO CT 77334.</textarea>
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-observations" class="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
-								<textarea id="order-cover-observations" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">CT 79084 CON AVISO DE CORTE AL CLIENTE. REALIZAR MANIOBRAS PREVIAS CON GRTC.</textarea>
-							</div>
-						</div>
-					</div>
-							<div id="form-sheet1" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<div>
-								<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
-								<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
-							<input id="sheet-layout-plan-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
-							<input id="sheet-layout-plan-revision" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-meta-code" class="block text-xs font-semibold text-gray-600 mb-1">Código lateral</label>
-							<input id="sheet-layout-plan-meta-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-update-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha actualización</label>
-							<input id="sheet-layout-plan-update-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
-							<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
-							<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div class="md:col-span-2">
-							<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
-							<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div class="md:col-span-2">
-							<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
-							<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-						</div>
-					</div>
-				</div>
-							<div id="form-sheet2" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
-					<div class="grid md:grid-cols-2 gap-3">
-						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-					</div>
-				</div>
-						<div id="form-sheet3" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
-					<div class="grid md:grid-cols-2 gap-3">
-						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<textarea id="order-sheet3-notes" rows="2" placeholder="Observaciones de la hoja 3" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-					</div>
-				</div>
-			</div>
-				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:sticky xl:top-6 min-h-[70vh]">
-					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa de hojas configuradas</p>
-					<div class="grid grid-cols-2 gap-2 mb-3 text-xs">
-						<button id="preview-sheet0-btn" class="preview-sheet-btn px-2 py-1 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">Hoja 1 Pedido</button>
-						<button id="preview-sheet1-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 2 Unifilar</button>
-						<button id="preview-sheet2-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 3</button>
-						<button id="preview-sheet3-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 4</button>
-					</div>
-					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
-						<div class="loader"></div>
-					</div>
-				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
-			</div>
-				</div>
-			</div>
-	</section>
+	<!-- Legacy hidden stubs (mantener JS estable sin exponer pantallas eliminadas) -->
+	<div id="legacy-hidden-stubs" class="hidden">
+		<section id="order-config-screen"></section>
+		<section id="geographic-screen"></section>
+		<button id="order-config-btn" type="button"></button>
+		<button id="geographic-mode-btn" type="button"></button>
+		<button id="close-geographic-screen-btn" type="button"></button>
+		<input id="geographic-dxf-input" type="file" accept=".dxf">
+		<div id="geographic-layer-filters"></div>
+		<canvas id="geographic-canvas"></canvas>
 
-	<section id="geographic-screen" class="hidden min-h-screen bg-gray-100">
-		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
-			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-				<div class="flex flex-wrap items-center justify-between gap-4">
-					<div>
-						<h1 class="text-2xl font-bold">
-							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
-						</h1>
-						<p class="text-sm text-gray-600 mt-1">Modo geográfico DXF (sin interpretación unifilar).</p>
-					</div>
-					<div class="flex gap-2">
-						<label for="geographic-dxf-input" class="cursor-pointer px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Cargar DXF geográfico</label>
-						<input id="geographic-dxf-input" type="file" class="hidden" accept=".dxf">
-						<button id="close-geographic-screen-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
-					</div>
-				</div>
-			</header>
-			<div class="grid xl:grid-cols-4 gap-4">
-				<aside class="xl:col-span-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Capas detectadas</h4>
-					<div id="geographic-layer-filters" class="space-y-2 max-h-[70vh] overflow-y-auto text-sm text-gray-700">
-						<p class="text-gray-500 text-xs">Cargá un DXF para listar capas.</p>
-					</div>
-				</aside>
-				<div class="xl:col-span-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-					<canvas id="geographic-canvas" class="w-full h-[75vh] bg-gray-50 rounded border border-gray-100"></canvas>
-				</div>
-			</div>
-		</div>
-	</section>
+		<button id="close-sheet-layout-modal-btn" type="button"></button>
+		<button id="sheet-layout-apply-btn" type="button"></button>
+		<img id="sheet-layout-preview-image" alt="">
+		<div id="sheet-layout-preview-loading"></div>
+
+		<input id="sheet-layout-title-block" type="checkbox">
+		<select id="sheet-layout-paper-size"><option value="a4">A4</option></select>
+		<select id="sheet-layout-page-orientation"><option value="landscape">Horizontal</option></select>
+		<input id="sheet-layout-page-margin" type="number" value="8">
+		<input id="sheet-layout-plan-title" type="text">
+		<input id="sheet-layout-plan-code" type="text">
+		<input id="sheet-layout-plan-revision" type="text">
+		<input id="sheet-layout-plan-meta-code" type="text">
+		<input id="sheet-layout-plan-update-date" type="text">
+		<input id="sheet-layout-plan-gerencia" type="text">
+		<input id="sheet-layout-plan-croquis-title" type="text">
+		<input id="sheet-layout-plan-header-note" type="text">
+		<textarea id="sheet-layout-plan-footer"></textarea>
+
+		<input id="order-sheet2-title" type="text">
+		<input id="order-sheet2-code" type="text">
+		<input id="order-sheet2-responsable" type="text">
+		<input id="order-sheet2-date" type="text">
+		<textarea id="order-sheet2-notes"></textarea>
+		<input id="order-sheet3-title" type="text">
+		<input id="order-sheet3-code" type="text">
+		<input id="order-sheet3-responsable" type="text">
+		<input id="order-sheet3-date" type="text">
+		<textarea id="order-sheet3-notes"></textarea>
+
+		<input id="order-cover-gerencia" type="text">
+		<input id="order-cover-request-date" type="text">
+		<input id="order-cover-request-id" type="text">
+		<input id="order-cover-work-id" type="text">
+		<textarea id="order-cover-installation"></textarea>
+		<textarea id="order-cover-job-description"></textarea>
+		<textarea id="order-cover-observations"></textarea>
+
+		<button id="preview-sheet0-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet1-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet2-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet3-btn" type="button" class="preview-sheet-btn"></button>
+		<div id="form-sheet0"></div>
+		<div id="form-sheet1"></div>
+		<div id="form-sheet2"></div>
+		<div id="form-sheet3"></div>
+	</div>
+
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -998,21 +868,21 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		<div class="flex-grow flex flex-col">
 			<div class="p-4 md:p-6 lg:p-8 flex-grow flex flex-col w-full">
 				<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-					<div class="flex justify-between items-start mb-4">
+					<div class="flex flex-wrap justify-between items-start gap-3 mb-4">
 						<div>
 							<h1 class="text-2xl font-bold">
 								<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
 							</h1>
 						</div>
-						<div class="flex items-center gap-2">
-							<div id="toggle-manual-mode-container" class="flex items-center px-1" title="Habilitar Movimiento">
+						<div class="flex flex-wrap items-center justify-end gap-2 max-w-full">
+							<div id="toggle-manual-mode-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Habilitar Movimiento">
 								<span class="text-sm font-medium text-gray-700 mr-2">Movimiento</span>
 								<label for="manual-mode-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="manual-mode-toggle" class="sr-only peer">
 									<div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 								</label>
 							</div>
-							<div id="toggle-grid-container" class="flex items-center px-1" title="Mostrar Cuadrícula">
+							<div id="toggle-grid-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Mostrar Cuadrícula">
 								<span class="text-sm font-medium text-gray-700 mr-2">Cuadrícula</span>
 								<label for="grid-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="grid-toggle" class="sr-only peer">
@@ -1025,11 +895,11 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<option value="120">120x120</option>
 								</select>
 							</div>
-							<div id="app-bg-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
+							<div id="app-bg-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
 								<span class="text-xs font-semibold text-gray-700">Fondo</span>
 								<input id="app-bg-color-input" type="color" value="#f0f0f0" class="h-7 w-10 border rounded cursor-pointer">
-								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Aplicar</button>
-								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Restaurar</button>
+								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
+								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
 							</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
@@ -1061,7 +931,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 							</button>
 						</div>
 					</div>
-					<div class="flex flex-wrap items-center justify-between gap-2">
+					<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="flex items-center bg-gray-100 rounded-full px-3 py-1 ml-2">
 								<svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1097,19 +967,6 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
-								<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
-										<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
-										<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
-									</svg>
-								</button>
-								<button id="geographic-mode-btn" title="Pantalla geográfica DXF" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/>
-										<path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 6v14"/>
-									</svg>
-								</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -1129,6 +986,27 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 								</button>
 						</div>
 						 <div class="flex items-center flex-wrap justify-end gap-2">
+							<div id="color-tools-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Herramientas de color">
+								<div class="flex items-center gap-1">
+									<input id="selection-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color de selección">
+									<button id="apply-selection-color-btn" title="Aplicar color a selección" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+										<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+											<circle cx="12" cy="12" r="3"></circle>
+											<circle cx="12" cy="12" r="9"></circle>
+										</svg>
+									</button>
+								</div>
+								<div class="h-5 w-px bg-gray-300"></div>
+								<div class="flex items-center gap-1">
+									<input id="line-color-input" type="color" value="#1f2937" class="h-7 w-7 border rounded-full cursor-pointer" aria-label="Color global de líneas">
+									<button id="apply-line-color-btn" title="Aplicar color a líneas/cables" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+										<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+											<line x1="4" y1="19" x2="20" y2="5"></line>
+											<line x1="7" y1="21" x2="19" y2="9"></line>
+										</svg>
+									</button>
+								</div>
+							</div>
 							<label for="upload-sketch-file" title="Subir Croquis (.json)" class="cursor-pointer px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
 								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -1241,6 +1119,10 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		const appBgColorInput = document.getElementById('app-bg-color-input');
 		const appApplyBgBtn = document.getElementById('app-apply-bg-btn');
 		const appResetBgBtn = document.getElementById('app-reset-bg-btn');
+		const selectionColorInput = document.getElementById('selection-color-input');
+		const applySelectionColorBtn = document.getElementById('apply-selection-color-btn');
+		const lineColorInput = document.getElementById('line-color-input');
+		const applyLineColorBtn = document.getElementById('apply-line-color-btn');
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -1338,7 +1220,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
         const CT_COVER_FACTOR = 1.1;
-        const LINE_COLOR = '#1f2937';
+        let lineColor = '#1f2937';
         const SYMBOL_STROKE_COLOR = '#1f2937';
 	        const CT_FILL_COLOR = '#d4d4d8';
 	        const SECCIONADOR_FILL_COLOR = '#4ade80';
@@ -3688,7 +3570,8 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
         function drawSymbol(ent) {
             dxfCtx.save();
-            dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+            const symbolStrokeColor = ent.color || SYMBOL_STROKE_COLOR;
+            dxfCtx.strokeStyle = symbolStrokeColor;
             dxfCtx.lineWidth = 1.5;
 
             // This block draws the symbol in its "closed" or default state.
@@ -3698,7 +3581,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
                 const radius = size * 0.075; // Círculo pequeño (reducido a la mitad)
 
-                dxfCtx.fillStyle = SYMBOL_STROKE_COLOR; // Relleno sólido ("a fondo de escala")
+                dxfCtx.fillStyle = symbolStrokeColor; // Relleno sólido ("a fondo de escala")
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
                 dxfCtx.fill();
@@ -3769,7 +3652,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                             dxfCtx.moveTo(s.x, s.y);
                             dxfCtx.lineTo(e.x, e.y);
                         }
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.stroke();
                     });
                 }
@@ -3781,7 +3664,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				if (ent.isOpen) {
                     // Cuando está abierto: círculo blanco con borde negro
                     dxfCtx.fillStyle = '#ffffff';
-                    dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                    dxfCtx.strokeStyle = symbolStrokeColor;
                     dxfCtx.beginPath();
                     dxfCtx.arc(pos.x, pos.y, outerRadius, 0, 2 * Math.PI);
                     dxfCtx.fill();
@@ -3807,7 +3690,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                     const rhombusGeom = geometries.find(g => g.type === 'POLYLINE' && g.vertices && g.vertices.length > 0);
                     if (rhombusGeom) {
                         dxfCtx.fillStyle = '#1f2937';
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.beginPath();
                         const pts = rhombusGeom.vertices.map(v => transformPoint(v, ent));
                         dxfCtx.moveTo(pts[0].x, pts[0].y);
@@ -3824,7 +3707,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, innerRadius, 0, 2 * Math.PI);
                 dxfCtx.fill();
-                dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                dxfCtx.strokeStyle = symbolStrokeColor;
                 dxfCtx.stroke();
             } else if (ent.symbolType === 'seccionador' && ent.connection === 'SECZ') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
@@ -3989,7 +3872,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
 			dxfCtx.lineWidth = 1.5;
 			linesAndPolylines.forEach(ent => {
-				dxfCtx.strokeStyle = LINE_COLOR;
+				dxfCtx.strokeStyle = ent.color || lineColor;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
 				const dashPattern = getDashPatternForLinetype(ent.linetype);
@@ -5258,7 +5141,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 						changeCtIconBtn.addEventListener('click', () => {
 							if (selectedEntity && selectedEntity.symbolType === 'ct') {
 								saveHistoryState();
-								const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch'];
+									const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
 								const currentIndex = iconTypes.indexOf(selectedEntity.ctIconType || 'plain');
 								const nextIndex = (currentIndex + 1) % iconTypes.length;
 								selectedEntity.ctIconType = iconTypes[nextIndex];
@@ -5990,6 +5873,84 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				draw();
 			}
 		});
+
+		function getCurrentSelectionItems() {
+			if (multiSelection.length > 0) return [...multiSelection];
+
+			const items = [];
+			if (selectedDrawingId) {
+				const drawing = userDrawings.find(d => d.id === selectedDrawingId);
+				if (drawing) items.push(drawing);
+			}
+			if (selectedEntity) items.push(selectedEntity);
+			return items;
+		}
+
+		function applyColorToItem(item, color) {
+			if (!item || !color) return false;
+
+			if (item.id && userDrawings.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (linesAndPolylines.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (symbols.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			return false;
+		}
+
+		if (lineColorInput) {
+			lineColorInput.value = lineColor;
+		}
+
+		if (applySelectionColorBtn && selectionColorInput) {
+			applySelectionColorBtn.addEventListener('click', () => {
+				const items = getCurrentSelectionItems();
+				if (items.length === 0) {
+					showAlert('No hay elementos seleccionados.');
+					return;
+				}
+
+				const chosenColor = selectionColorInput.value || '#1f2937';
+				saveHistoryState();
+				let changed = false;
+				items.forEach(item => {
+					if (applyColorToItem(item, chosenColor)) changed = true;
+				});
+
+				if (!changed) {
+					showAlert('La selección actual no admite cambio de color.');
+					return;
+				}
+				draw();
+			});
+		}
+
+		if (applyLineColorBtn && lineColorInput) {
+			applyLineColorBtn.addEventListener('click', () => {
+				const chosenColor = lineColorInput.value || '#1f2937';
+				saveHistoryState();
+				lineColor = chosenColor;
+
+				// DXF lines/cables
+				linesAndPolylines.forEach(ent => {
+					ent.color = chosenColor;
+				});
+
+				// Manual lines/cables dibujadas por el usuario
+				userDrawings.forEach(d => {
+					if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
+						d.color = chosenColor;
+					}
+				});
+				draw();
+			});
+		}
 		
         deleteBtn.addEventListener('click', () => {
             // If there is a selection (multiple or single), present a choice to the user.
