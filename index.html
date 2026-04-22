@@ -5112,14 +5112,19 @@
 			}
 
 	            const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
-            if (toggleDrawingLineStyleBtn) {
-                toggleDrawingLineStyleBtn.addEventListener('click', () => {
-                    saveHistoryState();
-                    if (drawing.type === 'draw-line') {
-                        drawing.type = 'draw-dashed-line';
-                    } else {
-                        drawing.type = 'draw-line';
+	            if (toggleDrawingLineStyleBtn) {
+	                toggleDrawingLineStyleBtn.addEventListener('click', () => {
+	                    saveHistoryState();
+	                    if (drawing.type === 'draw-line') {
+	                        drawing.type = 'draw-dashed-line';
+	                    } else {
+	                        drawing.type = 'draw-line';
+	                    }
+	                    updateInfoPanelForDrawing(drawing); // Refresh panel to update button text
+	                    draw();
+	                });
 	            }
+
 			const sendShapeBackBtn = document.getElementById('send-shape-back-btn');
 			if (sendShapeBackBtn) {
 				sendShapeBackBtn.addEventListener('click', () => {
@@ -5131,10 +5136,6 @@
 					updateInfoPanelForDrawing(drawing);
 				});
 			}
-                    updateInfoPanelForDrawing(drawing); // Refresh panel to update button text
-                    draw();
-                });
-            }
 
 			const changeSymbolBtn = document.getElementById('change-seccionador-symbol-btn');
 			if (changeSymbolBtn) {
