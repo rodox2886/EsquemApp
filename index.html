@@ -1976,6 +1976,48 @@
 			container.appendChild(confirmBox);
 		}
 
+		function showSketchLoadChoice(onSameCanvas, onNewCanvas) {
+			const container = document.getElementById('message-box-container');
+			container.innerHTML = '';
+
+			const box = document.createElement('div');
+			box.className = 'message-box';
+
+			const messageP = document.createElement('p');
+			messageP.textContent = '¿Cómo querés abrir este croquis?';
+			messageP.className = 'mb-4 text-lg';
+
+			const sameCanvasBtn = document.createElement('button');
+			sameCanvasBtn.textContent = 'En el mismo lienzo';
+			sameCanvasBtn.className = 'btn-confirm';
+
+			const newCanvasBtn = document.createElement('button');
+			newCanvasBtn.textContent = 'En un lienzo nuevo';
+			newCanvasBtn.className = 'btn-warning';
+
+			const cancelBtn = document.createElement('button');
+			cancelBtn.textContent = 'Cancelar';
+			cancelBtn.className = 'btn-cancel';
+
+			const closeBox = () => container.innerHTML = '';
+
+			sameCanvasBtn.onclick = () => {
+				onSameCanvas();
+				closeBox();
+			};
+			newCanvasBtn.onclick = () => {
+				onNewCanvas();
+				closeBox();
+			};
+			cancelBtn.onclick = closeBox;
+
+			box.appendChild(messageP);
+			box.appendChild(sameCanvasBtn);
+			box.appendChild(newCanvasBtn);
+			box.appendChild(cancelBtn);
+			container.appendChild(box);
+		}
+
 		function drawCtIcon(ctx, iconType, pos, size, yOffset, resolutionFactor = 1) {
 			switch (iconType) {
 				case 'plain':
@@ -7173,9 +7215,68 @@
 			}
 		});
 
-        // --- Croquis Guardados (LocalStorage) ---
+	        // --- Croquis Guardados (LocalStorage) ---
 
-		function populateSavedSketchesList() {
+			function remapUserDrawingIdsForMerge(incomingDrawings = []) {
+				const idMap = new Map();
+				const cloned = incomingDrawings.map(d => {
+					const copy = structuredClone(d);
+					if (copy.id) {
+						const newId = crypto.randomUUID();
+						idMap.set(copy.id, newId);
+						copy.id = newId;
+					}
+					return copy;
+				});
+
+				cloned.forEach(d => {
+					if (d.associatedSeccionadorId && idMap.has(d.associatedSeccionadorId)) {
+						d.associatedSeccionadorId = idMap.get(d.associatedSeccionadorId);
+					}
+					if (d.associatedCtId && idMap.has(d.associatedCtId)) {
+						d.associatedCtId = idMap.get(d.associatedCtId);
+					}
+					if (d.snapConnectionId && idMap.has(d.snapConnectionId)) {
+						d.snapConnectionId = idMap.get(d.snapConnectionId);
+					}
+				});
+
+				return cloned;
+			}
+
+			function loadSketchData(sketch, mode = 'new') {
+				if (!sketch) return;
+				saveHistoryState();
+
+				if (mode === 'same') {
+					linesAndPolylines = [...linesAndPolylines, ...(sketch.linesAndPolylines || [])];
+					symbols = [...symbols, ...(sketch.symbols || [])];
+					userDrawings = [...userDrawings, ...remapUserDrawingIdsForMerge(sketch.userDrawings || [])];
+					computeExtents();
+					fitViewToExtents();
+					originalExtents = null;
+					resetViewBtn.classList.add('hidden');
+				} else {
+					linesAndPolylines = sketch.linesAndPolylines || [];
+					symbols = sketch.symbols || [];
+					userDrawings = sketch.userDrawings || [];
+					extents = sketch.extents;
+					originalExtents = sketch.originalExtents || null;
+					if (originalExtents) {
+						resetViewBtn.classList.remove('hidden');
+					} else {
+						resetViewBtn.classList.add('hidden');
+					}
+					fitViewToExtents();
+				}
+
+				document.getElementById('initial-message').classList.add('hidden');
+				dxfCanvas.classList.remove('hidden');
+				resizeCanvas();
+				draw();
+			}
+
+			function populateSavedSketchesList() {
 			const sketches = JSON.parse(localStorage.getItem('savedSketches') || '[]');
 			savedSketchesList.innerHTML = '';
 
@@ -7248,30 +7349,15 @@
 			const sketches = JSON.parse(localStorage.getItem('savedSketches') || '[]');
 			const sketch = sketches[index];
 
-			if (!sketch) return;
+				if (!sketch) return;
 
-			if (target.classList.contains('load-sketch')) {
-				linesAndPolylines = sketch.linesAndPolylines || [];
-				symbols = sketch.symbols || [];
-				userDrawings = sketch.userDrawings || [];
-				extents = sketch.extents;
-				originalExtents = sketch.originalExtents || null;
-				
-				if (originalExtents) {
-					resetViewBtn.classList.remove('hidden');
-				} else {
-					resetViewBtn.classList.add('hidden');
-				}
-
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
-
-				fitViewToExtents();
-				resizeCanvas();
-				saveHistoryState();
-				
-				savedSketchesMenu.classList.add('hidden');
-			} else if (target.classList.contains('delete-sketch')) {
+				if (target.classList.contains('load-sketch')) {
+					savedSketchesMenu.classList.add('hidden');
+					showSketchLoadChoice(
+						() => loadSketchData(sketch, 'same'),
+						() => loadSketchData(sketch, 'new')
+					);
+				} else if (target.classList.contains('delete-sketch')) {
 				showConfirm(`¿Estás seguro de que quieres eliminar "${sketch.name}"?`, () => {
 					sketches.splice(index, 1);
 					localStorage.setItem('savedSketches', JSON.stringify(sketches));
