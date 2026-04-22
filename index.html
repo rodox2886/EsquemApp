@@ -1976,7 +1976,7 @@
 			container.appendChild(confirmBox);
 		}
 
-		function showSketchLoadChoice(onSameCanvas, onNewCanvas) {
+		function showSketchLoadChoice(onSameCanvas, onSameCanvasSide, onNewCanvas) {
 			const container = document.getElementById('message-box-container');
 			container.innerHTML = '';
 
@@ -1988,8 +1988,12 @@
 			messageP.className = 'mb-4 text-lg';
 
 			const sameCanvasBtn = document.createElement('button');
-			sameCanvasBtn.textContent = 'En el mismo lienzo';
+			sameCanvasBtn.textContent = 'Mismo lienzo (superponer)';
 			sameCanvasBtn.className = 'btn-confirm';
+
+			const sameCanvasSideBtn = document.createElement('button');
+			sameCanvasSideBtn.textContent = 'Mismo lienzo (a un costado)';
+			sameCanvasSideBtn.className = 'btn-warning';
 
 			const newCanvasBtn = document.createElement('button');
 			newCanvasBtn.textContent = 'En un lienzo nuevo';
@@ -2005,6 +2009,10 @@
 				onSameCanvas();
 				closeBox();
 			};
+			sameCanvasSideBtn.onclick = () => {
+				onSameCanvasSide();
+				closeBox();
+			};
 			newCanvasBtn.onclick = () => {
 				onNewCanvas();
 				closeBox();
@@ -2013,6 +2021,7 @@
 
 			box.appendChild(messageP);
 			box.appendChild(sameCanvasBtn);
+			box.appendChild(sameCanvasSideBtn);
 			box.appendChild(newCanvasBtn);
 			box.appendChild(cancelBtn);
 			container.appendChild(box);
@@ -7244,14 +7253,59 @@
 				return cloned;
 			}
 
+			function getSketchBounds(sketch) {
+				if (sketch && sketch.extents && Number.isFinite(sketch.extents.minX) && Number.isFinite(sketch.extents.maxX) &&
+					Number.isFinite(sketch.extents.minY) && Number.isFinite(sketch.extents.maxY)) {
+					return { ...sketch.extents };
+				}
+				return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+			}
+
+			function translateSketchData(sketch, dx = 0, dy = 0) {
+				const translated = structuredClone(sketch);
+				(translated.linesAndPolylines || []).forEach(line => {
+					if (line.start) { line.start.x += dx; line.start.y += dy; }
+					if (line.end) { line.end.x += dx; line.end.y += dy; }
+					if (line.vertices) {
+						line.vertices.forEach(v => { if (v) { v.x += dx; v.y += dy; } });
+					}
+				});
+				(translated.symbols || []).forEach(symbol => {
+					if (symbol.position) { symbol.position.x += dx; symbol.position.y += dy; }
+				});
+				(translated.userDrawings || []).forEach(d => {
+					if (d.start) { d.start.x += dx; d.start.y += dy; }
+					if (d.end) { d.end.x += dx; d.end.y += dy; }
+				});
+				if (translated.extents) {
+					translated.extents.minX += dx; translated.extents.maxX += dx;
+					translated.extents.minY += dy; translated.extents.maxY += dy;
+				}
+				if (translated.originalExtents) {
+					translated.originalExtents.minX += dx; translated.originalExtents.maxX += dx;
+					translated.originalExtents.minY += dy; translated.originalExtents.maxY += dy;
+				}
+				return translated;
+			}
+
 			function loadSketchData(sketch, mode = 'new') {
 				if (!sketch) return;
 				saveHistoryState();
 
-				if (mode === 'same') {
-					linesAndPolylines = [...linesAndPolylines, ...(sketch.linesAndPolylines || [])];
-					symbols = [...symbols, ...(sketch.symbols || [])];
-					userDrawings = [...userDrawings, ...remapUserDrawingIdsForMerge(sketch.userDrawings || [])];
+				if (mode === 'same' || mode === 'same-side') {
+					let sourceSketch = sketch;
+					if (mode === 'same-side') {
+						computeExtents();
+						const currentBounds = extents || { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+						const sketchBounds = getSketchBounds(sketch);
+						const margin = 10;
+						const dx = (currentBounds.maxX - sketchBounds.minX) + margin;
+						sourceSketch = translateSketchData(sketch, dx, 0);
+					}
+
+					linesAndPolylines = [...linesAndPolylines, ...(sourceSketch.linesAndPolylines || [])];
+					symbols = [...symbols, ...(sourceSketch.symbols || [])];
+					userDrawings = [...userDrawings, ...remapUserDrawingIdsForMerge(sourceSketch.userDrawings || [])];
 					computeExtents();
 					fitViewToExtents();
 					originalExtents = null;
@@ -7355,6 +7409,7 @@
 					savedSketchesMenu.classList.add('hidden');
 					showSketchLoadChoice(
 						() => loadSketchData(sketch, 'same'),
+						() => loadSketchData(sketch, 'same-side'),
 						() => loadSketchData(sketch, 'new')
 					);
 				} else if (target.classList.contains('delete-sketch')) {
