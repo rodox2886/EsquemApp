@@ -4818,10 +4818,9 @@
 			function getDrawingAtScreenPos(screenX, screenY) {
 				for (let i = userDrawings.length - 1; i >= 0; i--) {
 					const d = userDrawings[i];
-					if (d.sendToBack) continue;
 					const bbox = getEntityBBox(d, false); // Screen coords
 					if (!bbox) continue;
-				const inflate = 5; // Make selection easier
+					const inflate = 5; // Make selection easier
 				
 				if(d.type.includes('line')) {
 					const p1 = modelToScreen(d.start.x, d.start.y);
@@ -6625,10 +6624,11 @@
 					if ((dx * dx + dy * dy) > 25) { // 5px threshold
 						
 						let actionToStart = 'pan';
-						if (isManualModeEnabled && currentTool === 'pan') {
-							const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
-							const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
-							const itemUnderCursor = drawingUnderCursor || entityUnderCursor;
+							if (isManualModeEnabled && currentTool === 'pan') {
+								const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+								const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
+								const preferEntityOverBackDrawing = drawingUnderCursor && drawingUnderCursor.sendToBack && entityUnderCursor && selectedDrawingId !== drawingUnderCursor.id;
+								const itemUnderCursor = preferEntityOverBackDrawing ? entityUnderCursor : (drawingUnderCursor || entityUnderCursor);
 
 							if (itemUnderCursor) {
 								const isAlreadySelected = (multiSelection.length > 0 && multiSelection.includes(itemUnderCursor)) ||
@@ -6860,10 +6860,12 @@
 				const dx = marqueeEnd.x - marqueeStart.x, dy = marqueeEnd.y - marqueeStart.y;
 				const wasDragged = (dx * dx + dy * dy) > 25;
 
-				if (!wasDragged && currentTool === 'pan') {
-					const drawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
-					const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
-					const clickedItem = drawing || entity;
+					if (!wasDragged && currentTool === 'pan') {
+						const drawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+						const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
+						const preferEntityOverBackDrawing = drawing && drawing.sendToBack && entity && selectedDrawingId !== drawing.id;
+						const effectiveDrawing = preferEntityOverBackDrawing ? null : drawing;
+						const clickedItem = effectiveDrawing || entity;
 					
 					if (isShiftPressed) {
 						if (clickedItem) {
@@ -6872,10 +6874,10 @@
 						}
 					} else {
 						multiSelection = [];
-						if (drawing) {
-							selectedDrawingId = drawing.id; selectedEntity = null; selectedGroupId = null;
-							updateInfoPanelForDrawing(drawing);
-						} else if (entity) {
+							if (effectiveDrawing) {
+								selectedDrawingId = effectiveDrawing.id; selectedEntity = null; selectedGroupId = null;
+								updateInfoPanelForDrawing(effectiveDrawing);
+							} else if (entity) {
 							selectedEntity = entity; selectedDrawingId = null; selectedGroupId = null;
 							updateInfoPanel(entity);
 						} else {
