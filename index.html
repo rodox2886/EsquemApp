@@ -3987,11 +3987,39 @@
 	        function draw() {
 				const rect = dxfCanvas.getBoundingClientRect();
 				dxfCtx.save(); // Save the clean, untransformed state
-				dxfCtx.fillStyle = canvasBackgroundColor || '#f0f0f0';
-				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+					dxfCtx.fillStyle = canvasBackgroundColor || '#f0f0f0';
+					dxfCtx.fillRect(0, 0, rect.width, rect.height);
 
-					// --- Draw DXF content (potentially clipped) ---
-					dxfCtx.save(); // Save state before clipping for DXF content
+						// --- Draw "sent to back" manual shapes below network content ---
+						userDrawings
+							.filter(d => d.sendToBack && (d.type === 'draw-rect' || d.type === 'draw-ellipse') && d.start && d.end)
+							.forEach(d => {
+								dxfCtx.save();
+								dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
+								dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`;
+								dxfCtx.lineWidth = d.strokeWidth || 1.5;
+								const start = modelToScreen(d.start.x, d.start.y);
+								const end = modelToScreen(d.end.x, d.end.y);
+
+								if (d.type === 'draw-rect') {
+									dxfCtx.beginPath();
+									dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+								} else {
+									dxfCtx.beginPath();
+									const rx = Math.abs(end.x - start.x) / 2;
+									const ry = Math.abs(end.y - start.y) / 2;
+									const cx = Math.min(start.x, end.x) + rx;
+									const cy = Math.min(start.y, end.y) + ry;
+									drawEllipsePath(dxfCtx, cx, cy, rx, ry);
+								}
+
+								if (d.isFilled !== false) dxfCtx.fill();
+								dxfCtx.stroke();
+								dxfCtx.restore();
+							});
+
+						// --- Draw DXF content (potentially clipped) ---
+						dxfCtx.save(); // Save state before clipping for DXF content
 			if (originalExtents) {
 				const clipStart = modelToScreen(extents.minX, extents.maxY);
 				const clipEnd = modelToScreen(extents.maxX, extents.minY);
@@ -4052,11 +4080,14 @@
 
 
 			// --- Draw User Annotations (never clipped) ---
-			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
-				dxfCtx.save();
-				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
-				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
-				dxfCtx.lineWidth = d.strokeWidth || 1.5;
+				[...userDrawings, activeDrawing]
+					.filter(Boolean)
+					.filter(d => !(d.sendToBack && (d.type === 'draw-rect' || d.type === 'draw-ellipse')))
+					.forEach(d => {
+					dxfCtx.save();
+					dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
+					dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
+					dxfCtx.lineWidth = d.strokeWidth || 1.5;
 
 				if (d.type === 'draw-dashed-line') {
 					dxfCtx.setLineDash([5, 5]);
