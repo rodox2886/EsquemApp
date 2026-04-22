@@ -5373,7 +5373,7 @@
 			}
 
 			function findAutoConnectedItem(item) {
-				if (!item || item.autoConnectionDetached) return null;
+				if (!item) return null;
 				if (item.associatedSeccionadorId) return findSymbolByIdInProject(item.associatedSeccionadorId);
 				if (item.associatedCtId) return findSymbolByIdInProject(item.associatedCtId);
 
@@ -5382,7 +5382,6 @@
 					return pool.find(candidate =>
 						candidate !== item &&
 						candidate.symbolType === 'seccionador' &&
-						!candidate.autoConnectionDetached &&
 						typeof candidate.label === 'string' &&
 						candidate.label.startsWith(`${item.label}-`)
 					) || null;
@@ -5393,7 +5392,6 @@
 					return pool.find(candidate =>
 						candidate !== item &&
 						candidate.symbolType === 'ct' &&
-						!candidate.autoConnectionDetached &&
 						candidate.label === ctLabel
 					) || null;
 				}
@@ -5402,50 +5400,27 @@
 
 			function detachAutomaticConnectionForItem(item) {
 				if (!item) return false;
-				let detached = false;
-				const inferredLinkedItem = findAutoConnectedItem(item);
-				if (item.snapConnectionId) {
-					const snapLineId = item.snapConnectionId;
-					userDrawings = userDrawings.filter(d => d.id !== snapLineId);
-					userDrawings.forEach(d => {
-						if (d.snapConnectionId === snapLineId) {
-							delete d.snapConnectionId;
-						}
-					});
+				const linkedItem = findAutoConnectedItem(item);
+				const snapLineIds = new Set();
+				if (item.snapConnectionId) snapLineIds.add(item.snapConnectionId);
+				if (linkedItem && linkedItem.snapConnectionId) snapLineIds.add(linkedItem.snapConnectionId);
+
+				if (snapLineIds.size === 0) return false;
+
+				userDrawings = userDrawings.filter(d => !snapLineIds.has(d.id));
+				userDrawings.forEach(d => {
+					if (d.snapConnectionId && snapLineIds.has(d.snapConnectionId)) {
+						delete d.snapConnectionId;
+					}
+				});
+				if (item.snapConnectionId && snapLineIds.has(item.snapConnectionId)) {
 					delete item.snapConnectionId;
-					detached = true;
 				}
-				if (!detached && inferredLinkedItem && inferredLinkedItem.snapConnectionId) {
-					const snapLineId = inferredLinkedItem.snapConnectionId;
-					userDrawings = userDrawings.filter(d => d.id !== snapLineId);
-					userDrawings.forEach(d => {
-						if (d.snapConnectionId === snapLineId) {
-							delete d.snapConnectionId;
-						}
-					});
-					delete inferredLinkedItem.snapConnectionId;
-					detached = true;
+				if (linkedItem && linkedItem.snapConnectionId && snapLineIds.has(linkedItem.snapConnectionId)) {
+					delete linkedItem.snapConnectionId;
 				}
-				if (item.associatedSeccionadorId) {
-					const relatedSeccionador = findSymbolByIdInProject(item.associatedSeccionadorId);
-					if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
-					delete item.associatedSeccionadorId;
-					detached = true;
-				}
-				if (item.associatedCtId) {
-					const relatedCt = findSymbolByIdInProject(item.associatedCtId);
-					if (relatedCt) delete relatedCt.associatedSeccionadorId;
-					delete item.associatedCtId;
-					detached = true;
-				}
-				if (!detached && inferredLinkedItem) {
-					detached = true;
-				}
-				if (detached) {
-					item.autoConnectionDetached = true;
-					if (inferredLinkedItem) inferredLinkedItem.autoConnectionDetached = true;
-				}
-				return detached;
+
+				return true;
 			}
 
 	                /**
