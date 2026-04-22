@@ -360,12 +360,12 @@
 						</select>
 						<p class="text-xs text-gray-500 mt-1">Escala relativa al tamaño visible del lienzo.</p>
 					</div>
-					<div>
-						<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
-						<div class="flex items-center gap-3">
-							<input id="export-bg-color" type="color" value="#f0f0f0" class="h-10 w-16 border rounded cursor-pointer">
-							<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
-						</div>
+						<div>
+							<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
+							<div class="flex items-center gap-3">
+								<select id="export-bg-color" class="h-10 w-44 border rounded px-2 text-sm text-gray-700 bg-white" aria-label="Color de fondo de exportación"></select>
+								<span class="text-sm text-gray-600">Ajusta el color de la base antes de exportar.</span>
+							</div>
 						<div class="mt-2 flex gap-2">
 							<button id="apply-bg-before-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Aplicar al lienzo</button>
 							<button id="restore-bg-after-btn" class="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Restaurar fondo</button>
@@ -451,195 +451,65 @@
 		</div>
 	</div>
 
-	<section id="order-config-screen" class="hidden min-h-screen bg-gray-100">
-		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
-			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-				<div class="flex flex-wrap items-center justify-between gap-4">
-					<div>
-						<h1 class="text-2xl font-bold">
-							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
-						</h1>
-						<p class="text-sm text-gray-600 mt-1">Configuración de pedido y hojas del unifilar.</p>
-					</div>
-					<div class="flex gap-2">
-						<button id="close-sheet-layout-modal-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
-						<button id="sheet-layout-apply-btn" class="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Guardar configuración</button>
-					</div>
-				</div>
-			</header>
-				<div class="grid xl:grid-cols-2 gap-6">
-					<div class="space-y-4">
-					<div id="general-sheet-settings" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Configuración general de hojas</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-700">
-								<input id="sheet-layout-title-block" type="checkbox" class="mt-1" checked>
-								<span><strong>Incluir rótulo unifilar</strong> en la hoja del unifilar.</span>
-							</label>
-							<div>
-								<label for="sheet-layout-paper-size" class="block text-xs font-semibold text-gray-600 mb-1">Hoja</label>
-								<select id="sheet-layout-paper-size" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-									<option value="a4">A4</option>
-									<option value="a3">A3</option>
-									<option value="letter">Letter</option>
-								</select>
-							</div>
-							<div>
-								<label for="sheet-layout-page-orientation" class="block text-xs font-semibold text-gray-600 mb-1">Orientación</label>
-								<select id="sheet-layout-page-orientation" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-									<option value="landscape">Horizontal</option>
-									<option value="portrait">Vertical</option>
-								</select>
-							</div>
-							<div>
-								<label for="sheet-layout-page-margin" class="block text-xs font-semibold text-gray-600 mb-1">Margen (mm)</label>
-								<input id="sheet-layout-page-margin" type="number" min="3" max="30" value="8" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-							</div>
-						</div>
-					</div>
-					<div id="form-sheet0" class="sheet-form-panel rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Hoja 0 · Pedido de instalaciones (primera hoja)</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<div>
-								<label for="order-cover-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
-								<input id="order-cover-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="Región 1 - Zona 1">
-							</div>
-							<div>
-								<label for="order-cover-request-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha de solicitud</label>
-								<input id="order-cover-request-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="19/09/2025">
-							</div>
-							<div>
-								<label for="order-cover-request-id" class="block text-xs font-semibold text-gray-600 mb-1">Pedido de instalaciones N°</label>
-								<input id="order-cover-request-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="CA-25-40573">
-							</div>
-							<div>
-								<label for="order-cover-work-id" class="block text-xs font-semibold text-gray-600 mb-1">Obra</label>
-								<input id="order-cover-work-id" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700" value="79084">
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-installation" class="block text-xs font-semibold text-gray-600 mb-1">Instalación solicitada fuera de servicio</label>
-								<textarea id="order-cover-installation" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">Abierto: CT 79084 Lado CT 77334
-Abierto: CT 77334 Lado CT 79084</textarea>
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-job-description" class="block text-xs font-semibold text-gray-600 mb-1">Descripción de trabajos / motivo</label>
-								<textarea id="order-cover-job-description" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">EN CT 79084 SE REALIZARÁ MANTENIMIENTO DE TRAFO Y ADECUACIÓN DE ICC LADO CT 77334.</textarea>
-							</div>
-							<div class="md:col-span-2">
-								<label for="order-cover-observations" class="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
-								<textarea id="order-cover-observations" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">CT 79084 CON AVISO DE CORTE AL CLIENTE. REALIZAR MANIOBRAS PREVIAS CON GRTC.</textarea>
-							</div>
-						</div>
-					</div>
-							<div id="form-sheet1" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-						<h4 class="font-semibold text-gray-800 mb-2">Hoja 1 · Unifilar con rótulo</h4>
-						<div class="grid md:grid-cols-2 gap-3">
-							<div>
-								<label for="sheet-layout-plan-title" class="block text-xs font-semibold text-gray-600 mb-1">Título</label>
-								<input id="sheet-layout-plan-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-code" class="block text-xs font-semibold text-gray-600 mb-1">Código / Plano</label>
-							<input id="sheet-layout-plan-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-revision" class="block text-xs font-semibold text-gray-600 mb-1">Revisión</label>
-							<input id="sheet-layout-plan-revision" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-meta-code" class="block text-xs font-semibold text-gray-600 mb-1">Código lateral</label>
-							<input id="sheet-layout-plan-meta-code" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-update-date" class="block text-xs font-semibold text-gray-600 mb-1">Fecha actualización</label>
-							<input id="sheet-layout-plan-update-date" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-gerencia" class="block text-xs font-semibold text-gray-600 mb-1">Gerencia</label>
-							<input id="sheet-layout-plan-gerencia" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div>
-							<label for="sheet-layout-plan-croquis-title" class="block text-xs font-semibold text-gray-600 mb-1">Título banda croquis</label>
-							<input id="sheet-layout-plan-croquis-title" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div class="md:col-span-2">
-							<label for="sheet-layout-plan-header-note" class="block text-xs font-semibold text-gray-600 mb-1">Texto cabecera</label>
-							<input id="sheet-layout-plan-header-note" type="text" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						</div>
-						<div class="md:col-span-2">
-							<label for="sheet-layout-plan-footer" class="block text-xs font-semibold text-gray-600 mb-1">Detalle / texto inferior</label>
-							<textarea id="sheet-layout-plan-footer" rows="2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-						</div>
-					</div>
-				</div>
-							<div id="form-sheet2" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Hoja 2 · Maniobras / Seguridad</h4>
-					<div class="grid md:grid-cols-2 gap-3">
-						<input id="order-sheet2-title" type="text" placeholder="Título hoja 2" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet2-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<textarea id="order-sheet2-notes" rows="2" placeholder="Observaciones de la hoja 2" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-					</div>
-				</div>
-						<div id="form-sheet3" class="sheet-form-panel hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Hoja 3 · Datos complementarios</h4>
-					<div class="grid md:grid-cols-2 gap-3">
-						<input id="order-sheet3-title" type="text" placeholder="Título hoja 3" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-code" type="text" placeholder="Código" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-responsable" type="text" placeholder="Responsable" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<input id="order-sheet3-date" type="text" placeholder="Fecha" class="w-full border rounded-md px-2 py-1.5 text-sm text-gray-700">
-						<textarea id="order-sheet3-notes" rows="2" placeholder="Observaciones de la hoja 3" class="md:col-span-2 w-full border rounded-md px-2 py-1.5 text-sm text-gray-700"></textarea>
-					</div>
-				</div>
-			</div>
-				<div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:sticky xl:top-6 min-h-[70vh]">
-					<p class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">Vista previa de hojas configuradas</p>
-					<div class="grid grid-cols-2 gap-2 mb-3 text-xs">
-						<button id="preview-sheet0-btn" class="preview-sheet-btn px-2 py-1 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">Hoja 1 Pedido</button>
-						<button id="preview-sheet1-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 2 Unifilar</button>
-						<button id="preview-sheet2-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 3</button>
-						<button id="preview-sheet3-btn" class="preview-sheet-btn px-2 py-1 rounded bg-gray-50 text-gray-700 border border-gray-200">Hoja 4</button>
-					</div>
-					<div id="sheet-layout-preview-loading" class="hidden items-center justify-center h-full min-h-[280px]">
-						<div class="loader"></div>
-					</div>
-				<img id="sheet-layout-preview-image" alt="Vista previa de hoja y rótulo" class="max-w-full h-auto mx-auto rounded shadow-sm border border-gray-100 object-contain">
-			</div>
-				</div>
-			</div>
-	</section>
+	<!-- Legacy hidden stubs (mantener JS estable sin exponer pantallas eliminadas) -->
+	<div id="legacy-hidden-stubs" class="hidden">
+		<section id="order-config-screen"></section>
+		<section id="geographic-screen"></section>
+		<button id="order-config-btn" type="button"></button>
+		<button id="geographic-mode-btn" type="button"></button>
+		<button id="close-geographic-screen-btn" type="button"></button>
+		<input id="geographic-dxf-input" type="file" accept=".dxf">
+		<div id="geographic-layer-filters"></div>
+		<canvas id="geographic-canvas"></canvas>
 
-	<section id="geographic-screen" class="hidden min-h-screen bg-gray-100">
-		<div class="max-w-[1500px] mx-auto p-4 md:p-6 lg:p-8">
-			<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-				<div class="flex flex-wrap items-center justify-between gap-4">
-					<div>
-						<h1 class="text-2xl font-bold">
-							<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
-						</h1>
-						<p class="text-sm text-gray-600 mt-1">Modo geográfico DXF (sin interpretación unifilar).</p>
-					</div>
-					<div class="flex gap-2">
-						<label for="geographic-dxf-input" class="cursor-pointer px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-semibold">Cargar DXF geográfico</label>
-						<input id="geographic-dxf-input" type="file" class="hidden" accept=".dxf">
-						<button id="close-geographic-screen-btn" class="px-3 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors text-sm font-semibold">Volver al dibujo</button>
-					</div>
-				</div>
-			</header>
-			<div class="grid xl:grid-cols-4 gap-4">
-				<aside class="xl:col-span-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-					<h4 class="font-semibold text-gray-800 mb-2">Capas detectadas</h4>
-					<div id="geographic-layer-filters" class="space-y-2 max-h-[70vh] overflow-y-auto text-sm text-gray-700">
-						<p class="text-gray-500 text-xs">Cargá un DXF para listar capas.</p>
-					</div>
-				</aside>
-				<div class="xl:col-span-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-					<canvas id="geographic-canvas" class="w-full h-[75vh] bg-gray-50 rounded border border-gray-100"></canvas>
-				</div>
-			</div>
-		</div>
-	</section>
+		<button id="close-sheet-layout-modal-btn" type="button"></button>
+		<button id="sheet-layout-apply-btn" type="button"></button>
+		<img id="sheet-layout-preview-image" alt="">
+		<div id="sheet-layout-preview-loading"></div>
+
+		<input id="sheet-layout-title-block" type="checkbox">
+		<select id="sheet-layout-paper-size"><option value="a4">A4</option></select>
+		<select id="sheet-layout-page-orientation"><option value="landscape">Horizontal</option></select>
+		<input id="sheet-layout-page-margin" type="number" value="8">
+		<input id="sheet-layout-plan-title" type="text">
+		<input id="sheet-layout-plan-code" type="text">
+		<input id="sheet-layout-plan-revision" type="text">
+		<input id="sheet-layout-plan-meta-code" type="text">
+		<input id="sheet-layout-plan-update-date" type="text">
+		<input id="sheet-layout-plan-gerencia" type="text">
+		<input id="sheet-layout-plan-croquis-title" type="text">
+		<input id="sheet-layout-plan-header-note" type="text">
+		<textarea id="sheet-layout-plan-footer"></textarea>
+
+		<input id="order-sheet2-title" type="text">
+		<input id="order-sheet2-code" type="text">
+		<input id="order-sheet2-responsable" type="text">
+		<input id="order-sheet2-date" type="text">
+		<textarea id="order-sheet2-notes"></textarea>
+		<input id="order-sheet3-title" type="text">
+		<input id="order-sheet3-code" type="text">
+		<input id="order-sheet3-responsable" type="text">
+		<input id="order-sheet3-date" type="text">
+		<textarea id="order-sheet3-notes"></textarea>
+
+		<input id="order-cover-gerencia" type="text">
+		<input id="order-cover-request-date" type="text">
+		<input id="order-cover-request-id" type="text">
+		<input id="order-cover-work-id" type="text">
+		<textarea id="order-cover-installation"></textarea>
+		<textarea id="order-cover-job-description"></textarea>
+		<textarea id="order-cover-observations"></textarea>
+
+		<button id="preview-sheet0-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet1-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet2-btn" type="button" class="preview-sheet-btn"></button>
+		<button id="preview-sheet3-btn" type="button" class="preview-sheet-btn"></button>
+		<div id="form-sheet0"></div>
+		<div id="form-sheet1"></div>
+		<div id="form-sheet2"></div>
+		<div id="form-sheet3"></div>
+	</div>
+
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -998,21 +868,21 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		<div class="flex-grow flex flex-col">
 			<div class="p-4 md:p-6 lg:p-8 flex-grow flex flex-col w-full">
 				<header class="shadow-sm rounded-xl p-4 mb-6 text-gray-800 bg-white border border-gray-200">
-					<div class="flex justify-between items-start mb-4">
+					<div class="flex flex-wrap justify-between items-start gap-3 mb-4">
 						<div>
 							<h1 class="text-2xl font-bold">
 								<span style="color: #2563eb;">Esquem</span><span style="color: #10b981;">App</span>
 							</h1>
 						</div>
-						<div class="flex items-center gap-2">
-							<div id="toggle-manual-mode-container" class="flex items-center px-1" title="Habilitar Movimiento">
+						<div class="flex flex-wrap items-center justify-end gap-2 max-w-full">
+							<div id="toggle-manual-mode-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Habilitar Movimiento">
 								<span class="text-sm font-medium text-gray-700 mr-2">Movimiento</span>
 								<label for="manual-mode-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="manual-mode-toggle" class="sr-only peer">
 									<div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 								</label>
 							</div>
-							<div id="toggle-grid-container" class="flex items-center px-1" title="Mostrar Cuadrícula">
+							<div id="toggle-grid-container" class="flex items-center px-1.5 py-1 rounded-full bg-gray-50 border border-gray-200" title="Mostrar Cuadrícula">
 								<span class="text-sm font-medium text-gray-700 mr-2">Cuadrícula</span>
 								<label for="grid-toggle" class="relative inline-flex items-center cursor-pointer">
 									<input type="checkbox" id="grid-toggle" class="sr-only peer">
@@ -1025,12 +895,12 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<option value="120">120x120</option>
 								</select>
 							</div>
-							<div id="app-bg-controls" class="flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
-								<span class="text-xs font-semibold text-gray-700">Fondo</span>
-								<input id="app-bg-color-input" type="color" value="#f0f0f0" class="h-7 w-10 border rounded cursor-pointer">
-								<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Aplicar</button>
-								<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Restaurar</button>
-							</div>
+								<div id="app-bg-controls" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Fondo del lienzo">
+									<span class="text-xs font-semibold text-gray-700">Fondo</span>
+									<select id="app-bg-color-input" class="h-7 w-28 border rounded px-1 text-xs text-gray-700 bg-white" aria-label="Color de fondo del lienzo"></select>
+									<button id="app-apply-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Aplicar</button>
+									<button id="app-reset-bg-btn" class="text-xs px-2 py-1 rounded bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 whitespace-nowrap">Restaurar</button>
+								</div>
 							 <button id="undo-btn" title="Deshacer" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
 							</button>
@@ -1061,7 +931,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 							</button>
 						</div>
 					</div>
-					<div class="flex flex-wrap items-center justify-between gap-2">
+					<div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="flex items-center bg-gray-100 rounded-full px-3 py-1 ml-2">
 								<svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1097,19 +967,6 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
 								</svg>
 							</button>
-								<button id="order-config-btn" title="Configuración de pedido" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z" />
-										<path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16" />
-										<path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M8 16h5" />
-									</svg>
-								</button>
-								<button id="geographic-mode-btn" title="Pantalla geográfica DXF" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-									<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/>
-										<path stroke-linecap="round" stroke-linejoin="round" d="M9 4v14M15 6v14"/>
-									</svg>
-								</button>
 							<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 								<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
 								  <path d="M4.5 15.75L9.25 5h1.5l4.75 10.75h-1.5l-1.125-2.75h-5.25L6 15.75h-1.5zM8.375 12h3.25L10 7.25 8.375 12zM15.5 15.75l2-4.5h.75l2 4.5h-1.125l-.5-1.25h-2.25l-.5 1.25h-1.125zM16.75 13.5h1.5l-.75-1.75-.75 1.75z"/>
@@ -1128,7 +985,21 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									<span>Restablecer</span>
 								</button>
 						</div>
-						 <div class="flex items-center flex-wrap justify-end gap-2">
+							 <div class="flex items-center flex-wrap justify-end gap-2">
+								<div id="color-tools-controls" class="relative flex items-center gap-2 px-2 py-1 rounded-full bg-gray-100 border border-gray-200" title="Pintar red">
+									<select id="paint-color-input" class="h-7 w-28 border rounded px-1 text-xs text-gray-700 bg-white" aria-label="Color de pintura"></select>
+									<button id="paint-tools-btn" title="Opciones de pintado" class="p-1.5 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+									<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M3 21h6"></path>
+										<path d="M14.5 3.5a2.12 2.12 0 1 1 3 3L8 16l-4 1 1-4 9.5-9.5z"></path>
+									</svg>
+								</button>
+								<div id="paint-tools-menu" class="hidden absolute right-0 top-10 w-48 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-1">
+									<button id="paint-selected-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar selección</button>
+									<button id="paint-lines-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar líneas/cables</button>
+									<button id="paint-network-btn" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100">Pintar toda la red</button>
+								</div>
+							</div>
 							<label for="upload-sketch-file" title="Subir Croquis (.json)" class="cursor-pointer px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
 								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -1241,6 +1112,23 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		const appBgColorInput = document.getElementById('app-bg-color-input');
 		const appApplyBgBtn = document.getElementById('app-apply-bg-btn');
 		const appResetBgBtn = document.getElementById('app-reset-bg-btn');
+		const paintColorInput = document.getElementById('paint-color-input');
+		const paintToolsBtn = document.getElementById('paint-tools-btn');
+		const paintToolsMenu = document.getElementById('paint-tools-menu');
+		const paintSelectedBtn = document.getElementById('paint-selected-btn');
+		const paintLinesBtn = document.getElementById('paint-lines-btn');
+		const paintNetworkBtn = document.getElementById('paint-network-btn');
+		const FIXED_COLOR_PALETTE = [
+			{ hex: '#1f2937', name: 'Gris carbón' }, { hex: '#000000', name: 'Negro' }, { hex: '#ffffff', name: 'Blanco' },
+			{ hex: '#ef4444', name: 'Rojo' }, { hex: '#f97316', name: 'Naranja' }, { hex: '#f59e0b', name: 'Ámbar' },
+			{ hex: '#eab308', name: 'Amarillo' }, { hex: '#84cc16', name: 'Lima' }, { hex: '#22c55e', name: 'Verde' },
+			{ hex: '#10b981', name: 'Esmeralda' }, { hex: '#14b8a6', name: 'Turquesa' }, { hex: '#06b6d4', name: 'Cian' },
+			{ hex: '#0ea5e9', name: 'Celeste' }, { hex: '#3b82f6', name: 'Azul' }, { hex: '#6366f1', name: 'Índigo' },
+			{ hex: '#8b5cf6', name: 'Violeta' }, { hex: '#a855f7', name: 'Púrpura' }, { hex: '#d946ef', name: 'Fucsia' },
+			{ hex: '#ec4899', name: 'Rosa' }, { hex: '#f43f5e', name: 'Rosado intenso' }, { hex: '#a16207', name: 'Marrón' },
+			{ hex: '#78716c', name: 'Piedra' }, { hex: '#6b7280', name: 'Gris medio' }, { hex: '#94a3b8', name: 'Gris claro' },
+			{ hex: '#f0f0f0', name: 'Gris fondo' }
+		];
 		const exportTitleBlockInput = document.getElementById('export-title-block');
 		const pdfLayoutConfig = document.getElementById('pdf-layout-config');
 		const exportPaperSizeSelect = document.getElementById('export-paper-size');
@@ -1338,7 +1226,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 	        const SYMBOL_SIZE = 2.0;
 	        const GLOBAL_SYMBOL_SCALE = 0.25;
         const CT_COVER_FACTOR = 1.1;
-        const LINE_COLOR = '#1f2937';
+        let lineColor = '#1f2937';
         const SYMBOL_STROKE_COLOR = '#1f2937';
 	        const CT_FILL_COLOR = '#d4d4d8';
 	        const SECCIONADOR_FILL_COLOR = '#4ade80';
@@ -1367,6 +1255,8 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 	        let isDraggingGroup = false;
 	        let isManualModeEnabled = false;
 	        let multiSelection = [];
+			let editingCtEntity = null;
+			let editingSeccionadorEntity = null;
 	        let isDraggingMultiSelection = false;
 	        let isShiftPressed = false;
         let activeCtIconType = 'plain'; // Default CT symbol is now just a square
@@ -1420,8 +1310,11 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			const defaultCanvasBackgroundColor = '#f0f0f0';
 			let edenorLogoImage = null;
 			let edenorLogoPromise = null;
+			populateFixedColorSelect(exportBgColorInput, exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+			populateFixedColorSelect(appBgColorInput, exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+			populateFixedColorSelect(paintColorInput, lineColor, '#1f2937');
 			if (appBgColorInput) {
-				appBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
+				appBgColorInput.value = normalizePaletteColor(exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
 			}
 
 
@@ -1659,8 +1552,15 @@ Abierto: CT 77334 Lado CT 79084</textarea>
             if (!draggedItemCenter) return;
 
 
-            let closestSnap = { point: null, distance: Infinity, segmentStart: null };
-            const allLines = [...linesAndPolylines, ...userDrawings.filter(d => d.type.includes('line'))];
+	            let closestSnap = { point: null, distance: Infinity, segmentStart: null };
+	            const allLines = [
+	            	...linesAndPolylines,
+	            	...userDrawings.filter(d =>
+	            		d.type.includes('line') ||
+	            		d.type === 'draw-rect' ||
+	            		d.type === 'draw-ellipse'
+	            	)
+	            ];
 
             allLines.forEach(line => {
                 if (line === draggedItem) return; // Don't snap to self if it's a line
@@ -1671,7 +1571,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                             closestSnap = { point, distance, segmentStart: line.start };
                         }
                     }
-                } else if ((line.type === 'LWPOLYLINE' || line.type === 'POLYLINE') && line.vertices) {
+	                } else if ((line.type === 'LWPOLYLINE' || line.type === 'POLYLINE') && line.vertices) {
                     for (let i = 0; i < line.vertices.length - 1; i++) {
                         const p1 = line.vertices[i];
                         const p2 = line.vertices[i+1];
@@ -1691,9 +1591,44 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                                 closestSnap = { point, distance, segmentStart: p1 };
                             }
                         }
-                    }
-                }
-            });
+	                    }
+	                } else if (line.type === 'draw-rect' && line.start && line.end) {
+	                	const minX = Math.min(line.start.x, line.end.x);
+	                	const maxX = Math.max(line.start.x, line.end.x);
+	                	const minY = Math.min(line.start.y, line.end.y);
+	                	const maxY = Math.max(line.start.y, line.end.y);
+	                	const rectEdges = [
+	                		[{ x: minX, y: minY }, { x: maxX, y: minY }],
+	                		[{ x: maxX, y: minY }, { x: maxX, y: maxY }],
+	                		[{ x: maxX, y: maxY }, { x: minX, y: maxY }],
+	                		[{ x: minX, y: maxY }, { x: minX, y: minY }]
+	                	];
+	                	rectEdges.forEach(([a, b]) => {
+	                		const { point, distance } = findClosestPointOnSegment(draggedItemCenter, a, b);
+	                		if (distance < closestSnap.distance) {
+	                			closestSnap = { point, distance, segmentStart: a };
+	                		}
+	                	});
+	                } else if (line.type === 'draw-ellipse' && line.start && line.end) {
+	                	const cx = (line.start.x + line.end.x) / 2;
+	                	const cy = (line.start.y + line.end.y) / 2;
+	                	const rx = Math.abs(line.end.x - line.start.x) / 2;
+	                	const ry = Math.abs(line.end.y - line.start.y) / 2;
+	                	if (rx > 0 && ry > 0) {
+	                		const dx = draggedItemCenter.x - cx;
+	                		const dy = draggedItemCenter.y - cy;
+	                		let angle = Math.atan2(dy * rx, dx * ry);
+	                		if (!Number.isFinite(angle)) angle = 0;
+	                		const point = { x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
+	                		const ddx = draggedItemCenter.x - point.x;
+	                		const ddy = draggedItemCenter.y - point.y;
+	                		const distance = Math.sqrt(ddx * ddx + ddy * ddy);
+	                		if (distance < closestSnap.distance) {
+	                			closestSnap = { point, distance, segmentStart: point };
+	                		}
+	                	}
+	                }
+	            });
 
             if (closestSnap.distance < SNAP_DISTANCE) {
                 let snapEndPoint = draggedItemCenter; // Default endpoint is the center
@@ -2039,6 +1974,48 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			confirmBox.appendChild(confirmBtn);
 			confirmBox.appendChild(cancelBtn);
 			container.appendChild(confirmBox);
+		}
+
+		function showSketchLoadChoice(onSameCanvas, onNewCanvas) {
+			const container = document.getElementById('message-box-container');
+			container.innerHTML = '';
+
+			const box = document.createElement('div');
+			box.className = 'message-box';
+
+			const messageP = document.createElement('p');
+			messageP.textContent = '¿Cómo querés abrir este croquis?';
+			messageP.className = 'mb-4 text-lg';
+
+			const sameCanvasBtn = document.createElement('button');
+			sameCanvasBtn.textContent = 'Mismo lienzo';
+			sameCanvasBtn.className = 'btn-confirm';
+
+			const newCanvasBtn = document.createElement('button');
+			newCanvasBtn.textContent = 'En un lienzo nuevo';
+			newCanvasBtn.className = 'btn-warning';
+
+			const cancelBtn = document.createElement('button');
+			cancelBtn.textContent = 'Cancelar';
+			cancelBtn.className = 'btn-cancel';
+
+			const closeBox = () => container.innerHTML = '';
+
+			sameCanvasBtn.onclick = () => {
+				onSameCanvas();
+				closeBox();
+			};
+			newCanvasBtn.onclick = () => {
+				onNewCanvas();
+				closeBox();
+			};
+			cancelBtn.onclick = closeBox;
+
+			box.appendChild(messageP);
+			box.appendChild(sameCanvasBtn);
+			box.appendChild(newCanvasBtn);
+			box.appendChild(cancelBtn);
+			container.appendChild(box);
 		}
 
 		function drawCtIcon(ctx, iconType, pos, size, yOffset, resolutionFactor = 1) {
@@ -3329,30 +3306,84 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			clipboardNotice.classList.add(...(toneClasses[tone] || toneClasses.warning));
 		}
 
-		function clearClipboardNotice() {
-			if (!clipboardNotice) return;
-			clipboardNotice.classList.add('hidden');
-		}
+			function clearClipboardNotice() {
+				if (!clipboardNotice) return;
+				clipboardNotice.classList.add('hidden');
+			}
 
-		function applyCanvasBackgroundColor(colorValue) {
-			if (!colorValue) return;
-			canvasBackgroundColor = colorValue;
-			exportOptions.backgroundColor = colorValue;
-			if (exportBgColorInput) exportBgColorInput.value = colorValue;
-			if (appBgColorInput) appBgColorInput.value = colorValue;
-			draw();
-			refreshExportPreview(false);
-		}
+			function normalizePaletteColor(colorValue, fallback = '#1f2937') {
+				if (!colorValue) return fallback;
+				const normalized = colorValue.toLowerCase();
+				return FIXED_COLOR_PALETTE.some(c => c.hex === normalized) ? normalized : fallback;
+			}
+
+			function getPaletteMeta(colorValue) {
+				const normalized = normalizePaletteColor(colorValue, '#1f2937');
+				return FIXED_COLOR_PALETTE.find(c => c.hex === normalized) || FIXED_COLOR_PALETTE[0];
+			}
+
+			function getContrastTextColor(hexColor) {
+				const hex = hexColor.replace('#', '');
+				const r = parseInt(hex.substring(0, 2), 16);
+				const g = parseInt(hex.substring(2, 4), 16);
+				const b = parseInt(hex.substring(4, 6), 16);
+				const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+				return luminance > 160 ? '#111827' : '#ffffff';
+			}
+
+			function getFixedColorOptionsHtml(selectedColor) {
+				const chosen = normalizePaletteColor(selectedColor, '#1f2937');
+				return FIXED_COLOR_PALETTE.map(color => {
+					const isSelected = color.hex === chosen ? 'selected' : '';
+					const textColor = getContrastTextColor(color.hex);
+					return `<option value="${color.hex}" ${isSelected} title="${color.name}" style="background-color:${color.hex};color:${textColor};">${color.name}</option>`;
+				}).join('');
+			}
+
+			function updateColorSelectVisual(selectElement) {
+				if (!selectElement) return;
+				const meta = getPaletteMeta(selectElement.value);
+				selectElement.style.backgroundColor = meta.hex;
+				selectElement.style.color = getContrastTextColor(meta.hex);
+				selectElement.title = meta.name;
+			}
+
+			function populateFixedColorSelect(selectElement, selectedColor, fallback = '#1f2937') {
+				if (!selectElement) return;
+				const chosen = normalizePaletteColor(selectedColor, fallback);
+				selectElement.innerHTML = getFixedColorOptionsHtml(chosen);
+				selectElement.value = chosen;
+				updateColorSelectVisual(selectElement);
+			}
+
+			function applyCanvasBackgroundColor(colorValue) {
+				if (!colorValue) return;
+				const normalizedColor = normalizePaletteColor(colorValue, defaultCanvasBackgroundColor);
+				canvasBackgroundColor = normalizedColor;
+				exportOptions.backgroundColor = normalizedColor;
+				if (exportBgColorInput) {
+					exportBgColorInput.value = normalizedColor;
+					updateColorSelectVisual(exportBgColorInput);
+				}
+				if (appBgColorInput) {
+					appBgColorInput.value = normalizedColor;
+					updateColorSelectVisual(appBgColorInput);
+				}
+				draw();
+				refreshExportPreview(false);
+			}
 
 		function restoreCanvasBackgroundColor() {
 			canvasBackgroundColor = defaultCanvasBackgroundColor;
 			exportOptions.backgroundColor = defaultCanvasBackgroundColor;
-			if (exportBgColorInput) {
-				exportBgColorInput.value = defaultCanvasBackgroundColor;
-			}
-			if (appBgColorInput) {
-				appBgColorInput.value = defaultCanvasBackgroundColor;
-			}
+				if (exportBgColorInput) {
+					exportBgColorInput.value = defaultCanvasBackgroundColor;
+					updateColorSelectVisual(exportBgColorInput);
+				}
+				if (appBgColorInput) {
+					appBgColorInput.value = defaultCanvasBackgroundColor;
+					updateColorSelectVisual(appBgColorInput);
+				}
 			draw();
 			refreshExportPreview(false);
 		}
@@ -3688,7 +3719,8 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
         function drawSymbol(ent) {
             dxfCtx.save();
-            dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+            const symbolStrokeColor = ent.color || SYMBOL_STROKE_COLOR;
+            dxfCtx.strokeStyle = symbolStrokeColor;
             dxfCtx.lineWidth = 1.5;
 
             // This block draws the symbol in its "closed" or default state.
@@ -3698,7 +3730,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
                 const radius = size * 0.075; // Círculo pequeño (reducido a la mitad)
 
-                dxfCtx.fillStyle = SYMBOL_STROKE_COLOR; // Relleno sólido ("a fondo de escala")
+                dxfCtx.fillStyle = symbolStrokeColor; // Relleno sólido ("a fondo de escala")
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
                 dxfCtx.fill();
@@ -3769,7 +3801,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                             dxfCtx.moveTo(s.x, s.y);
                             dxfCtx.lineTo(e.x, e.y);
                         }
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.stroke();
                     });
                 }
@@ -3781,7 +3813,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				if (ent.isOpen) {
                     // Cuando está abierto: círculo blanco con borde negro
                     dxfCtx.fillStyle = '#ffffff';
-                    dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                    dxfCtx.strokeStyle = symbolStrokeColor;
                     dxfCtx.beginPath();
                     dxfCtx.arc(pos.x, pos.y, outerRadius, 0, 2 * Math.PI);
                     dxfCtx.fill();
@@ -3807,7 +3839,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                     const rhombusGeom = geometries.find(g => g.type === 'POLYLINE' && g.vertices && g.vertices.length > 0);
                     if (rhombusGeom) {
                         dxfCtx.fillStyle = '#1f2937';
-                        dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                        dxfCtx.strokeStyle = symbolStrokeColor;
                         dxfCtx.beginPath();
                         const pts = rhombusGeom.vertices.map(v => transformPoint(v, ent));
                         dxfCtx.moveTo(pts[0].x, pts[0].y);
@@ -3824,7 +3856,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                 dxfCtx.beginPath();
                 dxfCtx.arc(pos.x, pos.y, innerRadius, 0, 2 * Math.PI);
                 dxfCtx.fill();
-                dxfCtx.strokeStyle = SYMBOL_STROKE_COLOR;
+                dxfCtx.strokeStyle = symbolStrokeColor;
                 dxfCtx.stroke();
             } else if (ent.symbolType === 'seccionador' && ent.connection === 'SECZ') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
@@ -3974,11 +4006,39 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 	        function draw() {
 				const rect = dxfCanvas.getBoundingClientRect();
 				dxfCtx.save(); // Save the clean, untransformed state
-				dxfCtx.fillStyle = canvasBackgroundColor || '#f0f0f0';
-				dxfCtx.fillRect(0, 0, rect.width, rect.height);
+					dxfCtx.fillStyle = canvasBackgroundColor || '#f0f0f0';
+					dxfCtx.fillRect(0, 0, rect.width, rect.height);
 
-					// --- Draw DXF content (potentially clipped) ---
-					dxfCtx.save(); // Save state before clipping for DXF content
+						// --- Draw "sent to back" manual shapes below network content ---
+						userDrawings
+							.filter(d => d.sendToBack && (d.type === 'draw-rect' || d.type === 'draw-ellipse') && d.start && d.end)
+							.forEach(d => {
+								dxfCtx.save();
+								dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
+								dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`;
+								dxfCtx.lineWidth = d.strokeWidth || 1.5;
+								const start = modelToScreen(d.start.x, d.start.y);
+								const end = modelToScreen(d.end.x, d.end.y);
+
+								if (d.type === 'draw-rect') {
+									dxfCtx.beginPath();
+									dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+								} else {
+									dxfCtx.beginPath();
+									const rx = Math.abs(end.x - start.x) / 2;
+									const ry = Math.abs(end.y - start.y) / 2;
+									const cx = Math.min(start.x, end.x) + rx;
+									const cy = Math.min(start.y, end.y) + ry;
+									drawEllipsePath(dxfCtx, cx, cy, rx, ry);
+								}
+
+								if (d.isFilled !== false) dxfCtx.fill();
+								dxfCtx.stroke();
+								dxfCtx.restore();
+							});
+
+						// --- Draw DXF content (potentially clipped) ---
+						dxfCtx.save(); // Save state before clipping for DXF content
 			if (originalExtents) {
 				const clipStart = modelToScreen(extents.minX, extents.maxY);
 				const clipEnd = modelToScreen(extents.maxX, extents.minY);
@@ -3989,7 +4049,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
 			dxfCtx.lineWidth = 1.5;
 			linesAndPolylines.forEach(ent => {
-				dxfCtx.strokeStyle = LINE_COLOR;
+				dxfCtx.strokeStyle = ent.color || lineColor;
 				
 				const isSubterraneo = ent.extendedAttributes && ent.extendedAttributes['587'] === 'AL AS';
 				const dashPattern = getDashPatternForLinetype(ent.linetype);
@@ -4039,11 +4099,14 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 
 
 			// --- Draw User Annotations (never clipped) ---
-			[...userDrawings, activeDrawing].filter(Boolean).forEach(d => {
-				dxfCtx.save();
-				dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
-				dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
-				dxfCtx.lineWidth = d.strokeWidth || 1.5;
+				[...userDrawings, activeDrawing]
+					.filter(Boolean)
+					.filter(d => !(d.sendToBack && (d.type === 'draw-rect' || d.type === 'draw-ellipse')))
+					.forEach(d => {
+					dxfCtx.save();
+					dxfCtx.strokeStyle = d.color || DEFAULT_DRAW_COLOR;
+					dxfCtx.fillStyle = `${d.color || DEFAULT_DRAW_COLOR}1A`; // Add alpha for fill
+					dxfCtx.lineWidth = d.strokeWidth || 1.5;
 
 				if (d.type === 'draw-dashed-line') {
 					dxfCtx.setLineDash([5, 5]);
@@ -4771,12 +4834,12 @@ Abierto: CT 77334 Lado CT 79084</textarea>
             return null;
         }
 
-		function getDrawingAtScreenPos(screenX, screenY) {
-			for (let i = userDrawings.length - 1; i >= 0; i--) {
-				const d = userDrawings[i];
-				const bbox = getEntityBBox(d, false); // Screen coords
-				if (!bbox) continue;
-				const inflate = 5; // Make selection easier
+			function getDrawingAtScreenPos(screenX, screenY) {
+				for (let i = userDrawings.length - 1; i >= 0; i--) {
+					const d = userDrawings[i];
+					const bbox = getEntityBBox(d, false); // Screen coords
+					if (!bbox) continue;
+					const inflate = 5; // Make selection easier
 				
 				if(d.type.includes('line')) {
 					const p1 = modelToScreen(d.start.x, d.start.y);
@@ -4832,39 +4895,49 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			let contentHtml = `<h3 class="text-lg font-bold mb-4 border-b pb-2">Editar Dibujo</h3>
 						   <div class="space-y-4 text-sm">`;
 
-            if (drawing && (drawing.type === 'draw-ct' || drawing.type === 'draw-seccionador')) {
-                const labelTitle = drawing.type === 'draw-ct' ? 'Nombre CT' : 'Nombre Seccionador';
-                contentHtml += `<div>
-								<label for="drawing-label-edit" class="font-semibold text-gray-600 block mb-1">${labelTitle}</label>
-								<input type="text" id="drawing-label-edit" value="${drawing.label || ''}" class="w-full p-2 border border-gray-300 rounded-md">
-							</div>`;
-                if(drawing.type === 'draw-ct') {
+	            if (drawing && (drawing.type === 'draw-ct' || drawing.type === 'draw-seccionador')) {
+	                const labelTitle = drawing.type === 'draw-ct' ? 'Nombre CT' : 'Nombre Seccionador';
+	                contentHtml += `<div>
+									<label for="drawing-label-edit" class="font-semibold text-gray-600 block mb-1">${labelTitle}</label>
+									<input type="text" id="drawing-label-edit" value="${drawing.label || ''}" class="w-full p-2 border border-gray-300 rounded-md">
+								</div>`;
+	                if(drawing.type === 'draw-ct') {
                     contentHtml += `<div class="mt-4">
-                        <button id="change-manual-ct-symbol-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar Símbolo de CT</button>
+	                        <button id="change-manual-ct-symbol-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar Símbolo de CT</button>
+	                    </div>`;
+	                }
+					contentHtml += `<div class="mt-3">
+                        <button id="detach-auto-connection-btn" class="w-full px-3 py-2 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-semibold">Sacar conexión automática</button>
                     </div>`;
-                }
-                contentHtml += `<hr class="my-4">`;
-            }
+	                contentHtml += `<hr class="my-4">`;
+	            }
 
-			// Color Picker
-			contentHtml += `<div>
+				// Color Picker
+				contentHtml += `<div>
 								<label for="drawing-color" class="font-semibold text-gray-600 block mb-1">Color</label>
-								<input type="color" id="drawing-color" value="${drawing.color || DEFAULT_DRAW_COLOR}" class="w-full h-8 p-0 border-none rounded cursor-pointer">
+								<select id="drawing-color" class="w-full h-9 border rounded px-2 text-sm text-gray-700 bg-white">
+									${getFixedColorOptionsHtml(drawing.color || DEFAULT_DRAW_COLOR)}
+								</select>
 							</div>`;
 
-			if (drawing.type === 'draw-rect' || drawing.type === 'draw-ellipse') {
-                contentHtml += `
-					<div class="mt-2">
+				if (drawing.type === 'draw-rect' || drawing.type === 'draw-ellipse') {
+	                contentHtml += `
+						<div class="mt-2">
 						<label for="drawing-fill-toggle" class="flex items-center justify-between cursor-pointer">
 							<span class="font-semibold text-gray-600">Relleno de color</span>
 							<div class="relative inline-flex items-center cursor-pointer">
 								<input type="checkbox" id="drawing-fill-toggle" class="sr-only peer" ${drawing.isFilled !== false ? 'checked' : ''}>
 								<div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 							</div>
-						</label>
-					</div>
-                `;
-            }
+							</label>
+						</div>
+	                `;
+					contentHtml += `
+						<div class="mt-3">
+							<button id="send-shape-back-btn" class="w-full px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold">Enviar atrás (no bloquear selección)</button>
+						</div>
+					`;
+	            }
 
 			// Size/Width controls
 			if (drawing.type.includes('line') || drawing.type === 'draw-ground') {
@@ -4954,24 +5027,41 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                 });
             }
 
-            const changeManualCtSymbolBtn = document.getElementById('change-manual-ct-symbol-btn');
-            if (changeManualCtSymbolBtn) {
-                changeManualCtSymbolBtn.addEventListener('click', () => {
-                    if (drawing) {
-                        ctPickerModal.dataset.editingDrawingId = drawing.id;
+	            const changeManualCtSymbolBtn = document.getElementById('change-manual-ct-symbol-btn');
+	            if (changeManualCtSymbolBtn) {
+	                changeManualCtSymbolBtn.addEventListener('click', () => {
+	                    if (drawing) {
+	                        ctPickerModal.dataset.editingDrawingId = drawing.id;
                         ctPickerModal.classList.remove('hidden');
                         ctPickerModal.classList.add('flex');
                     }
-                });
-            }
+	                });
+	            }
+
+			const detachAutoConnectionBtn = document.getElementById('detach-auto-connection-btn');
+			if (detachAutoConnectionBtn) {
+				detachAutoConnectionBtn.addEventListener('click', () => {
+					if (!drawing) return;
+					saveHistoryState();
+					const detached = detachAutomaticConnectionForItem(drawing);
+					if (!detached) {
+						window.alert('Este elemento no tiene una conexión automática activa para quitar.');
+					}
+					updateInfoPanelForDrawing(drawing);
+					draw();
+				});
+			}
 
 			const colorInput = document.getElementById('drawing-color');
 			if (colorInput) {
-				colorInput.addEventListener('input', (e) => {
+				colorInput.value = normalizePaletteColor(drawing.color || DEFAULT_DRAW_COLOR, DEFAULT_DRAW_COLOR);
+				updateColorSelectVisual(colorInput);
+				colorInput.addEventListener('change', (e) => {
+					saveHistoryState();
 					drawing.color = e.target.value;
+					updateColorSelectVisual(colorInput);
 					draw();
 				});
-				colorInput.addEventListener('change', () => saveHistoryState());
 			}
 
 			const fillToggle = document.getElementById('drawing-fill-toggle');
@@ -5039,19 +5129,31 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				rotationInput.addEventListener('change', () => saveHistoryState());
 			}
 
-            const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
-            if (toggleDrawingLineStyleBtn) {
-                toggleDrawingLineStyleBtn.addEventListener('click', () => {
-                    saveHistoryState();
-                    if (drawing.type === 'draw-line') {
-                        drawing.type = 'draw-dashed-line';
-                    } else {
-                        drawing.type = 'draw-line';
-                    }
-                    updateInfoPanelForDrawing(drawing); // Refresh panel to update button text
-                    draw();
-                });
-            }
+	            const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
+	            if (toggleDrawingLineStyleBtn) {
+	                toggleDrawingLineStyleBtn.addEventListener('click', () => {
+	                    saveHistoryState();
+	                    if (drawing.type === 'draw-line') {
+	                        drawing.type = 'draw-dashed-line';
+	                    } else {
+	                        drawing.type = 'draw-line';
+	                    }
+	                    updateInfoPanelForDrawing(drawing); // Refresh panel to update button text
+	                    draw();
+	                });
+	            }
+
+			const sendShapeBackBtn = document.getElementById('send-shape-back-btn');
+			if (sendShapeBackBtn) {
+				sendShapeBackBtn.addEventListener('click', () => {
+					saveHistoryState();
+					drawing.sendToBack = true;
+					userDrawings = userDrawings.filter(d => d.id !== drawing.id);
+					userDrawings.unshift(drawing);
+					draw();
+					updateInfoPanelForDrawing(drawing);
+				});
+			}
 
 			const changeSymbolBtn = document.getElementById('change-seccionador-symbol-btn');
 			if (changeSymbolBtn) {
@@ -5190,8 +5292,8 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 						`;
 					}
 					
-					if (entity.symbolType === 'seccionador') {
-						contentHtml += `
+						if (entity.symbolType === 'seccionador') {
+							contentHtml += `
 							<div class="mt-4 pt-4 border-t border-gray-200">
 								<label for="seccionador-toggle" class="flex items-center justify-between cursor-pointer">
 									<span class="font-semibold text-gray-600">Estado: <span id="seccionador-status-text" class="font-normal text-gray-800">${entity.isOpen ? 'Abierto' : 'Cerrado'}</span></span>
@@ -5201,9 +5303,17 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 									</div>
 								</label>
 							</div>
+							<div class="mt-3">
+								<button id="change-seccionador-icon-btn" class="w-full px-3 py-2 text-sm rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-semibold">Cambiar símbolo de seccionador</button>
+							</div>
+							`;
+						}
+						contentHtml += `
+							<div class="mt-3">
+								<button id="detach-entity-auto-connection-btn" class="w-full px-3 py-2 text-sm rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors font-semibold">Sacar conexión automática</button>
+							</div>
 						`;
 					}
-				}
 
                 contentHtml += `</div>`;
                 infoContent.innerHTML = contentHtml;
@@ -5257,20 +5367,18 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 					if (changeCtIconBtn) {
 						changeCtIconBtn.addEventListener('click', () => {
 							if (selectedEntity && selectedEntity.symbolType === 'ct') {
-								saveHistoryState();
-								const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch'];
-								const currentIndex = iconTypes.indexOf(selectedEntity.ctIconType || 'plain');
-								const nextIndex = (currentIndex + 1) % iconTypes.length;
-								selectedEntity.ctIconType = iconTypes[nextIndex];
-								draw();
+								editingCtEntity = selectedEntity;
+								ctPickerModal.classList.remove('hidden');
+								ctPickerModal.classList.add('flex');
 							}
 						});
 					}
 				}
 
-				if (entity.symbolType === 'seccionador') {
+					if (entity.symbolType === 'seccionador') {
 					const toggle = document.getElementById('seccionador-toggle');
 					const statusText = document.getElementById('seccionador-status-text');
+					const changeSeccionadorIconBtn = document.getElementById('change-seccionador-icon-btn');
 					if (toggle && statusText) {
 						toggle.addEventListener('change', (e) => {
 							if (selectedEntity) {
@@ -5281,9 +5389,31 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 							}
 						});
 					}
-				}
+					if (changeSeccionadorIconBtn) {
+						changeSeccionadorIconBtn.addEventListener('click', () => {
+							if (selectedEntity && selectedEntity.symbolType === 'seccionador') {
+								editingSeccionadorEntity = selectedEntity;
+								seccionadorPickerModal.classList.remove('hidden');
+								seccionadorPickerModal.classList.add('flex');
+							}
+						});
+						}
+					}
+					const detachEntityAutoConnectionBtn = document.getElementById('detach-entity-auto-connection-btn');
+					if (detachEntityAutoConnectionBtn) {
+						detachEntityAutoConnectionBtn.addEventListener('click', () => {
+							if (!selectedEntity) return;
+							saveHistoryState();
+							const detached = detachAutomaticConnectionForItem(selectedEntity);
+							if (!detached) {
+								window.alert('Este elemento no tiene una conexión automática activa para quitar.');
+							}
+							updateInfoPanel(selectedEntity);
+							draw();
+						});
+					}
 
-            } else {
+	            } else {
                 infoPanel.classList.add('translate-x-full');
             }
         }
@@ -5292,18 +5422,79 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			manualModeToggleContainer.title = isManualModeEnabled ? "Bloquear Movimiento" : "Habilitar Movimiento";
 		}
 
-		function updateGridOverlay() {
-			const isGridEnabled = gridToggle.checked;
-			const gridSize = Number(gridSizeSelect.value) || 40;
-			gridOverlay.style.setProperty('--grid-size', `${gridSize}px`);
-			gridOverlay.classList.toggle('hidden', !isGridEnabled);
-			gridSizeSelect.disabled = !isGridEnabled;
-			gridSizeSelect.classList.toggle('opacity-50', !isGridEnabled);
-			gridSizeSelect.classList.toggle('cursor-not-allowed', !isGridEnabled);
-			gridToggleContainer.title = isGridEnabled ? "Ocultar Cuadrícula" : "Mostrar Cuadrícula";
-		}
+			function updateGridOverlay() {
+				const isGridEnabled = gridToggle.checked;
+				const gridSize = Number(gridSizeSelect.value) || 40;
+				gridOverlay.style.setProperty('--grid-size', `${gridSize}px`);
+				gridOverlay.classList.toggle('hidden', !isGridEnabled);
+				gridSizeSelect.disabled = !isGridEnabled;
+				gridSizeSelect.classList.toggle('opacity-50', !isGridEnabled);
+				gridSizeSelect.classList.toggle('cursor-not-allowed', !isGridEnabled);
+				gridToggleContainer.title = isGridEnabled ? "Ocultar Cuadrícula" : "Mostrar Cuadrícula";
+			}
 
-                /**
+			function findSymbolByIdInProject(symbolId) {
+				if (!symbolId) return null;
+				return userDrawings.find(d => d.id === symbolId) || symbols.find(s => s.id === symbolId) || null;
+			}
+
+			function canInitiateAutomaticConnection(item) {
+				if (!item || !item.type) return false;
+				return item.type === 'draw-ct' || item.type === 'draw-seccionador' || item.type === 'draw-ground';
+			}
+
+			function findAutoConnectedItem(item) {
+				if (!item) return null;
+				if (item.associatedSeccionadorId) return findSymbolByIdInProject(item.associatedSeccionadorId);
+				if (item.associatedCtId) return findSymbolByIdInProject(item.associatedCtId);
+
+				const pool = [...symbols, ...userDrawings];
+				if (item.symbolType === 'ct' && item.label) {
+					return pool.find(candidate =>
+						candidate !== item &&
+						candidate.symbolType === 'seccionador' &&
+						typeof candidate.label === 'string' &&
+						candidate.label.startsWith(`${item.label}-`)
+					) || null;
+				}
+				if (item.symbolType === 'seccionador' && typeof item.label === 'string') {
+					const parts = item.label.split('-');
+					const ctLabel = parts[0];
+					return pool.find(candidate =>
+						candidate !== item &&
+						candidate.symbolType === 'ct' &&
+						candidate.label === ctLabel
+					) || null;
+				}
+				return null;
+			}
+
+			function detachAutomaticConnectionForItem(item) {
+				if (!item) return false;
+				const linkedItem = findAutoConnectedItem(item);
+				const snapLineIds = new Set();
+				if (item.snapConnectionId) snapLineIds.add(item.snapConnectionId);
+				if (linkedItem && linkedItem.snapConnectionId) snapLineIds.add(linkedItem.snapConnectionId);
+
+				if (snapLineIds.size === 0) return false;
+
+				userDrawings = userDrawings.filter(d => !snapLineIds.has(d.id));
+				userDrawings.forEach(d => {
+					if (d.snapConnectionId && snapLineIds.has(d.snapConnectionId)) {
+						delete d.snapConnectionId;
+					}
+				});
+				if (item.snapConnectionId && snapLineIds.has(item.snapConnectionId)) {
+					delete item.snapConnectionId;
+				}
+				if (linkedItem && linkedItem.snapConnectionId && snapLineIds.has(linkedItem.snapConnectionId)) {
+					delete linkedItem.snapConnectionId;
+				}
+
+				return true;
+			}
+
+	                /**
                  * Compress the layout by moving symbols and scaling inter‑connecting lines.
                  *
                  * @param {string} mode            'all' | 'horizontal' | 'vertical'
@@ -5685,16 +5876,17 @@ Abierto: CT 77334 Lado CT 79084</textarea>
             ctPickerModal.classList.add('flex');
         });
 
-		copyImageBtn.addEventListener('click', () => {
+			copyImageBtn.addEventListener('click', () => {
 			if (exportFormatSelect) {
 				exportFormatSelect.value = exportOptions.format || 'png';
 			}
 			if (exportResolutionSelect) {
 				exportResolutionSelect.value = (exportOptions.scale || 1).toString();
 			}
-			if (exportBgColorInput) {
-				exportBgColorInput.value = exportOptions.backgroundColor || '#f0f0f0';
-			}
+				if (exportBgColorInput) {
+					exportBgColorInput.value = normalizePaletteColor(exportOptions.backgroundColor || '#f0f0f0', '#f0f0f0');
+					updateColorSelectVisual(exportBgColorInput);
+				}
 			if (exportTitleBlockInput) {
 				exportTitleBlockInput.checked = exportOptions.includeTitleBlock !== false;
 			}
@@ -5859,9 +6051,12 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			el.addEventListener('change', () => refreshExportPreview(false));
 		});
 
-		if (exportBgColorInput) {
-			exportBgColorInput.addEventListener('input', () => refreshExportPreview(false));
-		}
+			if (exportBgColorInput) {
+				exportBgColorInput.addEventListener('change', () => {
+					updateColorSelectVisual(exportBgColorInput);
+					refreshExportPreview(false);
+				});
+			}
 		if (applyBgBeforeBtn) {
 			applyBgBeforeBtn.addEventListener('click', () => {
 				applyCanvasBackgroundColor((exportBgColorInput && exportBgColorInput.value) || '#f0f0f0');
@@ -5878,11 +6073,13 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		if (appResetBgBtn) {
 			appResetBgBtn.addEventListener('click', restoreCanvasBackgroundColor);
 		}
-		if (appBgColorInput) {
-			appBgColorInput.addEventListener('input', () => {
-				if (exportBgColorInput) exportBgColorInput.value = appBgColorInput.value;
-			});
-		}
+			if (appBgColorInput) {
+				appBgColorInput.addEventListener('change', () => {
+					if (exportBgColorInput) exportBgColorInput.value = appBgColorInput.value;
+					updateColorSelectVisual(appBgColorInput);
+					if (exportBgColorInput) updateColorSelectVisual(exportBgColorInput);
+				});
+			}
 		if (exportTitleBlockInput) {
 			exportTitleBlockInput.addEventListener('change', () => refreshExportPreview(false));
 		}
@@ -5990,6 +6187,135 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				draw();
 			}
 		});
+
+		function getCurrentSelectionItems() {
+			if (multiSelection.length > 0) return [...multiSelection];
+
+			const items = [];
+			if (selectedDrawingId) {
+				const drawing = userDrawings.find(d => d.id === selectedDrawingId);
+				if (drawing) items.push(drawing);
+			}
+			if (selectedEntity) items.push(selectedEntity);
+			return items;
+		}
+
+		function applyColorToItem(item, color) {
+			if (!item || !color) return false;
+
+			if (item.id && userDrawings.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (linesAndPolylines.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			if (symbols.includes(item)) {
+				item.color = color;
+				return true;
+			}
+			return false;
+		}
+
+		function paintLinesAndCables(chosenColor) {
+			lineColor = chosenColor;
+			linesAndPolylines.forEach(ent => {
+				ent.color = chosenColor;
+			});
+			userDrawings.forEach(d => {
+				if (d.type === 'draw-line' || d.type === 'draw-dashed-line') {
+					d.color = chosenColor;
+				}
+			});
+		}
+
+		function paintWholeNetwork(chosenColor) {
+			paintLinesAndCables(chosenColor);
+			symbols.forEach(s => { s.color = chosenColor; });
+			userDrawings.forEach(d => {
+				if (d.type !== 'draw-line' && d.type !== 'draw-dashed-line') {
+					d.color = chosenColor;
+				}
+			});
+		}
+
+		if (paintColorInput) {
+			paintColorInput.value = normalizePaletteColor(lineColor, '#1f2937');
+			updateColorSelectVisual(paintColorInput);
+			paintColorInput.addEventListener('change', () => updateColorSelectVisual(paintColorInput));
+		}
+
+		if (paintToolsBtn && paintToolsMenu) {
+			paintToolsBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				paintToolsMenu.classList.toggle('hidden');
+			});
+			document.addEventListener('click', (e) => {
+				if (!paintToolsMenu.classList.contains('hidden') && !paintToolsMenu.contains(e.target) && e.target !== paintToolsBtn) {
+					paintToolsMenu.classList.add('hidden');
+				}
+			});
+		}
+
+		if (paintSelectedBtn && paintColorInput) {
+			paintSelectedBtn.addEventListener('click', () => {
+				const items = getCurrentSelectionItems();
+				if (items.length === 0) {
+					window.alert('No hay elementos seleccionados.');
+					return;
+				}
+				const chosenColor = paintColorInput.value || '#1f2937';
+				saveHistoryState();
+				let changed = false;
+				items.forEach(item => {
+					if (applyColorToItem(item, chosenColor)) changed = true;
+				});
+				if (!changed) {
+					window.alert('La selección actual no admite cambio de color.');
+					return;
+				}
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
+				draw();
+			});
+		}
+
+		if (paintLinesBtn && paintColorInput) {
+			paintLinesBtn.addEventListener('click', () => {
+				const chosenColor = paintColorInput.value || '#1f2937';
+				saveHistoryState();
+				paintLinesAndCables(chosenColor);
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
+				draw();
+			});
+		}
+
+		if (paintNetworkBtn && paintColorInput) {
+			paintNetworkBtn.addEventListener('click', () => {
+				const chosenColor = paintColorInput.value || '#1f2937';
+				saveHistoryState();
+				paintWholeNetwork(chosenColor);
+				if (paintToolsMenu) paintToolsMenu.classList.add('hidden');
+				draw();
+			});
+		}
+
+		// Limpia cualquier control de color legacy duplicado que haya quedado en DOM.
+		(function cleanupDuplicateColorControls() {
+			const colorGroups = document.querySelectorAll('#color-tools-controls');
+			colorGroups.forEach((group, index) => {
+				if (index > 0) group.remove();
+			});
+
+			['selection-color-input', 'line-color-input', 'apply-selection-color-btn', 'apply-line-color-btn']
+				.forEach((legacyId) => {
+					const node = document.getElementById(legacyId);
+					if (node) {
+						const removable = node.closest('#color-tools-controls') || node.parentElement;
+						if (removable && removable.id !== 'color-tools-controls') removable.remove();
+					}
+				});
+		})();
 		
         deleteBtn.addEventListener('click', () => {
             // If there is a selection (multiple or single), present a choice to the user.
@@ -6316,10 +6642,11 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 					if ((dx * dx + dy * dy) > 25) { // 5px threshold
 						
 						let actionToStart = 'pan';
-						if (isManualModeEnabled && currentTool === 'pan') {
-							const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
-							const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
-							const itemUnderCursor = drawingUnderCursor || entityUnderCursor;
+							if (isManualModeEnabled && currentTool === 'pan') {
+								const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+								const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
+								const preferEntityOverBackDrawing = drawingUnderCursor && drawingUnderCursor.sendToBack && entityUnderCursor && selectedDrawingId !== drawingUnderCursor.id;
+								const itemUnderCursor = preferEntityOverBackDrawing ? entityUnderCursor : (drawingUnderCursor || entityUnderCursor);
 
 							if (itemUnderCursor) {
 								const isAlreadySelected = (multiSelection.length > 0 && multiSelection.includes(itemUnderCursor)) ||
@@ -6415,30 +6742,20 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                         }
 
 					}
-					else if (isDraggingDrawing) {
-						const selected = userDrawings.find(d => d.id === selectedDrawingId);
-						if (selected) { 
-                            selected.start.x += modelDx; selected.start.y += modelDy; 
-                            if (selected.end) { selected.end.x += modelDx; selected.end.y += modelDy; }
-
-							if (selected.associatedSeccionadorId) {
-								const seccionador = userDrawings.find(d => d.id === selected.associatedSeccionadorId);
-								if (seccionador) {
-									seccionador.start.x += modelDx;
-									seccionador.start.y += modelDy;
+						else if (isDraggingDrawing) {
+							const selected = userDrawings.find(d => d.id === selectedDrawingId);
+							if (selected) { 
+	                            selected.start.x += modelDx; selected.start.y += modelDy; 
+	                            if (selected.end) { selected.end.x += modelDx; selected.end.y += modelDy; }
+								const linkedItem = findAutoConnectedItem(selected);
+								if (linkedItem && linkedItem.start) {
+									linkedItem.start.x += modelDx;
+									linkedItem.start.y += modelDy;
 								}
-							}
-							if (selected.associatedCtId) {
-								const ct = userDrawings.find(d => d.id === selected.associatedCtId);
-								if (ct) {
-									ct.start.x += modelDx;
-									ct.start.y += modelDy;
-								}
-							}
-                            draggedItemForSnap = selected;
-                        }
-					} else if (isDraggingGroup) {
-						symbols.forEach(s => { if (s.groupId === selectedGroupId) { s.position.x += modelDx; s.position.y += modelDy; } });
+	                            draggedItemForSnap = selected;
+	                        }
+						} else if (isDraggingGroup) {
+							symbols.forEach(s => { if (s.groupId === selectedGroupId) { s.position.x += modelDx; s.position.y += modelDy; } });
 						linesAndPolylines.forEach(l => { 
 							if (l.groupId === selectedGroupId) { 
 								if(l.vertices) l.vertices.forEach(v => { if(v) { v.x += modelDx; v.y += modelDy; } }); 
@@ -6446,20 +6763,30 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 								if(l.start) { l.start.x += modelDx; l.start.y += modelDy; } 
 								if(l.end) { l.end.x += modelDx; l.end.y += modelDy; } 
 							} 
-						});
-                        const firstSymbolInGroup = symbols.find(s => s.groupId === selectedGroupId);
-                        if(firstSymbolInGroup) draggedItemForSnap = firstSymbolInGroup.position;
+							});
+	                        const firstSymbolInGroup = symbols.find(s => s.groupId === selectedGroupId);
+	                        if(firstSymbolInGroup) draggedItemForSnap = firstSymbolInGroup.position;
+							if (selectedEntity && selectedEntity.position) {
+								const linkedItem = findAutoConnectedItem(selectedEntity);
+								if (linkedItem && linkedItem.position && linkedItem !== selectedEntity) {
+									const sameGroup = selectedEntity.groupId && linkedItem.groupId && selectedEntity.groupId === linkedItem.groupId;
+									if (!sameGroup) {
+										linkedItem.position.x += modelDx;
+										linkedItem.position.y += modelDy;
+									}
+								}
+							}
 
-					} else if (isPanning) {
+						} else if (isPanning) {
 						view.offsetX += screenDx; view.offsetY += screenDy;
                         snapLine = null;
 					}
                     
-                    if (draggedItemForSnap && (!draggedItemForSnap.type || draggedItemForSnap.type !== 'draw-text')) {
-                        updateSnapLine(draggedItemForSnap);
-                    } else if (!isPanning) {
-                        snapLine = null;
-                    }
+	                    if (draggedItemForSnap && (!draggedItemForSnap.type || (draggedItemForSnap.type !== 'draw-text' && canInitiateAutomaticConnection(draggedItemForSnap)))) {
+	                        updateSnapLine(draggedItemForSnap);
+	                    } else if (!isPanning) {
+	                        snapLine = null;
+	                    }
 
 					lastPos = { x: e.clientX, y: e.clientY };
 					draw();
@@ -6524,11 +6851,11 @@ Abierto: CT 77334 Lado CT 79084</textarea>
                             ct.snapConnectionId = permanentSnapLine.id;
                             seccionador.snapConnectionId = permanentSnapLine.id;
                         }
-                    } else if (draggedDrawing) {
-                         const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...tempSnapLine.start }, end: { ...tempSnapLine.end }, color: '#3b82f6', strokeWidth: 1.5, rotation: 0 };
-                        userDrawings.push(permanentSnapLine);
-                        draggedDrawing.snapConnectionId = permanentSnapLine.id;
-                    }
+	                    } else if (draggedDrawing && canInitiateAutomaticConnection(draggedDrawing)) {
+	                         const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...tempSnapLine.start }, end: { ...tempSnapLine.end }, color: '#3b82f6', strokeWidth: 1.5, rotation: 0 };
+	                        userDrawings.push(permanentSnapLine);
+	                        draggedDrawing.snapConnectionId = permanentSnapLine.id;
+	                    }
                 }
 				saveHistoryState();
 			}
@@ -6551,10 +6878,12 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				const dx = marqueeEnd.x - marqueeStart.x, dy = marqueeEnd.y - marqueeStart.y;
 				const wasDragged = (dx * dx + dy * dy) > 25;
 
-				if (!wasDragged && currentTool === 'pan') {
-					const drawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
-					const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
-					const clickedItem = drawing || entity;
+					if (!wasDragged && currentTool === 'pan') {
+						const drawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+						const entity = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
+						const preferEntityOverBackDrawing = drawing && drawing.sendToBack && entity && selectedDrawingId !== drawing.id;
+						const effectiveDrawing = preferEntityOverBackDrawing ? null : drawing;
+						const clickedItem = effectiveDrawing || entity;
 					
 					if (isShiftPressed) {
 						if (clickedItem) {
@@ -6563,10 +6892,10 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 						}
 					} else {
 						multiSelection = [];
-						if (drawing) {
-							selectedDrawingId = drawing.id; selectedEntity = null; selectedGroupId = null;
-							updateInfoPanelForDrawing(drawing);
-						} else if (entity) {
+							if (effectiveDrawing) {
+								selectedDrawingId = effectiveDrawing.id; selectedEntity = null; selectedGroupId = null;
+								updateInfoPanelForDrawing(effectiveDrawing);
+							} else if (entity) {
 							selectedEntity = entity; selectedDrawingId = null; selectedGroupId = null;
 							updateInfoPanel(entity);
 						} else {
@@ -6820,9 +7149,122 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			}
 		});
 
-        // --- Croquis Guardados (LocalStorage) ---
+	        // --- Croquis Guardados (LocalStorage) ---
 
-		function populateSavedSketchesList() {
+			function remapUserDrawingIdsForMerge(incomingDrawings = []) {
+				const idMap = new Map();
+				const cloned = incomingDrawings.map(d => {
+					const copy = structuredClone(d);
+					if (copy.id) {
+						const newId = crypto.randomUUID();
+						idMap.set(copy.id, newId);
+						copy.id = newId;
+					}
+					return copy;
+				});
+
+				cloned.forEach(d => {
+					if (d.associatedSeccionadorId && idMap.has(d.associatedSeccionadorId)) {
+						d.associatedSeccionadorId = idMap.get(d.associatedSeccionadorId);
+					}
+					if (d.associatedCtId && idMap.has(d.associatedCtId)) {
+						d.associatedCtId = idMap.get(d.associatedCtId);
+					}
+					if (d.snapConnectionId && idMap.has(d.snapConnectionId)) {
+						d.snapConnectionId = idMap.get(d.snapConnectionId);
+					}
+				});
+
+				return cloned;
+			}
+
+			function getSketchBounds(sketch) {
+				if (sketch && sketch.extents && Number.isFinite(sketch.extents.minX) && Number.isFinite(sketch.extents.maxX) &&
+					Number.isFinite(sketch.extents.minY) && Number.isFinite(sketch.extents.maxY)) {
+					return { ...sketch.extents };
+				}
+				return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+			}
+
+			function translateSketchData(sketch, dx = 0, dy = 0) {
+				const translated = structuredClone(sketch);
+				(translated.linesAndPolylines || []).forEach(line => {
+					if (line.start) { line.start.x += dx; line.start.y += dy; }
+					if (line.end) { line.end.x += dx; line.end.y += dy; }
+					if (line.vertices) line.vertices.forEach(v => { if (v) { v.x += dx; v.y += dy; } });
+				});
+				(translated.symbols || []).forEach(symbol => {
+					if (symbol.position) { symbol.position.x += dx; symbol.position.y += dy; }
+				});
+				(translated.userDrawings || []).forEach(d => {
+					if (d.start) { d.start.x += dx; d.start.y += dy; }
+					if (d.end) { d.end.x += dx; d.end.y += dy; }
+				});
+				if (translated.extents) {
+					translated.extents.minX += dx; translated.extents.maxX += dx;
+					translated.extents.minY += dy; translated.extents.maxY += dy;
+				}
+				if (translated.originalExtents) {
+					translated.originalExtents.minX += dx; translated.originalExtents.maxX += dx;
+					translated.originalExtents.minY += dy; translated.originalExtents.maxY += dy;
+				}
+				return translated;
+			}
+
+			function loadSketchData(sketch, mode = 'new') {
+				if (!sketch) return;
+				saveHistoryState();
+
+				if (mode === 'same') {
+					const sketchBounds = getSketchBounds(sketch);
+					const sketchCenter = {
+						x: (sketchBounds.minX + sketchBounds.maxX) / 2,
+						y: (sketchBounds.minY + sketchBounds.maxY) / 2
+					};
+					const viewCenter = screenToModel(dxfCanvas.width / 2, dxfCanvas.height / 2);
+					const dx = viewCenter.x - sketchCenter.x;
+					const dy = viewCenter.y - sketchCenter.y;
+					const translatedSketch = translateSketchData(sketch, dx, dy);
+
+					const loadedLines = translatedSketch.linesAndPolylines || [];
+					const loadedSymbols = translatedSketch.symbols || [];
+					const loadedUserDrawings = remapUserDrawingIdsForMerge(translatedSketch.userDrawings || []);
+
+					linesAndPolylines = [...linesAndPolylines, ...loadedLines];
+					symbols = [...symbols, ...loadedSymbols];
+					userDrawings = [...userDrawings, ...loadedUserDrawings];
+
+					multiSelection = [...loadedLines, ...loadedSymbols, ...loadedUserDrawings].filter(Boolean);
+					selectedDrawingId = null;
+					selectedEntity = null;
+					selectedGroupId = null;
+					updateInfoPanel(null);
+					updateInfoPanelForDrawing(null);
+					deleteBtn.disabled = multiSelection.length === 0;
+
+					originalExtents = null;
+					resetViewBtn.classList.add('hidden');
+				} else {
+					linesAndPolylines = sketch.linesAndPolylines || [];
+					symbols = sketch.symbols || [];
+					userDrawings = sketch.userDrawings || [];
+					extents = sketch.extents;
+					originalExtents = sketch.originalExtents || null;
+					if (originalExtents) {
+						resetViewBtn.classList.remove('hidden');
+					} else {
+						resetViewBtn.classList.add('hidden');
+					}
+					fitViewToExtents();
+				}
+
+				document.getElementById('initial-message').classList.add('hidden');
+				dxfCanvas.classList.remove('hidden');
+				resizeCanvas();
+				draw();
+			}
+
+			function populateSavedSketchesList() {
 			const sketches = JSON.parse(localStorage.getItem('savedSketches') || '[]');
 			savedSketchesList.innerHTML = '';
 
@@ -6895,30 +7337,15 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			const sketches = JSON.parse(localStorage.getItem('savedSketches') || '[]');
 			const sketch = sketches[index];
 
-			if (!sketch) return;
+				if (!sketch) return;
 
-			if (target.classList.contains('load-sketch')) {
-				linesAndPolylines = sketch.linesAndPolylines || [];
-				symbols = sketch.symbols || [];
-				userDrawings = sketch.userDrawings || [];
-				extents = sketch.extents;
-				originalExtents = sketch.originalExtents || null;
-				
-				if (originalExtents) {
-					resetViewBtn.classList.remove('hidden');
-				} else {
-					resetViewBtn.classList.add('hidden');
-				}
-
-				document.getElementById('initial-message').classList.add('hidden');
-				dxfCanvas.classList.remove('hidden');
-
-				fitViewToExtents();
-				resizeCanvas();
-				saveHistoryState();
-				
-				savedSketchesMenu.classList.add('hidden');
-			} else if (target.classList.contains('delete-sketch')) {
+				if (target.classList.contains('load-sketch')) {
+					savedSketchesMenu.classList.add('hidden');
+					showSketchLoadChoice(
+						() => loadSketchData(sketch, 'same'),
+						() => loadSketchData(sketch, 'new')
+					);
+				} else if (target.classList.contains('delete-sketch')) {
 				showConfirm(`¿Estás seguro de que quieres eliminar "${sketch.name}"?`, () => {
 					sketches.splice(index, 1);
 					localStorage.setItem('savedSketches', JSON.stringify(sketches));
@@ -7628,6 +8055,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 			ctPickerModal.classList.remove('flex');
 			delete ctPickerModal.dataset.editingDrawingId;
             delete ctPickerModal.dataset.bulkChange;
+			editingCtEntity = null;
 		});
 		drawMundoInternoBtn.addEventListener('click', () => {
 			setActiveTool(null);
@@ -7643,6 +8071,7 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 	closeSeccionadorPickerBtn.addEventListener('click', () => {
 		seccionadorPickerModal.classList.add('hidden');
 		seccionadorPickerModal.classList.remove('flex');
+		editingSeccionadorEntity = null;
 	});
 
 	ctSymbolGrid.addEventListener('click', (e) => {
@@ -7679,6 +8108,12 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 				// Clean up
 				delete ctPickerModal.dataset.editingDrawingId;
 
+			} else if (editingCtEntity) {
+				saveHistoryState();
+				editingCtEntity.ctIconType = newIconType;
+				draw();
+				editingCtEntity = null;
+
 			} else {
 				// Original behavior: set the type for the next drawing
 				activeCtIconType = newIconType;
@@ -7702,16 +8137,24 @@ Abierto: CT 77334 Lado CT 79084</textarea>
 		}
 	});
 
-	seccionadorSymbolGrid.addEventListener('click', (e) => {
-		const selectedSymbolDiv = e.target.closest('[data-icon-type]');
-		if (selectedSymbolDiv) {
-			activeSeccionadorIconType = selectedSymbolDiv.dataset.iconType;
-			currentTool = 'draw-seccionador';
-			setActiveTool(drawSeccionadorBtn);
-			seccionadorPickerModal.classList.add('hidden');
-			seccionadorPickerModal.classList.remove('flex');
-		}
-	});
+		seccionadorSymbolGrid.addEventListener('click', (e) => {
+			const selectedSymbolDiv = e.target.closest('[data-icon-type]');
+			if (selectedSymbolDiv) {
+				const newIconType = selectedSymbolDiv.dataset.iconType;
+				if (editingSeccionadorEntity) {
+					saveHistoryState();
+					editingSeccionadorEntity.symbolStyle = newIconType;
+					draw();
+					editingSeccionadorEntity = null;
+				} else {
+					activeSeccionadorIconType = newIconType;
+					currentTool = 'draw-seccionador';
+					setActiveTool(drawSeccionadorBtn);
+				}
+				seccionadorPickerModal.classList.add('hidden');
+				seccionadorPickerModal.classList.remove('flex');
+			}
+		});
 
 	drawSeccionadorBtn.addEventListener('click', (e) => {
 		setActiveTool(e.currentTarget);
