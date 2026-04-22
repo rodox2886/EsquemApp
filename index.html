@@ -1552,8 +1552,15 @@
             if (!draggedItemCenter) return;
 
 
-            let closestSnap = { point: null, distance: Infinity, segmentStart: null };
-            const allLines = [...linesAndPolylines, ...userDrawings.filter(d => d.type.includes('line'))];
+	            let closestSnap = { point: null, distance: Infinity, segmentStart: null };
+	            const allLines = [
+	            	...linesAndPolylines,
+	            	...userDrawings.filter(d =>
+	            		d.type.includes('line') ||
+	            		d.type === 'draw-rect' ||
+	            		d.type === 'draw-ellipse'
+	            	)
+	            ];
 
             allLines.forEach(line => {
                 if (line === draggedItem) return; // Don't snap to self if it's a line
@@ -1564,7 +1571,7 @@
                             closestSnap = { point, distance, segmentStart: line.start };
                         }
                     }
-                } else if ((line.type === 'LWPOLYLINE' || line.type === 'POLYLINE') && line.vertices) {
+	                } else if ((line.type === 'LWPOLYLINE' || line.type === 'POLYLINE') && line.vertices) {
                     for (let i = 0; i < line.vertices.length - 1; i++) {
                         const p1 = line.vertices[i];
                         const p2 = line.vertices[i+1];
@@ -1584,9 +1591,44 @@
                                 closestSnap = { point, distance, segmentStart: p1 };
                             }
                         }
-                    }
-                }
-            });
+	                    }
+	                } else if (line.type === 'draw-rect' && line.start && line.end) {
+	                	const minX = Math.min(line.start.x, line.end.x);
+	                	const maxX = Math.max(line.start.x, line.end.x);
+	                	const minY = Math.min(line.start.y, line.end.y);
+	                	const maxY = Math.max(line.start.y, line.end.y);
+	                	const rectEdges = [
+	                		[{ x: minX, y: minY }, { x: maxX, y: minY }],
+	                		[{ x: maxX, y: minY }, { x: maxX, y: maxY }],
+	                		[{ x: maxX, y: maxY }, { x: minX, y: maxY }],
+	                		[{ x: minX, y: maxY }, { x: minX, y: minY }]
+	                	];
+	                	rectEdges.forEach(([a, b]) => {
+	                		const { point, distance } = findClosestPointOnSegment(draggedItemCenter, a, b);
+	                		if (distance < closestSnap.distance) {
+	                			closestSnap = { point, distance, segmentStart: a };
+	                		}
+	                	});
+	                } else if (line.type === 'draw-ellipse' && line.start && line.end) {
+	                	const cx = (line.start.x + line.end.x) / 2;
+	                	const cy = (line.start.y + line.end.y) / 2;
+	                	const rx = Math.abs(line.end.x - line.start.x) / 2;
+	                	const ry = Math.abs(line.end.y - line.start.y) / 2;
+	                	if (rx > 0 && ry > 0) {
+	                		const dx = draggedItemCenter.x - cx;
+	                		const dy = draggedItemCenter.y - cy;
+	                		let angle = Math.atan2(dy * rx, dx * ry);
+	                		if (!Number.isFinite(angle)) angle = 0;
+	                		const point = { x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
+	                		const ddx = draggedItemCenter.x - point.x;
+	                		const ddy = draggedItemCenter.y - point.y;
+	                		const distance = Math.sqrt(ddx * ddx + ddy * ddy);
+	                		if (distance < closestSnap.distance) {
+	                			closestSnap = { point, distance, segmentStart: point };
+	                		}
+	                	}
+	                }
+	            });
 
             if (closestSnap.distance < SNAP_DISTANCE) {
                 let snapEndPoint = draggedItemCenter; // Default endpoint is the center
