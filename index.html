@@ -4784,11 +4784,12 @@
             return null;
         }
 
-		function getDrawingAtScreenPos(screenX, screenY) {
-			for (let i = userDrawings.length - 1; i >= 0; i--) {
-				const d = userDrawings[i];
-				const bbox = getEntityBBox(d, false); // Screen coords
-				if (!bbox) continue;
+			function getDrawingAtScreenPos(screenX, screenY) {
+				for (let i = userDrawings.length - 1; i >= 0; i--) {
+					const d = userDrawings[i];
+					if (d.sendToBack) continue;
+					const bbox = getEntityBBox(d, false); // Screen coords
+					if (!bbox) continue;
 				const inflate = 5; // Make selection easier
 				
 				if(d.type.includes('line')) {
@@ -4862,27 +4863,32 @@
 	                contentHtml += `<hr class="my-4">`;
 	            }
 
-			// Color Picker
-			contentHtml += `<div>
+				// Color Picker
+				contentHtml += `<div>
 								<label for="drawing-color" class="font-semibold text-gray-600 block mb-1">Color</label>
 								<select id="drawing-color" class="w-full h-9 border rounded px-2 text-sm text-gray-700 bg-white">
 									${getFixedColorOptionsHtml(drawing.color || DEFAULT_DRAW_COLOR)}
 								</select>
 							</div>`;
 
-			if (drawing.type === 'draw-rect' || drawing.type === 'draw-ellipse') {
-                contentHtml += `
-					<div class="mt-2">
+				if (drawing.type === 'draw-rect' || drawing.type === 'draw-ellipse') {
+	                contentHtml += `
+						<div class="mt-2">
 						<label for="drawing-fill-toggle" class="flex items-center justify-between cursor-pointer">
 							<span class="font-semibold text-gray-600">Relleno de color</span>
 							<div class="relative inline-flex items-center cursor-pointer">
 								<input type="checkbox" id="drawing-fill-toggle" class="sr-only peer" ${drawing.isFilled !== false ? 'checked' : ''}>
 								<div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
 							</div>
-						</label>
-					</div>
-                `;
-            }
+							</label>
+						</div>
+	                `;
+					contentHtml += `
+						<div class="mt-3">
+							<button id="send-shape-back-btn" class="w-full px-3 py-2 text-sm rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors font-semibold">Enviar atrás (no bloquear selección)</button>
+						</div>
+					`;
+	            }
 
 			// Size/Width controls
 			if (drawing.type.includes('line') || drawing.type === 'draw-ground') {
@@ -5074,7 +5080,7 @@
 				rotationInput.addEventListener('change', () => saveHistoryState());
 			}
 
-            const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
+	            const toggleDrawingLineStyleBtn = document.getElementById('toggle-drawing-line-style-btn');
             if (toggleDrawingLineStyleBtn) {
                 toggleDrawingLineStyleBtn.addEventListener('click', () => {
                     saveHistoryState();
@@ -5082,7 +5088,18 @@
                         drawing.type = 'draw-dashed-line';
                     } else {
                         drawing.type = 'draw-line';
-                    }
+	            }
+			const sendShapeBackBtn = document.getElementById('send-shape-back-btn');
+			if (sendShapeBackBtn) {
+				sendShapeBackBtn.addEventListener('click', () => {
+					saveHistoryState();
+					drawing.sendToBack = true;
+					userDrawings = userDrawings.filter(d => d.id !== drawing.id);
+					userDrawings.unshift(drawing);
+					draw();
+					updateInfoPanelForDrawing(drawing);
+				});
+			}
                     updateInfoPanelForDrawing(drawing); // Refresh panel to update button text
                     draw();
                 });
