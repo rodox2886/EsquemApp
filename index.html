@@ -5372,6 +5372,11 @@
 				return userDrawings.find(d => d.id === symbolId) || symbols.find(s => s.id === symbolId) || null;
 			}
 
+			function canInitiateAutomaticConnection(item) {
+				if (!item || !item.type) return false;
+				return item.type === 'draw-ct' || item.type === 'draw-seccionador' || item.type === 'draw-ground';
+			}
+
 			function findAutoConnectedItem(item) {
 				if (!item) return null;
 				if (item.associatedSeccionadorId) return findSymbolByIdInProject(item.associatedSeccionadorId);
@@ -6710,11 +6715,11 @@
                         snapLine = null;
 					}
                     
-                    if (draggedItemForSnap && (!draggedItemForSnap.type || draggedItemForSnap.type !== 'draw-text')) {
-                        updateSnapLine(draggedItemForSnap);
-                    } else if (!isPanning) {
-                        snapLine = null;
-                    }
+	                    if (draggedItemForSnap && (!draggedItemForSnap.type || (draggedItemForSnap.type !== 'draw-text' && canInitiateAutomaticConnection(draggedItemForSnap)))) {
+	                        updateSnapLine(draggedItemForSnap);
+	                    } else if (!isPanning) {
+	                        snapLine = null;
+	                    }
 
 					lastPos = { x: e.clientX, y: e.clientY };
 					draw();
@@ -6779,11 +6784,11 @@
                             ct.snapConnectionId = permanentSnapLine.id;
                             seccionador.snapConnectionId = permanentSnapLine.id;
                         }
-                    } else if (draggedDrawing) {
-                         const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...tempSnapLine.start }, end: { ...tempSnapLine.end }, color: '#3b82f6', strokeWidth: 1.5, rotation: 0 };
-                        userDrawings.push(permanentSnapLine);
-                        draggedDrawing.snapConnectionId = permanentSnapLine.id;
-                    }
+	                    } else if (draggedDrawing && canInitiateAutomaticConnection(draggedDrawing)) {
+	                         const permanentSnapLine = { id: crypto.randomUUID(), type: 'draw-line', start: { ...tempSnapLine.start }, end: { ...tempSnapLine.end }, color: '#3b82f6', strokeWidth: 1.5, rotation: 0 };
+	                        userDrawings.push(permanentSnapLine);
+	                        draggedDrawing.snapConnectionId = permanentSnapLine.id;
+	                    }
                 }
 				saveHistoryState();
 			}
