@@ -5404,6 +5404,28 @@
 				if (!item) return false;
 				let detached = false;
 				const inferredLinkedItem = findAutoConnectedItem(item);
+				if (item.snapConnectionId) {
+					const snapLineId = item.snapConnectionId;
+					userDrawings = userDrawings.filter(d => d.id !== snapLineId);
+					userDrawings.forEach(d => {
+						if (d.snapConnectionId === snapLineId) {
+							delete d.snapConnectionId;
+						}
+					});
+					delete item.snapConnectionId;
+					detached = true;
+				}
+				if (!detached && inferredLinkedItem && inferredLinkedItem.snapConnectionId) {
+					const snapLineId = inferredLinkedItem.snapConnectionId;
+					userDrawings = userDrawings.filter(d => d.id !== snapLineId);
+					userDrawings.forEach(d => {
+						if (d.snapConnectionId === snapLineId) {
+							delete d.snapConnectionId;
+						}
+					});
+					delete inferredLinkedItem.snapConnectionId;
+					detached = true;
+				}
 				if (item.associatedSeccionadorId) {
 					const relatedSeccionador = findSymbolByIdInProject(item.associatedSeccionadorId);
 					if (relatedSeccionador) delete relatedSeccionador.associatedCtId;
