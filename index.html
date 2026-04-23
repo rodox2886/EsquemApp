@@ -1520,6 +1520,80 @@
             return { point: closestPoint, distance: distance };
         }
 
+		function getAllLineSegments(excludedDrawingId = null) {
+			const segments = [];
+			linesAndPolylines.forEach(ent => {
+				if (ent.type === 'LINE' && ent.start && ent.end) {
+					segments.push({ a: ent.start, b: ent.end });
+				} else if ((ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') && ent.vertices && ent.vertices.length > 1) {
+					for (let i = 0; i < ent.vertices.length - 1; i++) {
+						const a = ent.vertices[i];
+						const b = ent.vertices[i + 1];
+						if (a && b) segments.push({ a, b });
+					}
+					if (ent.closed && ent.vertices[0] && ent.vertices[ent.vertices.length - 1]) {
+						segments.push({ a: ent.vertices[ent.vertices.length - 1], b: ent.vertices[0] });
+					}
+				}
+			});
+
+			userDrawings.forEach(d => {
+				if (d.id === excludedDrawingId) return;
+				if ((d.type === 'draw-line' || d.type === 'draw-dashed-line') && d.start && d.end) {
+					segments.push({ a: d.start, b: d.end });
+				}
+			});
+			return segments;
+		}
+
+		function segmentIntersectionPoint(a, b, c, d) {
+			const cross = (u, v) => u.x * v.y - u.y * v.x;
+			const r = { x: b.x - a.x, y: b.y - a.y };
+			const s = { x: d.x - c.x, y: d.y - c.y };
+			const denom = cross(r, s);
+			if (Math.abs(denom) < 1e-9) return null;
+			const ca = { x: c.x - a.x, y: c.y - a.y };
+			const t = cross(ca, s) / denom;
+			const u = cross(ca, r) / denom;
+			if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+			return { x: a.x + t * r.x, y: a.y + t * r.y };
+		}
+
+		function trySnapLineEndToNearbyLine(lineDrawing) {
+			if (!lineDrawing || !lineDrawing.start || !lineDrawing.end) return;
+			const radiusModel = 10 / Math.max(view.scale, 0.0001);
+			const segments = getAllLineSegments(lineDrawing.id);
+			let bestPoint = null;
+			let bestDistance = Infinity;
+
+			segments.forEach(({ a, b }) => {
+				[a, b].forEach(candidate => {
+					const dx = lineDrawing.end.x - candidate.x;
+					const dy = lineDrawing.end.y - candidate.y;
+					const distance = Math.sqrt(dx * dx + dy * dy);
+					if (distance < bestDistance) {
+						bestDistance = distance;
+						bestPoint = candidate;
+					}
+				});
+			});
+
+			if (!bestPoint || bestDistance > radiusModel) return;
+
+			const proposedEnd = { x: bestPoint.x, y: bestPoint.y };
+			const proximityEpsilon = 1e-4;
+			const intersectsMidSegment = segments.some(({ a, b }) => {
+				const hit = segmentIntersectionPoint(lineDrawing.start, proposedEnd, a, b);
+				if (!hit) return false;
+				const distToStart = Math.hypot(hit.x - lineDrawing.start.x, hit.y - lineDrawing.start.y);
+				const distToEnd = Math.hypot(hit.x - proposedEnd.x, hit.y - proposedEnd.y);
+				return distToStart > proximityEpsilon && distToEnd > proximityEpsilon;
+			});
+			if (intersectsMidSegment) return;
+
+			lineDrawing.end = proposedEnd;
+		}
+
         function updateSnapLine(draggedItem) { // Can be a point or a drawing object
             // Evitar que el símbolo de flecha se conecte automáticamente
             if (draggedItem.id && draggedItem.type === 'draw-mundo-interno' && draggedItem.symbolStyle === 'arrow') {
@@ -6880,6 +6954,7 @@
 						const angle = Math.atan2(dy, dx) * 180 / Math.PI, snappedAngle = Math.round(angle / 45) * 45;
 						const snappedRad = snappedAngle * Math.PI / 180, dist = Math.sqrt(dx * dx + dy * dy);
 						activeDrawing.end = { x: start.x + dist * Math.cos(snappedRad), y: start.y + dist * Math.sin(snappedRad) };
+						trySnapLineEndToNearbyLine(activeDrawing);
 					}
 				} else {
 					activeDrawing.end = currentModelPos;
@@ -7142,6 +7217,9 @@
 				const end = activeDrawing.end;
 				const isClick = Math.abs(start.x - end.x) < 0.1 && Math.abs(start.y - end.y) < 0.1;
 				if (!isClick) {
+					if (activeDrawing.type === 'draw-line' || activeDrawing.type === 'draw-dashed-line') {
+						trySnapLineEndToNearbyLine(activeDrawing);
+					}
 					if (activeDrawing.type === 'draw-rect' || activeDrawing.type === 'draw-ellipse') {
 						const minX = Math.min(start.x, end.x), maxX = Math.max(start.x, end.x);
 						const minY = Math.min(start.y, end.y), maxY = Math.max(start.y, end.y);
