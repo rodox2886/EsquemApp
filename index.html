@@ -5372,8 +5372,9 @@
 					drawing.sendToBack = true;
 					userDrawings = userDrawings.filter(d => d.id !== drawing.id);
 					userDrawings.unshift(drawing);
+					selectedDrawingId = null;
 					draw();
-					updateInfoPanelForDrawing(drawing);
+					updateInfoPanelForDrawing(null);
 				});
 			}
 
