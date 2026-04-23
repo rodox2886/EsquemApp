@@ -5221,13 +5221,14 @@
 			}
 
 				const changeSymbolBtn = document.getElementById('change-seccionador-symbol-btn');
-				if (changeSymbolBtn) {
-					changeSymbolBtn.addEventListener('click', () => {
-						editingSeccionadorEntity = drawing;
-						seccionadorPickerModal.classList.remove('hidden');
-						seccionadorPickerModal.classList.add('flex');
-					});
-				}
+					if (changeSymbolBtn) {
+						changeSymbolBtn.addEventListener('click', () => {
+							editingSeccionadorEntity = drawing;
+							seccionadorPickerModal.dataset.editMode = 'true';
+							seccionadorPickerModal.classList.remove('hidden');
+							seccionadorPickerModal.classList.add('flex');
+						});
+					}
 			const changeMundoInternoSymbolBtn = document.getElementById('change-mundo-interno-symbol-btn');
 			if (changeMundoInternoSymbolBtn) {
 				changeMundoInternoSymbolBtn.addEventListener('click', () => {
@@ -5450,14 +5451,15 @@
 							}
 						});
 					}
-					if (changeSeccionadorIconBtn) {
-						changeSeccionadorIconBtn.addEventListener('click', () => {
-							if (selectedEntity && selectedEntity.symbolType === 'seccionador') {
-								editingSeccionadorEntity = selectedEntity;
-								seccionadorPickerModal.classList.remove('hidden');
-								seccionadorPickerModal.classList.add('flex');
-							}
-						});
+						if (changeSeccionadorIconBtn) {
+							changeSeccionadorIconBtn.addEventListener('click', () => {
+								if (selectedEntity && selectedEntity.symbolType === 'seccionador') {
+									editingSeccionadorEntity = selectedEntity;
+									seccionadorPickerModal.dataset.editMode = 'true';
+									seccionadorPickerModal.classList.remove('hidden');
+									seccionadorPickerModal.classList.add('flex');
+								}
+							});
 						}
 					}
 					const detachEntityAutoConnectionBtn = document.getElementById('detach-entity-auto-connection-btn');
@@ -8143,6 +8145,7 @@
 	closeSeccionadorPickerBtn.addEventListener('click', () => {
 		seccionadorPickerModal.classList.add('hidden');
 		seccionadorPickerModal.classList.remove('flex');
+		delete seccionadorPickerModal.dataset.editMode;
 		editingSeccionadorEntity = null;
 	});
 
@@ -8213,20 +8216,28 @@
 			const selectedSymbolDiv = e.target.closest('[data-icon-type]');
 			if (selectedSymbolDiv) {
 				const newIconType = selectedSymbolDiv.dataset.iconType;
-					if (editingSeccionadorEntity) {
-						saveHistoryState();
-						editingSeccionadorEntity.symbolStyle = newIconType;
-						const mappedConnection = mapSeccionadorStyleToConnection(newIconType);
-						if (mappedConnection) {
-							editingSeccionadorEntity.connection = mappedConnection;
+					const isEditMode = seccionadorPickerModal.dataset.editMode === 'true';
+					if (editingSeccionadorEntity || isEditMode) {
+						const targetEntity = editingSeccionadorEntity
+							|| (selectedEntity && selectedEntity.symbolType === 'seccionador' ? selectedEntity : null)
+							|| userDrawings.find(d => d.id === selectedDrawingId && d.type === 'draw-seccionador');
+						if (targetEntity) {
+							saveHistoryState();
+							targetEntity.symbolStyle = newIconType;
+							const mappedConnection = mapSeccionadorStyleToConnection(newIconType);
+							if (mappedConnection) {
+								targetEntity.connection = mappedConnection;
+							}
+							draw();
 						}
-						draw();
+						setActiveTool(null);
+						delete seccionadorPickerModal.dataset.editMode;
 						editingSeccionadorEntity = null;
 					} else {
-					activeSeccionadorIconType = newIconType;
-					currentTool = 'draw-seccionador';
-					setActiveTool(drawSeccionadorBtn);
-				}
+						activeSeccionadorIconType = newIconType;
+						currentTool = 'draw-seccionador';
+						setActiveTool(drawSeccionadorBtn);
+					}
 				seccionadorPickerModal.classList.add('hidden');
 				seccionadorPickerModal.classList.remove('flex');
 			}
