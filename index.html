@@ -7529,21 +7529,11 @@
                     return;
                 }
 
-                const hasExistingSketch = symbols.length > 0 || linesAndPolylines.length > 0 || userDrawings.length > 0;
-
-                if (hasExistingSketch) {
-                    showDualConfirm(
-                        '¿Cómo deseas cargar el croquis?',
-                        'Reemplazar dibujo',
-                        'Agregar al actual',
-                        () => replaceSketchWith(data),
-                        () => appendSketch(data),
-                        () => {}
-                    );
-                } else {
-                    replaceSketchWith(data);
-                }
-            };
+					showSketchLoadChoice(
+						() => loadSketchData(data, 'same'),
+						() => loadSketchData(data, 'new')
+					);
+	            };
 
             reader.readAsText(file);
             e.target.value = '';
@@ -7557,8 +7547,8 @@
 			}
             const reader = new FileReader();
 
-			const loadDxfAction = () => {
-				reader.onload = function(evt) {
+				const loadDxfAction = (loadMode = 'new') => {
+					reader.onload = function(evt) {
 					const text = evt.target.result;
 					blockDescMap = parseBlockDescriptions(text);
 					const parser = new window.DxfParser();
@@ -7570,7 +7560,7 @@
 						return;
 					}
 					
-					const isAdding = symbols.length > 0 || linesAndPolylines.length > 0;
+						const isAdding = loadMode === 'same';
 					let offsetX = 0;
 
 					if (isAdding) {
@@ -7797,10 +7787,13 @@
 				event.target.value = '';
 			};
             
-			if (file) {
-                loadDxfAction();
-            }
-        });
+				if (file) {
+					showSketchLoadChoice(
+						() => loadDxfAction('same'),
+						() => loadDxfAction('new')
+					);
+	            }
+	        });
 
         homeBtn.addEventListener('click', function() {
             const initialMessage = document.getElementById('initial-message');
