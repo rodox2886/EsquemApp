@@ -3787,6 +3787,7 @@
             const symbolStrokeColor = ent.color || SYMBOL_STROKE_COLOR;
             dxfCtx.strokeStyle = symbolStrokeColor;
             dxfCtx.lineWidth = 1.5;
+            const symbolRotationRad = (ent.rotation || 0) * Math.PI / 180;
             const effectiveSeccionadorStyle = ent.symbolType === 'seccionador'
                 ? (ent.symbolStyle || mapSeccionadorConnectionToStyle(ent.connection))
                 : null;
@@ -3805,95 +3806,115 @@
             } else if (ent.symbolType === 'seccionador' && effectiveSeccionadorStyle === 'punto-verde') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
+                dxfCtx.save();
+                dxfCtx.translate(pos.x, pos.y);
+                dxfCtx.rotate(symbolRotationRad);
                 if (ent.isOpen) {
                     dxfCtx.fillStyle = '#ffffff';
                     dxfCtx.beginPath();
-                    dxfCtx.moveTo(pos.x, pos.y - size);
-                    dxfCtx.lineTo(pos.x + size, pos.y);
-                    dxfCtx.lineTo(pos.x, pos.y + size);
-                    dxfCtx.lineTo(pos.x - size, pos.y);
+                    dxfCtx.moveTo(0, -size);
+                    dxfCtx.lineTo(size, 0);
+                    dxfCtx.lineTo(0, size);
+                    dxfCtx.lineTo(-size, 0);
                     dxfCtx.closePath();
                     dxfCtx.fill();
                     dxfCtx.stroke();
                 } else {
                     dxfCtx.fillStyle = symbolStrokeColor;
                     dxfCtx.beginPath();
-                    dxfCtx.moveTo(pos.x, pos.y - size);
-                    dxfCtx.lineTo(pos.x + size, pos.y);
-                    dxfCtx.lineTo(pos.x, pos.y + size);
-                    dxfCtx.lineTo(pos.x - size, pos.y);
+                    dxfCtx.moveTo(0, -size);
+                    dxfCtx.lineTo(size, 0);
+                    dxfCtx.lineTo(0, size);
+                    dxfCtx.lineTo(-size, 0);
                     dxfCtx.closePath();
                     dxfCtx.fill();
                     dxfCtx.fillStyle = '#4ade80';
                     dxfCtx.beginPath();
-                    dxfCtx.arc(pos.x, pos.y, size * 0.225, 0, 2 * Math.PI);
+                    dxfCtx.arc(0, 0, size * 0.225, 0, 2 * Math.PI);
                     dxfCtx.fill();
                 }
+                dxfCtx.restore();
             } else if (ent.symbolType === 'seccionador' && effectiveSeccionadorStyle === 'circulo-punto-verde') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
+                dxfCtx.save();
+                dxfCtx.translate(pos.x, pos.y);
+                dxfCtx.rotate(symbolRotationRad);
                 if (ent.isOpen) {
                     dxfCtx.fillStyle = '#ffffff';
                     dxfCtx.beginPath();
-                    dxfCtx.arc(pos.x, pos.y, size * 0.8, 0, 2 * Math.PI);
+                    dxfCtx.arc(0, 0, size * 0.8, 0, 2 * Math.PI);
                     dxfCtx.fill();
                     dxfCtx.stroke();
                 } else {
                     dxfCtx.fillStyle = '#1f2937';
                     dxfCtx.beginPath();
-                    dxfCtx.arc(pos.x, pos.y, size * 0.8, 0, 2 * Math.PI);
+                    dxfCtx.arc(0, 0, size * 0.8, 0, 2 * Math.PI);
                     dxfCtx.fill();
                     dxfCtx.stroke();
                     dxfCtx.fillStyle = '#4ade80';
                     dxfCtx.beginPath();
-                    dxfCtx.arc(pos.x, pos.y, size * 0.225, 0, 2 * Math.PI);
+                    dxfCtx.arc(0, 0, size * 0.225, 0, 2 * Math.PI);
                     dxfCtx.fill();
                 }
+                dxfCtx.restore();
             } else if (ent.symbolType === 'seccionador' && effectiveSeccionadorStyle === 'capacitor') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
                 const lineLength = size * 0.8;
                 const gap = size * 0.3;
+                dxfCtx.save();
+                dxfCtx.translate(pos.x, pos.y);
+                dxfCtx.rotate(symbolRotationRad);
                 dxfCtx.beginPath();
-                dxfCtx.moveTo(pos.x - gap, pos.y - lineLength);
-                dxfCtx.lineTo(pos.x - gap, pos.y + lineLength);
-                dxfCtx.moveTo(pos.x + gap, pos.y - lineLength);
-                dxfCtx.lineTo(pos.x + gap, pos.y + lineLength);
+                dxfCtx.moveTo(-gap, -lineLength);
+                dxfCtx.lineTo(-gap, lineLength);
+                dxfCtx.moveTo(gap, -lineLength);
+                dxfCtx.lineTo(gap, lineLength);
                 dxfCtx.stroke();
+                dxfCtx.restore();
             } else if (ent.symbolType === 'seccionador' && effectiveSeccionadorStyle === 'rueda') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
                 const radius = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
+                dxfCtx.save();
+                dxfCtx.translate(pos.x, pos.y);
+                dxfCtx.rotate(symbolRotationRad);
                 dxfCtx.beginPath();
-                dxfCtx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
+                dxfCtx.arc(0, 0, radius, 0, 2 * Math.PI);
                 for (let i = 0; i < 4; i++) {
                     const angle = i * Math.PI / 4;
-                    dxfCtx.moveTo(pos.x - radius * Math.cos(angle), pos.y - radius * Math.sin(angle));
-                    dxfCtx.lineTo(pos.x + radius * Math.cos(angle), pos.y + radius * Math.sin(angle));
+                    dxfCtx.moveTo(-radius * Math.cos(angle), -radius * Math.sin(angle));
+                    dxfCtx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
                 }
                 dxfCtx.stroke();
+                dxfCtx.restore();
             } else if (ent.symbolType === 'seccionador' && effectiveSeccionadorStyle === 'secz') {
                 const pos = modelToScreen(ent.position.x, ent.position.y);
                 const size = (SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * Math.max(ent.xScale || 1, ent.yScale || 1)) * view.scale;
                 const triangleHeight = size * 1.5;
                 const triangleWidth = size * 1.8;
+                dxfCtx.save();
+                dxfCtx.translate(pos.x, pos.y);
+                dxfCtx.rotate(symbolRotationRad);
                 dxfCtx.beginPath();
-                dxfCtx.moveTo(pos.x - triangleWidth / 2, pos.y - triangleHeight / 2);
-                dxfCtx.lineTo(pos.x + triangleWidth / 2, pos.y - triangleHeight / 2);
-                dxfCtx.lineTo(pos.x, pos.y);
+                dxfCtx.moveTo(-triangleWidth / 2, -triangleHeight / 2);
+                dxfCtx.lineTo(triangleWidth / 2, -triangleHeight / 2);
+                dxfCtx.lineTo(0, 0);
                 dxfCtx.closePath();
                 dxfCtx.fillStyle = '#1f2937';
                 dxfCtx.fill();
                 dxfCtx.beginPath();
-                dxfCtx.moveTo(pos.x - triangleWidth / 2, pos.y + triangleHeight / 2);
-                dxfCtx.lineTo(pos.x + triangleWidth / 2, pos.y + triangleHeight / 2);
-                dxfCtx.lineTo(pos.x, pos.y);
+                dxfCtx.moveTo(-triangleWidth / 2, triangleHeight / 2);
+                dxfCtx.lineTo(triangleWidth / 2, triangleHeight / 2);
+                dxfCtx.lineTo(0, 0);
                 dxfCtx.closePath();
                 dxfCtx.fillStyle = '#1f2937';
                 dxfCtx.fill();
                 dxfCtx.beginPath();
-                dxfCtx.arc(pos.x, pos.y, size * 0.3, 0, 2 * Math.PI);
+                dxfCtx.arc(0, 0, size * 0.3, 0, 2 * Math.PI);
                 dxfCtx.fillStyle = '#4ade80';
                 dxfCtx.fill();
+                dxfCtx.restore();
             } else if (ent.symbolType === 'seccionador' && ent.connection === 'SECA') {
                 const geometries = blockGeometries[ent.blockName];
                 if (geometries) {
@@ -5438,6 +5459,10 @@
 								<label for="entity-label-scale" class="font-semibold text-gray-600 block mb-1">Tamaño de Etiqueta</label>
 								<input type="range" id="entity-label-scale" min="10" max="400" step="5" value="${(entity.labelScale || 1) * 100}" class="w-full">
 							</div>
+							<div class="mt-3">
+								<label for="entity-rotation" class="font-semibold text-gray-600 block mb-1">Rotación</label>
+								<input type="range" id="entity-rotation" min="0" max="359" step="1" value="${Math.round(((entity.rotation || 0) % 360 + 360) % 360)}" class="w-full">
+							</div>
 						`;
 					}
 					
@@ -5515,6 +5540,19 @@
 						}
 					});
 					labelScaleInput.addEventListener('change', () => {
+						if (selectedEntity) saveHistoryState();
+					});
+				}
+
+				const entityRotationInput = document.getElementById('entity-rotation');
+				if (entityRotationInput) {
+					entityRotationInput.addEventListener('input', (e) => {
+						if (selectedEntity) {
+							selectedEntity.rotation = parseFloat(e.target.value) || 0;
+							draw();
+						}
+					});
+					entityRotationInput.addEventListener('change', () => {
 						if (selectedEntity) saveHistoryState();
 					});
 				}
