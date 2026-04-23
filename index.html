@@ -5220,19 +5220,14 @@
 				});
 			}
 
-			const changeSymbolBtn = document.getElementById('change-seccionador-symbol-btn');
-			if (changeSymbolBtn) {
-				changeSymbolBtn.addEventListener('click', () => {
-					const styles = ['standard', 'punto-verde', 'circulo-punto-verde', 'capacitor', 'rueda'];
-					const currentStyle = drawing.symbolStyle || 'standard';
-					const currentIndex = styles.indexOf(currentStyle);
-					const nextIndex = (currentIndex + 1) % styles.length;
-					
-					saveHistoryState();
-					drawing.symbolStyle = styles[nextIndex];
-					draw();
-				});
-			}
+				const changeSymbolBtn = document.getElementById('change-seccionador-symbol-btn');
+				if (changeSymbolBtn) {
+					changeSymbolBtn.addEventListener('click', () => {
+						editingSeccionadorEntity = drawing;
+						seccionadorPickerModal.classList.remove('hidden');
+						seccionadorPickerModal.classList.add('flex');
+					});
+				}
 			const changeMundoInternoSymbolBtn = document.getElementById('change-mundo-interno-symbol-btn');
 			if (changeMundoInternoSymbolBtn) {
 				changeMundoInternoSymbolBtn.addEventListener('click', () => {
@@ -5507,6 +5502,17 @@
 			function canInitiateAutomaticConnection(item) {
 				if (!item || !item.type) return false;
 				return item.type === 'draw-ct' || item.type === 'draw-seccionador' || item.type === 'draw-ground';
+			}
+
+			function mapSeccionadorStyleToConnection(style) {
+				switch (style) {
+					case 'standard': return 'SECA';
+					case 'punto-verde': return 'SECBC';
+					case 'circulo-punto-verde': return 'SECU';
+					case 'capacitor': return 'SECZ';
+					case 'secz': return 'SECZ';
+					default: return null;
+				}
 			}
 
 			function findAutoConnectedItem(item) {
@@ -8207,12 +8213,16 @@
 			const selectedSymbolDiv = e.target.closest('[data-icon-type]');
 			if (selectedSymbolDiv) {
 				const newIconType = selectedSymbolDiv.dataset.iconType;
-				if (editingSeccionadorEntity) {
-					saveHistoryState();
-					editingSeccionadorEntity.symbolStyle = newIconType;
-					draw();
-					editingSeccionadorEntity = null;
-				} else {
+					if (editingSeccionadorEntity) {
+						saveHistoryState();
+						editingSeccionadorEntity.symbolStyle = newIconType;
+						const mappedConnection = mapSeccionadorStyleToConnection(newIconType);
+						if (mappedConnection) {
+							editingSeccionadorEntity.connection = mappedConnection;
+						}
+						draw();
+						editingSeccionadorEntity = null;
+					} else {
 					activeSeccionadorIconType = newIconType;
 					currentTool = 'draw-seccionador';
 					setActiveTool(drawSeccionadorBtn);
