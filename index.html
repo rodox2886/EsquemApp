@@ -4202,19 +4202,32 @@
 								const end = modelToScreen(d.end.x, d.end.y);
 
 								if (d.type === 'draw-rect') {
+									const width = end.x - start.x;
+									const height = end.y - start.y;
+									const cx = start.x + width / 2;
+									const cy = start.y + height / 2;
+									dxfCtx.save();
+									dxfCtx.translate(cx, cy);
+									dxfCtx.rotate((d.rotation || 0) * Math.PI / 180);
 									dxfCtx.beginPath();
-									dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+									dxfCtx.rect(-width / 2, -height / 2, width, height);
+									if (d.isFilled !== false) dxfCtx.fill();
+									dxfCtx.stroke();
+									dxfCtx.restore();
 								} else {
-									dxfCtx.beginPath();
 									const rx = Math.abs(end.x - start.x) / 2;
 									const ry = Math.abs(end.y - start.y) / 2;
 									const cx = Math.min(start.x, end.x) + rx;
 									const cy = Math.min(start.y, end.y) + ry;
-									drawEllipsePath(dxfCtx, cx, cy, rx, ry);
+									dxfCtx.save();
+									dxfCtx.translate(cx, cy);
+									dxfCtx.rotate((d.rotation || 0) * Math.PI / 180);
+									dxfCtx.beginPath();
+									drawEllipsePath(dxfCtx, 0, 0, rx, ry);
+									if (d.isFilled !== false) dxfCtx.fill();
+									dxfCtx.stroke();
+									dxfCtx.restore();
 								}
-
-								if (d.isFilled !== false) dxfCtx.fill();
-								dxfCtx.stroke();
 								dxfCtx.restore();
 							});
 
@@ -4299,24 +4312,36 @@
 
 				switch(d.type) {
 					case 'draw-rect':
+						const rectWidth = end.x - start.x;
+						const rectHeight = end.y - start.y;
+						const rectCx = start.x + rectWidth / 2;
+						const rectCy = start.y + rectHeight / 2;
+						dxfCtx.save();
+						dxfCtx.translate(rectCx, rectCy);
+						dxfCtx.rotate((d.rotation || 0) * Math.PI / 180);
 						dxfCtx.beginPath();
-						dxfCtx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+						dxfCtx.rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
 						dxfCtx.stroke();
+						dxfCtx.restore();
 						break;
 					case 'draw-ellipse':
-						dxfCtx.beginPath();
 						const rx = Math.abs(end.x - start.x) / 2;
 						const ry = Math.abs(end.y - start.y) / 2;
 						const cx = Math.min(start.x, end.x) + rx;
 						const cy = Math.min(start.y, end.y) + ry;
-						drawEllipsePath(dxfCtx, cx, cy, rx, ry);
+						dxfCtx.save();
+						dxfCtx.translate(cx, cy);
+						dxfCtx.rotate((d.rotation || 0) * Math.PI / 180);
+						dxfCtx.beginPath();
+						drawEllipsePath(dxfCtx, 0, 0, rx, ry);
 						if (d.isFilled !== false) { // Default to filled
 							dxfCtx.fill();
 						}
 						dxfCtx.stroke();
+						dxfCtx.restore();
 						break;
 					case 'draw-line':
 					case 'draw-dashed-line':
@@ -6893,11 +6918,12 @@
 								const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
 								const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
 								const preferEntityOverBackDrawing = drawingUnderCursor && drawingUnderCursor.sendToBack && entityUnderCursor && selectedDrawingId !== drawingUnderCursor.id;
-								const itemUnderCursor = preferEntityOverBackDrawing ? entityUnderCursor : (drawingUnderCursor || entityUnderCursor);
+								const effectiveDrawingUnderCursor = preferEntityOverBackDrawing ? null : drawingUnderCursor;
+								const itemUnderCursor = effectiveDrawingUnderCursor || entityUnderCursor;
 
 							if (itemUnderCursor) {
 								const isAlreadySelected = (multiSelection.length > 0 && multiSelection.includes(itemUnderCursor)) ||
-														(selectedDrawingId && drawingUnderCursor && drawingUnderCursor.id === selectedDrawingId) ||
+														(selectedDrawingId && effectiveDrawingUnderCursor && effectiveDrawingUnderCursor.id === selectedDrawingId) ||
 														(selectedEntity && entityUnderCursor && entityUnderCursor === selectedEntity);
 
 								if (isAlreadySelected) {
@@ -6910,7 +6936,7 @@
 									}
 								} else {
 									// Item is not selected. In manual mode, a drag on any item selects and moves it.
-									if (drawingUnderCursor) {
+									if (effectiveDrawingUnderCursor) {
 										actionToStart = 'dragDrawing';
 									} else { // entityUnderCursor
 										actionToStart = 'dragGroup';
@@ -6922,7 +6948,10 @@
 						if (actionToStart === 'dragMultiSelection') {
 							isDraggingMultiSelection = true;
 						} else if (actionToStart === 'dragDrawing') {
-							const draggedDrawing = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+							const rawDrawingAtCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
+							const entityAtCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
+							const shouldPreferEntity = rawDrawingAtCursor && rawDrawingAtCursor.sendToBack && entityAtCursor && selectedDrawingId !== rawDrawingAtCursor.id;
+							const draggedDrawing = shouldPreferEntity ? null : rawDrawingAtCursor;
 							if (draggedDrawing) {
 								isDraggingDrawing = true;
 								// Al arrastrar un solo elemento, se convierte en la única selección.
