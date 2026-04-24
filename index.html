@@ -915,6 +915,7 @@
 									</button>
 								<div id="compress-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-40">
 									<div class="py-1" role="menu" aria-orientation="vertical">
+										<a href="#" id="compress-selection-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Selección</a>
 										<a href="#" id="compress-all-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Todo</a>
 										<a href="#" id="compress-horizontal-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Horizontal</a>
 										<a href="#" id="compress-vertical-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Vertical</a>
@@ -5848,7 +5849,7 @@
                  *                                 freeze the application.  Passing `true` here prevents
                  *                                 `saveHistoryState()` from being called.
                  */
-                function compressLayout(mode = 'all', skipHistory = false) {
+                function compressLayout(mode = 'all', skipHistory = false, selectionOnly = false) {
             // Only include symbols that have a valid position (DXF) or a start point (user drawing).
             // Some manually created drawings may accidentally have a `symbolType` but no coordinate
             // information; those would cause `pos` to be undefined when computing centroids and
@@ -5856,7 +5857,7 @@
             // If there are any user drawn elements on the canvas, skip compression entirely.
             // Mixing freehand drawings with compression has been shown to cause
             // performance issues.  We notify the user and abort.
-            if (userDrawings.length > 0) {
+            if (!selectionOnly && userDrawings.length > 0) {
                 showConfirm(
                     'No se puede comprimir mientras haya dibujos a mano en el lienzo.\nElimina o guarda los dibujos antes de intentar comprimir.',
                     () => {}
@@ -5870,8 +5871,28 @@
              * prevents unnecessary processing while still allowing the diagram to
              * compress correctly once the manual elements are removed.
              */
-            const allSymbols = [...symbols];
-            const allLines = [...linesAndPolylines];
+            let allSymbols = [...symbols];
+            let allLines = [...linesAndPolylines];
+
+            if (selectionOnly) {
+                const selectedItems = multiSelection.length > 0
+                    ? [...multiSelection]
+                    : (selectedEntity ? [selectedEntity] : []);
+                allSymbols = selectedItems.filter(item =>
+                    item &&
+                    item.symbolType &&
+                    ((item.position && typeof item.position.x === 'number' && typeof item.position.y === 'number') ||
+                    (item.start && typeof item.start.x === 'number' && typeof item.start.y === 'number'))
+                );
+                allLines = selectedItems.filter(item =>
+                    item &&
+                    (item.type === 'LINE' || item.type === 'LWPOLYLINE' || item.type === 'POLYLINE' || item.type === 'draw-line' || item.type === 'draw-dashed-line')
+                );
+                if (allSymbols.length < 2) {
+                    showConfirm('Selecciona al menos dos símbolos de la red para comprimir solo esa zona.', () => {});
+                    return;
+                }
+            }
 
             if (allSymbols.length < 2) return;
 
@@ -6179,6 +6200,11 @@
 			e.preventDefault();
                         // Skip history when compressing; cloning large DXF files can freeze the app
                         compressLayout('all', true);
+			compressMenu.classList.add('hidden');
+		});
+		document.getElementById('compress-selection-btn').addEventListener('click', (e) => {
+			e.preventDefault();
+			compressLayout('all', true, true);
 			compressMenu.classList.add('hidden');
 		});
 		document.getElementById('compress-horizontal-btn').addEventListener('click', (e) => {
