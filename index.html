@@ -915,7 +915,9 @@
 									</button>
 								<div id="compress-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-40">
 									<div class="py-1" role="menu" aria-orientation="vertical">
-										<a href="#" id="compress-selection-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Selección</a>
+										<a href="#" id="compress-selection-all-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Selección (Total)</a>
+										<a href="#" id="compress-selection-horizontal-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Selección (Horizontal)</a>
+										<a href="#" id="compress-selection-vertical-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Selección (Vertical)</a>
 										<a href="#" id="compress-all-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Todo</a>
 										<a href="#" id="compress-horizontal-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Horizontal</a>
 										<a href="#" id="compress-vertical-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Comprimir Vertical</a>
@@ -6202,9 +6204,19 @@
                         compressLayout('all', true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-selection-btn').addEventListener('click', (e) => {
+		document.getElementById('compress-selection-all-btn').addEventListener('click', (e) => {
 			e.preventDefault();
 			compressLayout('all', true, true);
+			compressMenu.classList.add('hidden');
+		});
+		document.getElementById('compress-selection-horizontal-btn').addEventListener('click', (e) => {
+			e.preventDefault();
+			compressLayout('horizontal', true, true);
+			compressMenu.classList.add('hidden');
+		});
+		document.getElementById('compress-selection-vertical-btn').addEventListener('click', (e) => {
+			e.preventDefault();
+			compressLayout('vertical', true, true);
 			compressMenu.classList.add('hidden');
 		});
 		document.getElementById('compress-horizontal-btn').addEventListener('click', (e) => {
