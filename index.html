@@ -5926,52 +5926,63 @@
 			const components = [];
 			const assignedSymbols = new Set();
 
-			// Find all CTs and build components around them
-			const allCts = allSymbols.filter(s => s.symbolType === 'ct');
-			allCts.forEach(ct => {
-				if (assignedSymbols.has(ct)) return;
-
-				const component = {
-					symbols: [ct],
-					centroid: { x: 0, y: 0 }
-				};
-				assignedSymbols.add(ct);
-
-				// Find associated seccionadores (outlets)
-				let outlets = [];
-				// For manually drawn CTs with associated seccionador
-				if (ct.associatedSeccionadorId) {
-					const outlet = allSymbols.find(s => s.id === ct.associatedSeccionadorId);
-					if (outlet) outlets.push(outlet);
-				}
-				// For DXF CTs, check outlets array (populated by proximity on load)
-				if (ct.outlets && ct.outlets.length > 0) {
-					ct.outlets.forEach(outletInfo => {
-						const outlet = allSymbols.find(s => s.label === outletInfo.name);
-						if (outlet && !assignedSymbols.has(outlet)) outlets.push(outlet);
-					});
-				}
-				
-				outlets.forEach(outlet => {
-					 if (!assignedSymbols.has(outlet)) {
-						component.symbols.push(outlet);
-						assignedSymbols.add(outlet);
-					 }
-				});
-				
-				components.push(component);
-			});
-
-			// Any remaining symbols become their own component
-			allSymbols.forEach(s => {
-				if (!assignedSymbols.has(s)) {
+			if (selectionOnly) {
+				// In selection mode, each selected symbol becomes its own component so
+				// horizontal/vertical compression visibly affects the chosen subset.
+				allSymbols.forEach(s => {
 					components.push({
 						symbols: [s],
 						centroid: { x: 0, y: 0 }
 					});
-					assignedSymbols.add(s);
-				}
-			});
+				});
+			} else {
+				// Find all CTs and build components around them
+				const allCts = allSymbols.filter(s => s.symbolType === 'ct');
+				allCts.forEach(ct => {
+					if (assignedSymbols.has(ct)) return;
+
+					const component = {
+						symbols: [ct],
+						centroid: { x: 0, y: 0 }
+					};
+					assignedSymbols.add(ct);
+
+					// Find associated seccionadores (outlets)
+					let outlets = [];
+					// For manually drawn CTs with associated seccionador
+					if (ct.associatedSeccionadorId) {
+						const outlet = allSymbols.find(s => s.id === ct.associatedSeccionadorId);
+						if (outlet) outlets.push(outlet);
+					}
+					// For DXF CTs, check outlets array (populated by proximity on load)
+					if (ct.outlets && ct.outlets.length > 0) {
+						ct.outlets.forEach(outletInfo => {
+							const outlet = allSymbols.find(s => s.label === outletInfo.name);
+							if (outlet && !assignedSymbols.has(outlet)) outlets.push(outlet);
+						});
+					}
+					
+					outlets.forEach(outlet => {
+						 if (!assignedSymbols.has(outlet)) {
+							component.symbols.push(outlet);
+							assignedSymbols.add(outlet);
+						 }
+					});
+					
+					components.push(component);
+				});
+
+				// Any remaining symbols become their own component
+				allSymbols.forEach(s => {
+					if (!assignedSymbols.has(s)) {
+						components.push({
+							symbols: [s],
+							centroid: { x: 0, y: 0 }
+						});
+						assignedSymbols.add(s);
+					}
+				});
+			}
 
 			if (components.length < 2) return; // Not enough separate components to compress
 
