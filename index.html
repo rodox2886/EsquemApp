@@ -2092,6 +2092,17 @@
 			container.appendChild(box);
 		}
 
+		function shouldAskLoadMode() {
+			const initialMessage = document.getElementById('initial-message');
+			const isWelcomeVisible = initialMessage && !initialMessage.classList.contains('hidden');
+			if (isWelcomeVisible) return false;
+			const hasContent =
+				(linesAndPolylines && linesAndPolylines.length > 0) ||
+				(symbols && symbols.length > 0) ||
+				(userDrawings && userDrawings.length > 0);
+			return hasContent;
+		}
+
 		function drawCtIcon(ctx, iconType, pos, size, yOffset, resolutionFactor = 1) {
 			switch (iconType) {
 				case 'plain':
@@ -7731,10 +7742,14 @@
 
 				if (target.classList.contains('load-sketch')) {
 					savedSketchesMenu.classList.add('hidden');
-					showSketchLoadChoice(
-						() => loadSketchData(sketch, 'same'),
-						() => loadSketchData(sketch, 'new')
-					);
+					if (shouldAskLoadMode()) {
+						showSketchLoadChoice(
+							() => loadSketchData(sketch, 'same'),
+							() => loadSketchData(sketch, 'new')
+						);
+					} else {
+						loadSketchData(sketch, 'new');
+					}
 				} else if (target.classList.contains('delete-sketch')) {
 				showConfirm(`¿Estás seguro de que quieres eliminar "${sketch.name}"?`, () => {
 					sketches.splice(index, 1);
@@ -7853,10 +7868,14 @@
                     return;
                 }
 
-					showSketchLoadChoice(
-						() => loadSketchData(data, 'same'),
-						() => loadSketchData(data, 'new')
-					);
+					if (shouldAskLoadMode()) {
+						showSketchLoadChoice(
+							() => loadSketchData(data, 'same'),
+							() => loadSketchData(data, 'new')
+						);
+					} else {
+						loadSketchData(data, 'new');
+					}
 	            };
 
             reader.readAsText(file);
@@ -8113,10 +8132,14 @@
 			};
             
 				if (file) {
-					showSketchLoadChoice(
-						() => loadDxfAction('same'),
-						() => loadDxfAction('new')
-					);
+					if (shouldAskLoadMode()) {
+						showSketchLoadChoice(
+							() => loadDxfAction('same'),
+							() => loadDxfAction('new')
+						);
+					} else {
+						loadDxfAction('new');
+					}
 	            }
 	        });
 
