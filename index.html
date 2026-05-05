@@ -2302,6 +2302,71 @@
 					ctx.closePath();
 					ctx.stroke();
 					break;
+				case 'ct-circle-diagonal':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.95, pos.y + yOffset - size * 0.95);
+					ctx.lineTo(pos.x + size * 0.95, pos.y + yOffset + size * 0.95);
+					ctx.stroke();
+					break;
+				case 'ct-double-circle':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x + size * 0.5, pos.y + yOffset);
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.5, 0, 2 * Math.PI);
+					ctx.stroke();
+					break;
+				case 'ct-double-circle-diagonal':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x + size * 0.5, pos.y + yOffset);
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.5, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.75, pos.y + yOffset - size * 0.75);
+					ctx.lineTo(pos.x + size * 0.75, pos.y + yOffset + size * 0.75);
+					ctx.stroke();
+					break;
+				case 'ct-circle-double-slash':
+					ctx.beginPath();
+					ctx.arc(pos.x, pos.y + yOffset, size * 0.8, 0, 2 * Math.PI);
+					ctx.moveTo(pos.x - size * 0.55, pos.y + yOffset + size * 0.55);
+					ctx.lineTo(pos.x - size * 0.95, pos.y + yOffset + size * 0.95);
+					ctx.moveTo(pos.x - size * 0.35, pos.y + yOffset + size * 0.75);
+					ctx.lineTo(pos.x - size * 0.75, pos.y + yOffset + size * 1.15);
+					ctx.stroke();
+					break;
+				case 'ct-split-coupled': {
+					const leftCx = pos.x - size * 0.45;
+					const rightCx = pos.x + size * 0.45;
+					const r = size * 0.58;
+					ctx.beginPath();
+					ctx.arc(leftCx, pos.y + yOffset, r, Math.PI / 2, Math.PI * 1.5);
+					ctx.arc(rightCx, pos.y + yOffset, r, -Math.PI / 2, Math.PI / 2);
+					ctx.stroke();
+					break;
+				}
+				case 'ct-split-coupled-arrow': {
+					const leftCx = pos.x - size * 0.45;
+					const rightCx = pos.x + size * 0.45;
+					const r = size * 0.58;
+					ctx.beginPath();
+					ctx.arc(leftCx, pos.y + yOffset, r, Math.PI / 2, Math.PI * 1.5);
+					ctx.arc(rightCx, pos.y + yOffset, r, -Math.PI / 2, Math.PI / 2);
+					ctx.moveTo(pos.x - size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.lineTo(pos.x + size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.moveTo(pos.x - size * 0.2, pos.y + yOffset + size * 0.84);
+					ctx.lineTo(pos.x - size * 0.35, pos.y + yOffset + size * 1.0);
+					ctx.lineTo(pos.x - size * 0.2, pos.y + yOffset + size * 1.16);
+					ctx.stroke();
+					break;
+				}
+				case 'ct-provisional-lines':
+					ctx.beginPath();
+					ctx.moveTo(pos.x - size * 0.7, pos.y + yOffset - size * 0.2);
+					ctx.lineTo(pos.x + size * 0.7, pos.y + yOffset - size * 0.2);
+					ctx.moveTo(pos.x - size * 0.7, pos.y + yOffset + size * 0.2);
+					ctx.lineTo(pos.x + size * 0.7, pos.y + yOffset + size * 0.2);
+					ctx.stroke();
+					break;
 				case 'triangle':
 				default:
 					const triangleWidth = size * 1.6;
@@ -5530,6 +5595,7 @@
 				} 
 				// Handle other entities (symbols)
 				else {
+					const hasAutoConnection = !!entity.associatedCtId || !!entity.associatedSeccionadorId;
 					if (entity.symbolType === 'ct' || entity.symbolType === 'seccionador') {
 						 contentHtml += `
 							<div>
@@ -8249,7 +8315,7 @@
 		function populateCtSymbolPicker() {
 			const grid = document.getElementById('ct-symbol-grid');
 			grid.innerHTML = '';
-                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
+                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo', 'ct-circle-diagonal', 'ct-double-circle', 'ct-double-circle-diagonal', 'ct-circle-double-slash', 'ct-split-coupled', 'ct-split-coupled-arrow', 'ct-provisional-lines'];
 
 			const iconNames = {
                 'plain': 'CT Genérico',
@@ -8264,7 +8330,14 @@
                 'circle-rhombus': 'CM Nivel Acc. Vía Pública',
                 'hexagon': 'CT Sumergible',
                 'switch': 'Caja Seccionadora',
-                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública'
+                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública',
+                'ct-circle-diagonal': 'CT círculo con diagonal (C663/C691)',
+                'ct-double-circle': 'CT doble círculo (C665)',
+                'ct-double-circle-diagonal': 'CT doble círculo con diagonal (C666/C683/C684)',
+                'ct-circle-double-slash': 'CT círculo con doble marca (C667/C668/C669)',
+                'ct-split-coupled': 'CT barra MT dividida (C685)',
+                'ct-split-coupled-arrow': 'CT acoplamiento BT (C686)',
+                'ct-provisional-lines': 'UNI CT provisorio (C1458)'
             };
 
 			iconTypes.forEach(type => {
@@ -8697,4 +8770,3 @@
     })();
     </script>
 </body>
-</html>
