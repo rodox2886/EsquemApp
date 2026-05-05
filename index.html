@@ -1002,22 +1002,22 @@
 								</svg>
 							</button>
 							<div class="relative inline-block text-left">
-								<button id="secondary-tools-btn" title="Herramientas secundarias" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
+								<button type="button" id="secondary-tools-btn" title="Herramientas secundarias" class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
 									<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
 									</svg>
 								</button>
 								<div id="secondary-tools-menu" class="hidden absolute left-0 mt-2 w-56 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-2 space-y-1">
-									<button id="copy-image-btn" title="Copiar Imagen" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Copiar imagen</button>
-									<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Tamaño de textos</button>
-									<button id="bulk-change-ct-symbol-btn" title="Actualizar Simbología (CT)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Actualizar Simbología (CT)</button>
-									<button id="reset-view-btn" title="Restablecer Vista" class="hidden w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Restablecer vista</button>
+									<button type="button" id="copy-image-btn" title="Copiar Imagen" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Copiar imagen</button>
+									<button type="button" id="resize-text-btn" title="Cambiar Tamaño de Textos" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Tamaño de textos</button>
+									<button type="button" id="bulk-change-ct-symbol-btn" title="Actualizar Simbología (CT)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Actualizar Simbología (CT)</button>
+									<button type="button" id="reset-view-btn" title="Restablecer Vista" class="hidden w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Restablecer vista</button>
 								</div>
 							</div>
 						</div>
 							 <div class="flex items-center flex-wrap justify-end gap-2">
 							<div class="relative inline-block text-left">
-								<button id="json-menu-btn" title="Opciones JSON" class="px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
+								<button type="button" id="json-menu-btn" title="Opciones JSON" class="px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
 									<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" />
 										<path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 12h8M8 15h5" />
@@ -1026,7 +1026,7 @@
 								</button>
 								<div id="json-menu" class="hidden absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-1">
 									<label for="upload-sketch-file" class="cursor-pointer block px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Subir archivo .json</label>
-									<button id="download-sketch-btn" title="Descargar Croquis (.json)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Descargar archivo .json</button>
+									<button type="button" id="download-sketch-btn" title="Descargar Croquis (.json)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Descargar archivo .json</button>
 								</div>
 							</div>
 							<input id="upload-sketch-file" type="file" class="hidden" accept=".json">
@@ -1932,6 +1932,10 @@
 
 				const controlsWrapper = document.createElement('div');
 				controlsWrapper.className = 'space-y-4';
+
+				const valueBadge = document.createElement('div');
+				valueBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700';
+				valueBadge.textContent = `${Math.round(clampValue(parsedDefault))}%`;
 
 				const valueBadge = document.createElement('div');
 				valueBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700';
