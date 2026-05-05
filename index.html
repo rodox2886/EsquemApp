@@ -160,9 +160,9 @@
 			background-color: #f3f4f6;
 			border: 1px solid #e5e7eb;
 			font-weight: 600;
-			padding: 4px 8px;
+			padding: 2px 6px;
 			margin-top: 0;
-			font-size: 0.9rem;
+			font-size: 0.75rem;
 		}
 		.message-box .preset-btn:hover,
 		.message-box .adjust-btn:hover {
@@ -1943,13 +1943,13 @@
 				numberInput.className = 'w-full p-2 border border-gray-300 rounded-md text-center text-lg font-semibold';
 
 				const presetsContainer = document.createElement('div');
-				presetsContainer.className = 'flex flex-wrap gap-2';
+				presetsContainer.className = 'grid grid-cols-8 gap-1';
 					const presetValues = [50, 75, 90, 100, 110, 125, 150, 200];
 					presetValues.forEach(val => {
 						const btn = document.createElement('button');
 						btn.type = 'button';
 						btn.textContent = `${val}%`;
-						btn.className = 'preset-btn text-xs rounded-md transition-colors';
+						btn.className = 'preset-btn h-8 text-[11px] rounded transition-colors';
 						btn.addEventListener('click', () => setValue(val));
 						presetsContainer.appendChild(btn);
 					});
