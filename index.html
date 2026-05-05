@@ -155,7 +155,7 @@
 			border: none;
 			border-radius: 8px;
 			cursor: pointer;
-			transition: background-color: 0.2s;
+			transition: background-color 0.2s;
 		}
 		.message-box .preset-btn,
 		.message-box .adjust-btn {
@@ -233,7 +233,7 @@
 			cursor: pointer;
 			padding: 8px;
 			border-radius: 6px;
-			transition: background-color: 0.2s;
+			transition: background-color 0.2s;
 		}
 		.symbol-option:hover {
 			background-color: #f3f4f6;
@@ -518,9 +518,9 @@
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
-			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-lg font-bold">Seleccionar Símbolo de CT</h3>
+		<div id="ct-picker-panel" class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+			<div id="ct-picker-header" class="flex justify-between items-center mb-4">
+				<h3 id="ct-picker-title" class="text-lg font-bold">Seleccionar Símbolo de CT</h3>
 				<button id="close-ct-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 			</div>
 			<div id="ct-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
@@ -8677,7 +8677,8 @@
                     }
                 });
                 draw();
-                delete ctPickerModal.dataset.bulkChange; // Clean up the flag
+                delete ctPickerModal.dataset.bulkChange;
+                setActiveTool(null);
             } else if (editingId) {
 				// We are editing an existing manual CT
 				const drawingToUpdate = userDrawings.find(d => d.id === editingId);
@@ -8748,10 +8749,6 @@
 				seccionadorPickerModal.classList.remove('flex');
 			}
 		});
-
-	drawSeccionadorBtn.addEventListener('click', (e) => {
-		setActiveTool(e.currentTarget);
-	});
 
 	helpBtn.addEventListener('click', () => {
 		helpModal.classList.remove('hidden');
