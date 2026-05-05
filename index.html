@@ -840,6 +840,13 @@
 					<circle cx="12" cy="12" r="3" fill="currentColor"></circle>
 				</svg>
 			</button>
+			<button id="bulk-change-ct-symbol-side-btn" title="Actualizar Simbología (CT)" class="tool-btn p-2 text-red-700 bg-red-100/70 hover:bg-red-200/80 rounded-md transition-colors ct-tool-btn">
+				<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-1 -1 26 26" stroke-width="1.7" stroke="currentColor">
+					<rect x="2" y="2" width="20" height="20" stroke="currentColor" fill="none"/>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 6L6 16h12z" />
+					<path stroke-linecap="round" stroke-linejoin="round" d="M18 5v5m0 0h-5m5 0-3 3" />
+				</svg>
+			</button>
 			<button id="draw-ellipse-btn" title="Elipse" class="tool-btn p-2 text-gray-600 rounded-md transition-colors shape-tool-btn">
 			 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="10" ry="6"/></svg>
 			</button>
@@ -1004,7 +1011,7 @@
 								<div id="secondary-tools-menu" class="hidden absolute left-0 mt-2 w-56 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-2 space-y-1">
 									<button id="copy-image-btn" title="Copiar Imagen" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Copiar imagen</button>
 									<button id="resize-text-btn" title="Cambiar Tamaño de Textos" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Tamaño de textos</button>
-									<button id="bulk-change-ct-symbol-btn" title="Cambiar Símbolo de Todos los CTs" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Símbolos CT (todos)</button>
+									<button id="bulk-change-ct-symbol-btn" title="Actualizar Simbología (CT)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Actualizar Simbología (CT)</button>
 									<button id="reset-view-btn" title="Restablecer Vista" class="hidden w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Restablecer vista</button>
 								</div>
 							</div>
@@ -1101,6 +1108,7 @@
 		const deleteBtn = document.getElementById('delete-btn');
 		const resizeTextBtn = document.getElementById('resize-text-btn');
 		const bulkChangeCtSymbolBtn = document.getElementById('bulk-change-ct-symbol-btn');
+		const bulkChangeCtSymbolSideBtn = document.getElementById('bulk-change-ct-symbol-side-btn');
 		const appShell = document.getElementById('app-shell');
 		const orderConfigScreen = document.getElementById('order-config-screen');
 		const geographicScreen = document.getElementById('geographic-screen');
@@ -6306,11 +6314,18 @@
 				});
 			});
 
-		bulkChangeCtSymbolBtn.addEventListener('click', () => {
-            ctPickerModal.dataset.bulkChange = 'true'; // Set a flag
-            ctPickerModal.classList.remove('hidden');
-            ctPickerModal.classList.add('flex');
-        });
+		if (bulkChangeCtSymbolBtn) {
+			bulkChangeCtSymbolBtn.addEventListener('click', () => {
+	            ctPickerModal.dataset.bulkChange = 'true'; // Set a flag
+	            ctPickerModal.classList.remove('hidden');
+	            ctPickerModal.classList.add('flex');
+	        });
+		}
+		if (bulkChangeCtSymbolSideBtn && bulkChangeCtSymbolBtn) {
+			bulkChangeCtSymbolSideBtn.addEventListener('click', () => {
+				bulkChangeCtSymbolBtn.click();
+			});
+		}
 
 			copyImageBtn.addEventListener('click', () => {
 			if (exportFormatSelect) {
