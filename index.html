@@ -160,7 +160,9 @@
 			background-color: #f3f4f6;
 			border: 1px solid #e5e7eb;
 			font-weight: 600;
-			padding: 8px 12px;
+			padding: 4px 8px;
+			margin-top: 0;
+			font-size: 0.9rem;
 		}
 		.message-box .preset-btn:hover,
 		.message-box .adjust-btn:hover {
@@ -1947,7 +1949,7 @@
 						const btn = document.createElement('button');
 						btn.type = 'button';
 						btn.textContent = `${val}%`;
-						btn.className = 'preset-btn text-sm rounded transition-colors';
+						btn.className = 'preset-btn text-xs rounded-md transition-colors';
 						btn.addEventListener('click', () => setValue(val));
 						presetsContainer.appendChild(btn);
 					});
