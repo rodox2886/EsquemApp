@@ -1010,19 +1010,20 @@
 							</div>
 						</div>
 							 <div class="flex items-center flex-wrap justify-end gap-2">
-							<label for="upload-sketch-file" title="Subir Croquis (.json)" class="cursor-pointer px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
-								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-								</svg>
-								<span>JSON</span>
-							</label>
+							<div class="relative inline-block text-left">
+								<button id="json-menu-btn" title="Opciones JSON" class="px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
+									<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" />
+										<path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 12h8M8 15h5" />
+									</svg>
+									<span>JSON</span>
+								</button>
+								<div id="json-menu" class="hidden absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-1">
+									<label for="upload-sketch-file" class="cursor-pointer block px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Subir archivo .json</label>
+									<button id="download-sketch-btn" title="Descargar Croquis (.json)" class="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Descargar archivo .json</button>
+								</div>
+							</div>
 							<input id="upload-sketch-file" type="file" class="hidden" accept=".json">
-							<button id="download-sketch-btn" title="Descargar Croquis (.json)" class="px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors font-semibold flex items-center gap-1">
-								<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-								  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" />
-								</svg>
-								<span>JSON</span>
-							</button>
                             <label for="dxf-upload-input" title="Cargar archivo DXF" class="cursor-pointer px-3 py-1 text-sm rounded bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors font-semibold flex items-center gap-1">
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 3h16v18H4z" />
@@ -7854,8 +7855,23 @@
 
         const uploadSketchInput = document.getElementById('upload-sketch-file');
         const downloadSketchBtn = document.getElementById('download-sketch-btn');
+		const jsonMenuBtn = document.getElementById('json-menu-btn');
+		const jsonMenu = document.getElementById('json-menu');
+
+		if (jsonMenuBtn && jsonMenu) {
+			jsonMenuBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				jsonMenu.classList.toggle('hidden');
+			});
+			document.addEventListener('click', (e) => {
+				if (!jsonMenu.classList.contains('hidden') && !jsonMenu.contains(e.target) && !jsonMenuBtn.contains(e.target)) {
+					jsonMenu.classList.add('hidden');
+				}
+			});
+		}
 
         downloadSketchBtn.addEventListener('click', () => {
+			if (jsonMenu) jsonMenu.classList.add('hidden');
             const data = {
                 linesAndPolylines,
                 symbols,
@@ -7873,6 +7889,7 @@
         });
 
         uploadSketchInput.addEventListener('change', (e) => {
+			if (jsonMenu) jsonMenu.classList.add('hidden');
             const file = e.target.files[0];
 			if (!file) {
                 e.target.value = '';
