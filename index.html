@@ -515,9 +515,9 @@
 
 	<!-- CT Symbol Picker Modal -->
 	<div id="ct-symbol-picker-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-		<div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
-			<div class="flex justify-between items-center mb-4">
-				<h3 class="text-lg font-bold">Seleccionar Símbolo de CT</h3>
+		<div id="ct-picker-panel" class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+			<div id="ct-picker-header" class="flex justify-between items-center mb-4">
+				<h3 id="ct-picker-title" class="text-lg font-bold">Seleccionar Símbolo de CT</h3>
 				<button id="close-ct-picker-btn" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
 			</div>
 			<div id="ct-symbol-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
@@ -840,11 +840,12 @@
 					<circle cx="12" cy="12" r="3" fill="currentColor"></circle>
 				</svg>
 			</button>
-			<button id="bulk-change-ct-symbol-side-btn" title="Actualizar Simbología (CT)" class="tool-btn p-2 text-red-700 bg-red-100/70 hover:bg-red-200/80 rounded-md transition-colors ct-tool-btn">
+			<button id="bulk-change-ct-symbol-side-btn" title="Actualizar Simbología (CT)" class="tool-btn p-2 text-red-700 bg-red-100/80 border border-red-200 hover:bg-red-200/90 rounded-md transition-colors ct-tool-btn">
 				<svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-1 -1 26 26" stroke-width="1.7" stroke="currentColor">
 					<rect x="2" y="2" width="20" height="20" stroke="currentColor" fill="none"/>
 					<path stroke-linecap="round" stroke-linejoin="round" d="M12 6L6 16h12z" />
-					<path stroke-linecap="round" stroke-linejoin="round" d="M18 5v5m0 0h-5m5 0-3 3" />
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 4a7 7 0 0 1 11.5-1.4" />
+					<path stroke-linecap="round" stroke-linejoin="round" d="M18 2.5v3.8h-3.8" />
 				</svg>
 			</button>
 			<button id="draw-ellipse-btn" title="Elipse" class="tool-btn p-2 text-gray-600 rounded-md transition-colors shape-tool-btn">
@@ -1239,6 +1240,9 @@
 		const drawCtBtn = document.getElementById('draw-ct-btn');
 		const ctPickerModal = document.getElementById('ct-symbol-picker-modal');
 		const closeCtPickerBtn = document.getElementById('close-ct-picker-btn');
+		const ctPickerTitle = document.getElementById('ct-picker-title');
+		const ctPickerHeader = document.getElementById('ct-picker-header');
+		const ctPickerPanel = document.getElementById('ct-picker-panel');
 		const ctSymbolGrid = document.getElementById('ct-symbol-grid');
 		const drawSeccionadorBtn = document.getElementById('draw-seccionador-btn');
 		const drawMundoInternoBtn = document.getElementById('draw-mundo-interno-btn');
@@ -5366,6 +5370,7 @@
 	                changeManualCtSymbolBtn.addEventListener('click', () => {
 	                    if (drawing) {
 	                        ctPickerModal.dataset.editingDrawingId = drawing.id;
+							updateCtPickerTitle();
                         ctPickerModal.classList.remove('hidden');
                         ctPickerModal.classList.add('flex');
                     }
@@ -5744,6 +5749,7 @@
 						changeCtIconBtn.addEventListener('click', () => {
 							if (selectedEntity && selectedEntity.symbolType === 'ct') {
 								editingCtEntity = selectedEntity;
+								updateCtPickerTitle();
 								ctPickerModal.classList.remove('hidden');
 								ctPickerModal.classList.add('flex');
 							}
@@ -6317,6 +6323,7 @@
 		if (bulkChangeCtSymbolBtn) {
 			bulkChangeCtSymbolBtn.addEventListener('click', () => {
 	            ctPickerModal.dataset.bulkChange = 'true'; // Set a flag
+				updateCtPickerTitle();
 	            ctPickerModal.classList.remove('hidden');
 	            ctPickerModal.classList.add('flex');
 	        });
@@ -8577,8 +8584,27 @@
 			});
     	}
 
+		function updateCtPickerTitle() {
+			if (!ctPickerTitle) return;
+			const isBulkChange = ctPickerModal && ctPickerModal.dataset.bulkChange === 'true';
+			ctPickerTitle.textContent = isBulkChange ? 'Actualizar Simbología de los CT' : 'Seleccionar Símbolo de CT';
+			if (ctPickerHeader) {
+				ctPickerHeader.classList.toggle('bg-red-50', isBulkChange);
+				ctPickerHeader.classList.toggle('border', isBulkChange);
+				ctPickerHeader.classList.toggle('border-red-200', isBulkChange);
+				ctPickerHeader.classList.toggle('rounded-lg', isBulkChange);
+				ctPickerHeader.classList.toggle('px-3', isBulkChange);
+				ctPickerHeader.classList.toggle('py-2', isBulkChange);
+			}
+			if (ctPickerPanel) {
+				ctPickerPanel.classList.toggle('ring-2', isBulkChange);
+				ctPickerPanel.classList.toggle('ring-red-200', isBulkChange);
+			}
+		}
+
 		drawCtBtn.addEventListener('click', () => {
 			setActiveTool(null);
+			updateCtPickerTitle();
 			ctPickerModal.classList.remove('hidden');
 			ctPickerModal.classList.add('flex');
 		});
@@ -8594,6 +8620,7 @@
 			ctPickerModal.classList.remove('flex');
 			delete ctPickerModal.dataset.editingDrawingId;
             delete ctPickerModal.dataset.bulkChange;
+			updateCtPickerTitle();
 			editingCtEntity = null;
 		});
 		drawMundoInternoBtn.addEventListener('click', () => {
