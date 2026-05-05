@@ -1906,13 +1906,23 @@
 
 				const box = document.createElement('div');
 				box.className = 'message-box';
+				box.style.maxWidth = '680px';
+				box.style.width = 'calc(100vw - 32px)';
 
 				const messageP = document.createElement('p');
-				messageP.textContent = 'Introduzca el porcentaje de tamaño del texto (ej: 120 para 20% más grande, 80 para 20% más pequeño)';
-				messageP.className = 'mb-4 text-lg leading-relaxed';
+				messageP.textContent = 'Tamaño global de textos';
+				messageP.className = 'mb-1 text-2xl font-semibold text-gray-800';
+
+				const helperP = document.createElement('p');
+				helperP.textContent = 'Ajustá el porcentaje o usá presets rápidos (100% = tamaño original).';
+				helperP.className = 'mb-4 text-sm text-gray-500';
 
 				const controlsWrapper = document.createElement('div');
-				controlsWrapper.className = 'space-y-3';
+				controlsWrapper.className = 'space-y-4';
+
+				const valueBadge = document.createElement('div');
+				valueBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700';
+				valueBadge.textContent = `${Math.round(clampValue(parsedDefault))}%`;
 
 				const slider = document.createElement('input');
 				slider.type = 'range';
@@ -1928,7 +1938,7 @@
 				numberInput.max = `${max}`;
 				numberInput.step = '1';
 				numberInput.value = `${clampValue(parsedDefault)}`;
-				numberInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+				numberInput.className = 'w-full p-2 border border-gray-300 rounded-md text-center text-lg font-semibold';
 
 				const presetsContainer = document.createElement('div');
 				presetsContainer.className = 'flex flex-wrap gap-2';
@@ -1978,6 +1988,7 @@
 					const clamped = clampValue(parseFloat(val));
 					slider.value = `${clamped}`;
 					numberInput.value = `${clamped}`;
+					valueBadge.textContent = `${Math.round(clamped)}%`;
 					errorText.classList.add('hidden');
 				};
 
@@ -2014,6 +2025,7 @@
 				});
 
 				controlsWrapper.appendChild(slider);
+				controlsWrapper.appendChild(valueBadge);
 				controlsWrapper.appendChild(numberInput);
 				controlsWrapper.appendChild(presetsContainer);
 				controlsWrapper.appendChild(adjustContainer);
@@ -2023,6 +2035,7 @@
 				actions.appendChild(cancelBtn);
 
 				box.appendChild(messageP);
+				box.appendChild(helperP);
 				box.appendChild(controlsWrapper);
 				box.appendChild(actions);
 
