@@ -1941,6 +1941,10 @@
 				valueBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700';
 				valueBadge.textContent = `${Math.round(clampValue(parsedDefault))}%`;
 
+				const valueBadge = document.createElement('div');
+				valueBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-700';
+				valueBadge.textContent = `${Math.round(clampValue(parsedDefault))}%`;
+
 				const slider = document.createElement('input');
 				slider.type = 'range';
 				slider.min = `${min}`;
@@ -6268,33 +6272,39 @@
 			}
 		});
 
-		document.getElementById('compress-all-btn').addEventListener('click', (e) => {
+		const compressAllBtn = document.getElementById('compress-all-btn');
+		const compressSelectionAllBtn = document.getElementById('compress-selection-all-btn');
+		const compressSelectionHorizontalBtn = document.getElementById('compress-selection-horizontal-btn');
+		const compressSelectionVerticalBtn = document.getElementById('compress-selection-vertical-btn');
+		const compressHorizontalBtn = document.getElementById('compress-horizontal-btn');
+		const compressVerticalBtn = document.getElementById('compress-vertical-btn');
+
+		if (compressAllBtn) compressAllBtn.addEventListener('click', (e) => {
 			e.preventDefault();
-                        // Skip history when compressing; cloning large DXF files can freeze the app
                         compressLayout('all', true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-selection-all-btn').addEventListener('click', (e) => {
+		if (compressSelectionAllBtn) compressSelectionAllBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			compressLayout('all', true, true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-selection-horizontal-btn').addEventListener('click', (e) => {
+		if (compressSelectionHorizontalBtn) compressSelectionHorizontalBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			compressLayout('horizontal', true, true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-selection-vertical-btn').addEventListener('click', (e) => {
+		if (compressSelectionVerticalBtn) compressSelectionVerticalBtn.addEventListener('click', (e) => {
 			e.preventDefault();
 			compressLayout('vertical', true, true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-horizontal-btn').addEventListener('click', (e) => {
+		if (compressHorizontalBtn) compressHorizontalBtn.addEventListener('click', (e) => {
 			e.preventDefault();
                         compressLayout('horizontal', true);
 			compressMenu.classList.add('hidden');
 		});
-		document.getElementById('compress-vertical-btn').addEventListener('click', (e) => {
+		if (compressVerticalBtn) compressVerticalBtn.addEventListener('click', (e) => {
 			e.preventDefault();
                         compressLayout('vertical', true);
 			compressMenu.classList.add('hidden');
