@@ -360,12 +360,14 @@
 					<div>
 						<label for="export-resolution" class="block text-sm font-semibold text-gray-700 mb-1">Resolución</label>
 						<select id="export-resolution" class="w-full border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-							<option value="1">1x (predeterminada)</option>
-							<option value="1.5">1.5x</option>
-							<option value="2">2x</option>
-							<option value="4">4x</option>
+							<option value="1">1x (pantalla)</option>
+							<option value="2">2x — buena calidad</option>
+							<option value="3" selected>3x — alta calidad</option>
+							<option value="4">4x — impresión ~150 DPI</option>
+							<option value="6">6x — impresión ~225 DPI</option>
+							<option value="8">8x — máxima (~300 DPI)</option>
 						</select>
-						<p class="text-xs text-gray-500 mt-1">Escala relativa al tamaño visible del lienzo.</p>
+						<p class="text-xs text-gray-500 mt-1">Re-renderiza el diagrama a la resolución elegida (no escala el bitmap).</p>
 					</div>
 						<div>
 							<label for="export-bg-color" class="block text-sm font-semibold text-gray-700 mb-1">Color de fondo</label>
@@ -1212,7 +1214,7 @@
 			let activeSeccionadorIconType = 'standard';
 				let exportOptions = {
 					format: 'png',
-					scale: 1,
+					scale: 3,
 					backgroundColor: '#f0f0f0',
 					includeTitleBlock: true,
 					includeOrderCover: true,
@@ -3280,35 +3282,91 @@
 			const includeTitleBlock = options.includeTitleBlock && isPdf;
 			const pdfConfig = options.pdfConfig || {};
 			const paper = getPaperDimensionsPx(pdfConfig.paperSize, pdfConfig.orientation, scale);
-			const outputWidth = isPdf ? paper.width : Math.max(1, Math.round(sourceCanvas.width * scale));
-			const outputHeight = isPdf ? paper.height : Math.max(1, Math.round(sourceCanvas.height * scale));
+
+			// For PNG/SVG: re-render the diagram at target resolution instead of
+			// scaling the existing bitmap (which would be blurry).
+			if (!isPdf) {
+				const dpr = window.devicePixelRatio || 1;
+				const cssWidth = sourceCanvas.width / dpr;
+				const cssHeight = sourceCanvas.height / dpr;
+				const outputWidth = Math.max(1, Math.round(cssWidth * scale));
+				const outputHeight = Math.max(1, Math.round(cssHeight * scale));
+
+				// Cap to browser canvas limits
+				const MAX_DIM = 16384;
+				const clampedW = Math.min(outputWidth, MAX_DIM);
+				const clampedH = Math.min(outputHeight, MAX_DIM);
+				const actualScale = Math.min(clampedW / cssWidth, clampedH / cssHeight);
+
+				// Temporarily resize the main canvas buffer to the export resolution,
+				// then call draw() which re-renders everything from model data at that size.
+				const savedW = sourceCanvas.width;
+				const savedH = sourceCanvas.height;
+				sourceCanvas.width = Math.round(cssWidth * actualScale);
+				sourceCanvas.height = Math.round(cssHeight * actualScale);
+				dxfCtx.scale(actualScale, actualScale);
+				draw();
+
+				// Capture result into a temp canvas before restoring
+				const tempCanvas = document.createElement('canvas');
+				tempCanvas.width = sourceCanvas.width;
+				tempCanvas.height = sourceCanvas.height;
+				tempCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0);
+
+				// Restore the screen canvas
+				sourceCanvas.width = savedW;
+				sourceCanvas.height = savedH;
+				dxfCtx.scale(dpr, dpr);
+				draw();
+
+				return { tempCanvas, outputWidth: tempCanvas.width, outputHeight: tempCanvas.height };
+			}
+
+			// PDF path: render at PDF paper dimensions
+			const outputWidth = paper.width;
+			const outputHeight = paper.height;
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
 			tempCanvas.width = outputWidth;
 			tempCanvas.height = outputHeight;
+			tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
+			tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-            tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-			if (isPdf) {
-				let diagramRect = { x: 0, y: 0, width: outputWidth, height: outputHeight };
-				if (includeTitleBlock) {
-					const logoImage = await loadEdenorLogo();
-					const layout = drawTitleBlock(tempCtx, { width: outputWidth, height: outputHeight }, pdfConfig, paper.mmToPx, logoImage);
-					diagramRect = layout.diagramRect;
-				}
-
-					const fitScale = Math.min(diagramRect.width / sourceCanvas.width, diagramRect.height / sourceCanvas.height);
-					const drawWidth = sourceCanvas.width * fitScale;
-					const drawHeight = sourceCanvas.height * fitScale;
-					const drawX = diagramRect.x + (diagramRect.width - drawWidth) / 2;
-					const drawY = diagramRect.y + (diagramRect.height - drawHeight) / 2;
-					tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
-					tempCtx.fillRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
-					tempCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, drawX, drawY, drawWidth, drawHeight);
-				} else {
-				tempCtx.drawImage(sourceCanvas, 0, 0, outputWidth, outputHeight);
+			let diagramRect = { x: 0, y: 0, width: outputWidth, height: outputHeight };
+			if (includeTitleBlock) {
+				const logoImage = await loadEdenorLogo();
+				const layout = drawTitleBlock(tempCtx, { width: outputWidth, height: outputHeight }, pdfConfig, paper.mmToPx, logoImage);
+				diagramRect = layout.diagramRect;
 			}
+
+			// Re-render at PDF resolution for the diagram area
+			const dpr = window.devicePixelRatio || 1;
+			const cssWidth = sourceCanvas.width / dpr;
+			const cssHeight = sourceCanvas.height / dpr;
+			const fitScale = Math.min(diagramRect.width / cssWidth, diagramRect.height / cssHeight);
+			const savedW = sourceCanvas.width;
+			const savedH = sourceCanvas.height;
+			sourceCanvas.width = Math.round(cssWidth * fitScale);
+			sourceCanvas.height = Math.round(cssHeight * fitScale);
+			dxfCtx.scale(fitScale, fitScale);
+			draw();
+			const diagramCanvas = document.createElement('canvas');
+			diagramCanvas.width = sourceCanvas.width;
+			diagramCanvas.height = sourceCanvas.height;
+			diagramCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0);
+			sourceCanvas.width = savedW;
+			sourceCanvas.height = savedH;
+			dxfCtx.scale(dpr, dpr);
+			draw();
+
+			const drawWidth = diagramCanvas.width;
+			const drawHeight = diagramCanvas.height;
+			const drawX = diagramRect.x + (diagramRect.width - drawWidth) / 2;
+			const drawY = diagramRect.y + (diagramRect.height - drawHeight) / 2;
+			tempCtx.fillStyle = options.backgroundColor || '#f0f0f0';
+			tempCtx.fillRect(diagramRect.x, diagramRect.y, diagramRect.width, diagramRect.height);
+			tempCtx.drawImage(diagramCanvas, drawX, drawY);
+
 			return { tempCanvas, outputWidth, outputHeight };
 		}
 
