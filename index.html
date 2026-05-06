@@ -7785,6 +7785,7 @@
 				saveHistoryState();
 
 				if (mode === 'same') {
+					if (sketch.blockGeometries) Object.assign(blockGeometries, sketch.blockGeometries);
 					const sketchBounds = getSketchBounds(sketch);
 					const sketchCenter = {
 						x: (sketchBounds.minX + sketchBounds.maxX) / 2,
@@ -7814,6 +7815,7 @@
 					originalExtents = null;
 					resetViewBtn.classList.add('hidden');
 				} else {
+					if (sketch.blockGeometries) blockGeometries = sketch.blockGeometries;
 					linesAndPolylines = sketch.linesAndPolylines || [];
 					symbols = sketch.symbols || [];
 					userDrawings = sketch.userDrawings || [];
@@ -7829,6 +7831,7 @@
 
 				document.getElementById('initial-message').classList.add('hidden');
 				dxfCanvas.classList.remove('hidden');
+				populateSearchSuggestions();
 				resizeCanvas();
 				draw();
 			}
