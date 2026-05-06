@@ -7204,7 +7204,7 @@
 					if ((dx * dx + dy * dy) > 25) { // 5px threshold
 						
 						let actionToStart = 'pan';
-							if (isManualModeEnabled && currentTool === 'pan') {
+							if (currentTool === 'pan') {
 								const drawingUnderCursor = getDrawingAtScreenPos(marqueeStart.x, marqueeStart.y);
 								const entityUnderCursor = getEntityAtScreenPos(marqueeStart.x, marqueeStart.y);
 								const preferEntityOverBackDrawing = drawingUnderCursor && drawingUnderCursor.sendToBack && entityUnderCursor && selectedDrawingId !== drawingUnderCursor.id;
@@ -7217,6 +7217,7 @@
 														(selectedEntity && entityUnderCursor && entityUnderCursor === selectedEntity);
 
 								if (isAlreadySelected) {
+									// Always allow dragging an already-selected item, even without Mov. mode
 									if (multiSelection.length > 0) {
 										actionToStart = 'dragMultiSelection';
 									} else if (selectedDrawingId) {
@@ -7224,8 +7225,8 @@
 									} else { // selectedEntity must be true
 										actionToStart = 'dragGroup';
 									}
-								} else {
-									// Item is not selected. In manual mode, a drag on any item selects and moves it.
+								} else if (isManualModeEnabled) {
+									// Mov. mode: drag any item even without pre-selecting
 									if (effectiveDrawingUnderCursor) {
 										actionToStart = 'dragDrawing';
 									} else { // entityUnderCursor
