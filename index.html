@@ -5064,9 +5064,40 @@
 			if (ent.type === 'SYMBOL') {
 				let sizeX = SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * (ent.xScale || 1);
 				let sizeY = SYMBOL_SIZE * GLOBAL_SYMBOL_SCALE * (ent.yScale || 1);
-				if (ent.symbolType === 'ct') {
-					sizeX *= CT_COVER_FACTOR;
-					sizeY *= CT_COVER_FACTOR;
+				if (ent.symbolType === 'ct') { sizeX *= CT_COVER_FACTOR; sizeY *= CT_COVER_FACTOR; }
+				// TR seccionadors render as a tiny dot (radius = size*0.075)
+				if (ent.symbolType === 'seccionador' && ent.label && /-TR[12]$/i.test(ent.label)) {
+					sizeX *= 0.15; sizeY *= 0.15;
+				}
+				// Use actual block geometry for bbox when available (more accurate than fixed formula)
+				const blockGeoms = blockGeometries[ent.blockName];
+				if (blockGeoms && blockGeoms.length > 0) {
+					let bMinX = Infinity, bMinY = Infinity, bMaxX = -Infinity, bMaxY = -Infinity;
+					const rotRad = (ent.rotation || 0) * Math.PI / 180;
+					const cosR = Math.cos(rotRad), sinR = Math.sin(rotRad);
+					blockGeoms.forEach(geom => {
+						const pts = [];
+						if (geom.type === 'LINE') { pts.push(geom.start, geom.end); }
+						else if ((geom.type === 'POLYLINE' || geom.type === 'LWPOLYLINE') && geom.vertices) { pts.push(...geom.vertices); }
+						else if (geom.center) {
+							const r = geom.radius || 0;
+							[[-r,0],[r,0],[0,-r],[0,r]].forEach(([dx,dy]) => pts.push({x: geom.center.x+dx, y: geom.center.y+dy}));
+						}
+						pts.forEach(p => {
+							if (!p) return;
+							let tx = p.x * (ent.xScale || 1), ty = p.y * (ent.yScale || 1);
+							if (ent.rotation) { const nx = tx*cosR - ty*sinR; ty = tx*sinR + ty*cosR; tx = nx; }
+							tx += ent.position.x; ty += ent.position.y;
+							bMinX = Math.min(bMinX, tx); bMinY = Math.min(bMinY, ty);
+							bMaxX = Math.max(bMaxX, tx); bMaxY = Math.max(bMaxY, ty);
+						});
+					});
+					if (bMinX !== Infinity) {
+						const pad = Math.max((bMaxX - bMinX) * 0.05, sizeX * 0.1);
+						if (inModelCoords) return { x: bMinX-pad, y: bMinY-pad, width: (bMaxX-bMinX)+2*pad, height: (bMaxY-bMinY)+2*pad };
+						const sm = modelToScreen(bMinX-pad, bMaxY+pad), sx = modelToScreen(bMaxX+pad, bMinY-pad);
+						return { x: sm.x, y: sm.y, width: sx.x-sm.x, height: sx.y-sm.y };
+					}
 				}
 				const corners = [
 					{ x: ent.position.x - sizeX, y: ent.position.y - sizeY },
