@@ -6732,11 +6732,7 @@
 			applyColorActionBtn.addEventListener('click', () => {
 				const selectedColor = paintColorInput.value;
 				if (paintTargetSelect && paintTargetSelect.value === 'background') {
-					if (appBgColorInput) {
-						appBgColorInput.value = normalizePaletteColor(selectedColor, '#f0f0f0');
-						updateColorSelectVisual(appBgColorInput);
-					}
-					applyCanvasBackgroundColor();
+					applyCanvasBackgroundColor(selectedColor);
 				} else {
 					const scope = lineScopeSelect ? lineScopeSelect.value : 'selected';
 					if (scope === 'all') {
