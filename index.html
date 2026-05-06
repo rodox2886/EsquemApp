@@ -7222,15 +7222,21 @@
 										actionToStart = 'dragMultiSelection';
 									} else if (selectedDrawingId) {
 										actionToStart = 'dragDrawing';
-									} else { // selectedEntity must be true
-										actionToStart = 'dragGroup';
+									} else if (selectedEntity) {
+										// Move individual DXF entity (not the whole group)
+										multiSelection = [selectedEntity];
+										actionToStart = 'dragMultiSelection';
 									}
 								} else if (isManualModeEnabled) {
 									// Mov. mode: drag any item even without pre-selecting
 									if (effectiveDrawingUnderCursor) {
 										actionToStart = 'dragDrawing';
-									} else { // entityUnderCursor
-										actionToStart = 'dragGroup';
+									} else if (entityUnderCursor) {
+										// Move individual DXF entity directly (not the whole group)
+										multiSelection = [entityUnderCursor];
+										selectedEntity = entityUnderCursor;
+										selectedDrawingId = null;
+										actionToStart = 'dragMultiSelection';
 									}
 								}
 							}
