@@ -7848,6 +7848,7 @@
 					userDrawings,
 					extents,
 					originalExtents,
+					blockGeometries,
 				};
 
 				sketches.push(sketchData);
@@ -7920,7 +7921,8 @@
                 symbols,
                 userDrawings,
                 extents,
-                originalExtents
+                originalExtents,
+                blockGeometries
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -7968,6 +7970,7 @@
                 userDrawings = data.userDrawings || [];
                 extents = data.extents || extents;
 				originalExtents = data.originalExtents || null;
+                if (data.blockGeometries) blockGeometries = data.blockGeometries;
 				
 				if (originalExtents) {
 					resetViewBtn.classList.remove('hidden');
@@ -7984,6 +7987,7 @@
             };
 
             const appendSketch = (data) => {
+                if (data.blockGeometries) Object.assign(blockGeometries, data.blockGeometries);
                 const incomingLines = data.linesAndPolylines || [];
                 const incomingSymbols = data.symbols || [];
                 const incomingDrawings = data.userDrawings || [];
