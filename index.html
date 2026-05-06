@@ -897,15 +897,10 @@
 								</label>
 								<input id="dxf-upload-input" type="file" class="hidden" accept=".dxf">
 
-								<div class="relative inline-block">
-									<button type="button" id="json-menu-btn" title="Opciones JSON" class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">
-										<svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 12h8M8 15h5" /></svg>
-										JSON
-									</button>
-									<div id="json-menu" class="hidden absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white border border-gray-200 z-40 p-1">
-										<label for="upload-sketch-file" class="cursor-pointer block px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">Subir archivo .json</label>
-									</div>
-								</div>
+								<label for="upload-sketch-file" title="Cargar archivo JSON" class="cursor-pointer flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors">
+									<svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 12h8M8 15h5" /></svg>
+									JSON
+								</label>
 								<input id="upload-sketch-file" type="file" class="hidden" accept=".json">
 							</div>
 
@@ -8341,7 +8336,7 @@
 		function populateCtSymbolPicker() {
 			const grid = document.getElementById('ct-symbol-grid');
 			grid.innerHTML = '';
-                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo', 'ct-circle-diagonal', 'ct-double-circle', 'ct-double-circle-diagonal', 'ct-circle-double-slash', 'ct-split-coupled', 'ct-split-coupled-arrow', 'ct-provisional-lines'];
+                const iconTypes = ['plain', 'triangle', 'solid-circle', 'dotted-circle', 'rhombus', 'pp-circle', 'pp-solid-circle', 'parallel-lines-circle', 'pp-parallel-lines-circle', 'circle-rhombus', 'hexagon', 'switch', 'uni-subterraneo'];
 
 			const iconNames = {
                 'plain': 'CT Genérico',
@@ -8356,14 +8351,7 @@
                 'circle-rhombus': 'CM Nivel Acc. Vía Pública',
                 'hexagon': 'CT Sumergible',
                 'switch': 'Caja Seccionadora',
-                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública',
-                'ct-circle-diagonal': 'CT círculo con diagonal (C663/C691)',
-                'ct-double-circle': 'CT doble círculo (C665)',
-                'ct-double-circle-diagonal': 'CT doble círculo con diagonal (C666/C683/C684)',
-                'ct-circle-double-slash': 'CT círculo con doble marca (C667/C668/C669)',
-                'ct-split-coupled': 'CT barra MT dividida (C685)',
-                'ct-split-coupled-arrow': 'CT acoplamiento BT (C686)',
-                'ct-provisional-lines': 'UNI CT provisorio (C1458)'
+                'uni-subterraneo': 'UNI CT Sub Acc. Vía Pública'
             };
 
 			iconTypes.forEach(type => {
